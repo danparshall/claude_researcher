@@ -6,7 +6,7 @@ The agent reads its instructions from this repo at runtime, and reads/writes you
 
 ## About
 
-`claude_researcher` is a collaboration between [Dan Parshall](https://github.com/danparshall) and Andrea Lopez-Luzuriaga — two researchers sharing what we've learned about effective Claude techniques with the academic community. We maintain this repo as a public artifact so other labs and research groups can use, fork, or adapt the workflow for their own projects. The reasoning behind specific design choices lives in [`docs/`](docs/) for anyone who wants to see how the pieces got assembled.
+`claude_researcher` is a collaboration between [Dan Parshall](https://danparshall.com) and [Andrea Lopez-Luzuriaga](https://andrealopezluzuriaga.com) — two researchers sharing what we've learned about effective Claude techniques with the academic community. We maintain this repo as a public artifact so other labs and research groups can use, fork, or adapt the workflow for their own projects. The reasoning behind specific design choices lives in [`docs/`](docs/) for anyone who wants to see how the pieces got assembled.
 
 ## Quick start
 
