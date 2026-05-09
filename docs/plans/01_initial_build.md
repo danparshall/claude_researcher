@@ -38,8 +38,8 @@ NOTE: Because this is a content-first project rather than a code project, I will
 ## Phase 2: Populate the `template/` skeleton
 
 2. Write `template/README.md`. Top of file: human-readable explanation of what this repo is + the copy-pasteable bootstrap prompt the collaborator pastes into claude.ai (the prompt points Claude at `BOOTSTRAP.md`). Include the rendered prompt in a code block so it's clearly copyable.
-3. Write `template/LICENSE` (Apache 2.0, matching Nori upstream — copyright Dan Parshall, acknowledgment that this is a downstream fork).
-4. Write `template/ATTRIBUTION.md` documenting the Nori → Dan → collaborator chain.
+3. Copy `LICENSE` (Apache 2.0) and `LICENSE-ADDENDUM.txt` (Ship of Theseus v0.1) verbatim from Nori upstream into `template/`. Both files already exist at the dev repo root and just need to be duplicated into `template/`. The addendum's terms require both files in any derivative work — keep both filenames matching upstream exactly so the link is unambiguous.
+4. Write `template/ATTRIBUTION.md` documenting the Nori → Dan → collaborator chain. Include explicit copyright line (`Copyright 2026 Dan Parshall, downstream of Nori (tilework-tech/nori-skillsets) under Apache 2.0 + Ship of Theseus addendum`). This is where attribution lives, since LICENSE itself stays verbatim.
 5. Write `template/_PROJECT_INSTRUCTIONS.md.template` with `<TOKEN>`, `<USERNAME>`, `<REPO>` placeholders + a plain-language "Why this uses the GitHub API" section pointing to Settings > Capabilities > Allow Network Egress > Domain Allow List.
 6. Write `template/templates/domain_allowlist.txt` with baseline domains: `api.github.com`, `raw.githubusercontent.com`, `github.com`, `codeload.github.com`, `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`. One domain per line, sorted, with comment lines marking workflow-required vs paper-source domains.
 7. Create empty directories with `.gitkeep` files: `template/skills/`, `template/scripts/`, `template/reference/`. (Subdirectories created when files are added.)
@@ -154,7 +154,7 @@ End-to-end manual testing only — no unit tests. Acceptance: a non-CLI-savvy co
 
 **Questions**
 
-- **Nori license confirmation.** Confirmed via fetch that `tilework-tech/nori-skillsets` ships Apache 2.0. Plan defaults to Apache 2.0. Dan recalled it as "don't fuck over FOSS by trying to cleanroom this" which roughly matches Apache 2.0's patent retaliation clause — but if there's a stricter license elsewhere in the Nori ecosystem (NOTICE file, per-skill, etc.), update Phase 2 task 3 accordingly.
+- ~~**Nori license confirmation.**~~ **Resolved.** Nori ships Apache 2.0 (`LICENSE`) **plus** a Ship of Theseus addendum (`LICENSE-ADDENDUM.txt`) that explicitly defeats the LLM-cleanroom dodge: "Using any AI tool to produce functionally equivalent software... creates a derivative work subject to the full terms of the primary license." The addendum requires inclusion alongside Apache 2.0 in any derivative work. Both files now live at `claude_researcher/` repo root and will be duplicated into `template/` per Phase 2 task 3.
 - **Repo visibility for `basic_config`.** Default private (the design assumes this). But if private, the agent's PAT must have read scope on it — confirm fine-grained PAT supports this.
 - **Should the public `claude_researcher` repo include the `docs/convos/` and `docs/plans/` from this dev repo?** Pro: FOSS transparency, downstream contributors can read rationale. Con: noise in the public repo, some convos may have decisions that don't map to the published code. Default: leave them in dev repo only; revisit if collaborators ask "why did you decide X?".
 - **What happens when Dan's CLAUDE.md upstream changes mid-session for a user?** A user mid-session won't re-fetch CLAUDE.md unless the skill explicitly does so. Acceptable; no action needed unless we hit a real-world bug.
