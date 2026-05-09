@@ -129,12 +129,14 @@ If they need to create one, walk them through:
 > - **Token name:** `claude_researcher` (or any name you'll recognize)
 > - **Expiration:** 90 days is reasonable; pick longer if you're confident in your memory
 > - **Repository access:** **All repositories**. (Granting access to all your repos is broader than ideal, but fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
-> - **Repository permissions** (set the following to **Read and write**):
->   - **Administration** — needed so I can create repos
->   - **Contents** — needed so I can read and write files
->   - **Metadata** — read-only is auto-set; that's fine
+> - **Repository permissions** — set the following to **Read and write** (default is 'No access' for everything; you have to actively change each one):
+>   - ⚠️ **Administration** — **Read and write**. **THIS IS THE MOST-SKIPPED PERMISSION** — without it, repo creation in Step 6 will fail with 403 Forbidden and we'll have to come back here to fix it. Don't skip. Don't leave it on 'No access'.
+>   - **Contents** — Read and write. Needed so I can read and write files inside your repos.
+>   - **Metadata** — read-only is auto-set; that's fine.
 >
 > Click **Generate token** at the bottom. Copy the token immediately — GitHub won't show it to you again. It will start with `github_pat_`."
+
+**Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below).
 
 **Collect the PAT.** Once they have it, ask them to paste it directly into the chat. Once you have it, set it as a shell variable:
 
@@ -257,15 +259,31 @@ After all three batches, summarize the full interview to the user in one paragra
 
 ---
 
-## Step 5 — Research project topic + repo name
+## Step 5 — First repo: research project, or knowledge base?
 
-Now that user-level prefs are squared away (or pre-existing for returning users), shift focus to the project itself.
+Now that user-level prefs are squared away (or pre-existing for returning users), shift focus to the user's first repo. Two paths, branched on whether they have a specific project in mind or are just getting started:
 
-Ask: *"What's the topic of this first research project? One sentence is fine."*
+### 5a — Ask which path
 
-Record the answer as `<TOPIC>`. Suggest a repo name in the format `research-<short-slug>`. Example: if they say "I'm studying how stress affects sleep in adolescents," suggest `research-stress-sleep-adolescents`. Tell them they can press Enter (or say "yes") to accept your suggestion or type something different.
+Ask:
+
+> "What's the topic of your first research project? One sentence is fine. Or — if you don't have a specific project in mind yet and just want a place to accumulate notes, papers, and emerging ideas, say 'knowledge base' and we'll set up `<USERNAME>/knowledge_base` instead. You can always bootstrap project-specific repos later when ideas crystallize."
+
+### 5b — If they have a specific project
+
+Record the topic as `<TOPIC>`. Suggest a repo name in the format `research-<short-slug>`. Example: if they say "I'm studying how stress affects sleep in adolescents," suggest `research-stress-sleep-adolescents`. Tell them they can press Enter (or say "yes") to accept your suggestion or type something different.
 
 Validate the final name: lowercase, alphanumeric and hyphens only, ≤39 characters (GitHub repo names can go to 100, but shorter is friendlier). Record as `<RESEARCH_REPO>`.
+
+### 5c — If they want a general knowledge base
+
+For users who are exploring or new to the workflow, `knowledge_base` is the recommended first repo. It has the same structure as a research-* repo (`papers/`, `docs/active/`, `STATUS.md`, etc.) but isn't tied to one specific question. Notes, papers, and observations accumulate there until the user is ready to spin off a focused research project.
+
+Record:
+- `<TOPIC>` = `"General knowledge base — notes, papers, and emerging research ideas."`
+- `<RESEARCH_REPO>` = `knowledge_base`
+
+Same seeding flow as a research-* repo from here on.
 
 ---
 
@@ -306,6 +324,21 @@ curl -sI -H "Authorization: token $TOKEN" \
 Expect `HTTP/2 200`. The `private` field in the JSON body should be `true`. If anything else, stop and surface to the user.
 
 If `basic_config` already existed (Step 3 returned 200), skip its creation; just create the research repo.
+
+### If you skipped Administration (403 on create)
+
+If the `POST /user/repos` returns **403 Forbidden** with body `"Resource not accessible by personal access token"`, the PAT is missing the `Administration: Read and write` permission. **Don't restart the chat** — fine-grained PATs can be edited in place, and the token value stays the same:
+
+> "Looks like the PAT is missing the `Administration` permission, which I need to create repos. You can fix this without making a new token:
+>
+> 1. Open: https://github.com/settings/personal-access-tokens
+> 2. Click your `claude_researcher` (or however you named it) PAT.
+> 3. Under **Repository permissions**, change **Administration** to **Read and write**.
+> 4. Scroll down and click **Update**.
+>
+> The token string itself is unchanged — I still have the right value. Tell me when you've saved, and I'll retry the create."
+
+Wait for confirmation, then retry the `POST /user/repos`.
 
 ---
 
@@ -522,7 +555,7 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 ## Appendix — Common issues
 
 - **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 2b.
-- **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: read & write` permission. Re-create with that permission added.
+- **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: Read and write` permission. **Edit the existing PAT in place — don't recreate.** Fine-grained PATs are editable; the token value is unchanged. See Step 6 "If you skipped Administration" for the recipe.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
 - **Connection error / "could not resolve host":** Domain Allow List doesn't permit the host (or the change hasn't propagated to this chat). Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
 - **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `basic_config` exists, skip it; same for the research repo (different curl, same logic).
