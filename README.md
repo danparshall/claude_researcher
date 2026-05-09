@@ -4,6 +4,10 @@ A browser-only research workflow for [claude.ai](https://claude.ai). Adapted fro
 
 The agent reads its instructions from this repo at runtime, and reads/writes your research artifacts via the GitHub REST API from claude.ai's server-side sandbox.
 
+## About
+
+`claude_researcher` is a collaboration between [Dan Parshall](https://github.com/danparshall) and Andrea Lopez-Luzuriaga — two researchers sharing what we've learned about effective Claude techniques with the academic community. We maintain this repo as a public artifact so other labs and research groups can use, fork, or adapt the workflow for their own projects. The reasoning behind specific design choices lives in [`docs/`](docs/) for anyone who wants to see how the pieces got assembled.
+
 ## Quick start
 
 Paste the prompt below into a fresh chat in [claude.ai](https://claude.ai). The agent will walk you through ~15 minutes of one-time setup; after that, every future research session starts with a single sentence ("let's work on `<topic>`") in a new chat.
