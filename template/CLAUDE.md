@@ -359,8 +359,8 @@ Present the URL to the user; they click through to file. Don't try to file the i
 
 ## Appendix — Common runtime issues
 
-- **PAT expired or insufficient scope (401, 403):** re-bootstrap step 3b. Most common cause of session-start failure.
-- **Connection error on a `curl` to `api.github.com`:** Domain Allow List doesn't permit it (or the change hasn't propagated to this chat). Re-check Settings per BOOTSTRAP step 2; if the change was made in this same chat session, the user must start a fresh chat to pick up the new allow-list — propagation in-chat is empirically NOT supported.
+- **PAT expired or insufficient scope (401, 403):** re-bootstrap step 4b. Most common cause of session-start failure.
+- **Connection error on a `curl` to `api.github.com`:** Domain Allow List doesn't permit it (or the change hasn't propagated to this chat). Re-check Settings per BOOTSTRAP step 1; if the change was made in this same chat session, the user must start a fresh chat to pick up the new allow-list — propagation in-chat is empirically NOT supported.
 - **422 on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET first, capture `sha`, retry the PUT with `sha` field included.
 - **STATUS.md missing `workflow_mode` field:** assume `branches` (the v1 default). Don't error.
 - **SKILL_INDEX.md unreachable (DNS failure, 404):** operate without skills. Surface to user. The workflow degrades to "you have my judgment but no shared toolkit"; the user may want to wait for upstream to recover.
