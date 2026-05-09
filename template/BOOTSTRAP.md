@@ -11,7 +11,7 @@ Each step tells you the next action and offers **verification affordances** — 
 **Two distinct fetch mechanisms appear in this flow:**
 
 - For **public upstream content** (this file, skill specs, scripts, reference docs at `danparshall/claude_researcher`) — use the WebFetch tool. No allow-list configuration needed. Returns content verbatim.
-- For **the user's own repos** (private, owned by the user) — use sandbox `curl` with the user's PAT in an `Authorization` header. This requires the Domain Allow List to permit `api.github.com`, configured during Step 6 below.
+- For **the user's own repos** (private, owned by the user) — use sandbox `curl` with the user's PAT in an `Authorization` header. This requires the Domain Allow List to permit `api.github.com`, configured during Step 2 below.
 
 If you ever need a public file outside the user's repos, use WebFetch. If you ever need a file *inside* the user's repos, use sandbox curl with the PAT.
 
@@ -21,7 +21,7 @@ If you ever need a public file outside the user's repos, use WebFetch. If you ev
 
 Tell the user, briefly (4–6 sentences), what's about to happen end-to-end. Use this script (or close paraphrase):
 
-> "Here's the plan: I'll do a brief interview to learn enough about you to seed your config. You'll create a GitHub Personal Access Token (PAT) and paste it back to me. We'll add a few domains to your claude.ai Settings so I can talk to GitHub from this chat. I'll create two private repos in your GitHub account — one for your lifetime config (`basic_config`) and one for your first research project. Then you'll create a claude.ai Project for the research repo and paste in the custom instructions I'll give you. Total time: ~15 minutes for a first-timer; ~5 if you've done this before. Sound good?"
+> "Here's the plan: First, I'll check that claude.ai can talk to GitHub from this chat. If it can't, I'll walk you through a one-time network configuration; you'll then restart in a fresh chat to pick up the change (claude.ai's network changes don't propagate into already-open chats). Once network is confirmed, you'll create a GitHub Personal Access Token (PAT) and paste it back to me. I'll run a brief interview to learn how you work, then create two private repos in your GitHub account (one for your lifetime config, one for your first research project), seed them with starter files, and walk you through creating a claude.ai Project that points at the research repo. After that, every future research session is a single sentence in a new chat. Total time: ~5 minutes if network is already set up, ~15 minutes if this is a true first-time setup including the network config + restart. Sound good?"
 
 **CONFIRMATION GATE.** Do not proceed past this step until the user explicitly says yes. If they want to back out, that's fine — they can come back anytime by re-pasting the bootstrap prompt.
 
@@ -37,7 +37,86 @@ Record the answer. The bootstrap creates the repos identically either way — th
 
 ---
 
-## Step 2 — Read user preferences (if available)
+## Step 2 — Egress allow-list check
+
+The mental model the user needs: when you (the agent) run a bash command, it runs in a **virtual machine that Anthropic spins up for the chat**, not on the user's machine. That VM lives on Anthropic's servers. You can install Python packages there, write files, run scripts — but its internet access *from that VM* is what the egress setting controls. By default, the VM has no internet access at all.
+
+The user's own machine — their laptop, their work computer — isn't involved here except as the place where their browser runs. **Their corporate firewall doesn't affect this choice.** Whatever they pick in claude.ai Settings configures Anthropic's server-side VM, end of story.
+
+This step probes whether egress is already configured; if not, it walks the user through configuration and asks them to restart in a fresh chat to pick up the change.
+
+### 2a — Probe
+
+Run a no-auth reachability check:
+
+```bash
+curl -sI https://api.github.com/zen
+```
+
+Expected outcomes:
+
+- **`HTTP/2 200`** — egress is already configured. Announce that, and continue to Step 3.
+- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — egress isn't configured (or `api.github.com` isn't on the allow list yet). Continue to 2b below.
+
+### 2b — First-time egress configuration
+
+If the probe fails, the user needs to configure egress now. Tell them what's about to happen, in plain language:
+
+> "Quick mental model: I have a virtual machine that Anthropic spins up for this chat — that's where I install Python packages, run shell commands, talk to APIs. It lives on Anthropic's servers, not on your machine. By default, that VM has no internet access at all. We need to turn it on in your claude.ai account Settings before I can talk to GitHub.
+>
+> A few notes:
+>
+> - This is a one-time setup that applies to every claude.ai chat going forward (it's an account-level setting, not per-chat).
+> - It's purely about *my* VM's internet access. Your laptop / work computer / corporate firewall isn't involved — whatever your local machine restricts doesn't affect what you can configure here.
+> - **Important caveat:** changes to this setting don't propagate into already-open chats. Once you save, you'll need to restart in a fresh chat for me to actually pick up the change. I'll wait while you configure it."
+
+Walk them through:
+
+> "Open a new browser tab to: https://claude.ai/settings/capabilities
+>
+> Find: **Allow Network Egress**.
+>
+> 1. **Pick an egress mode.** Two reasonable options:
+>
+>    - **`Package Managers Only`** (recommended). I can install Python and Node packages on the fly when a skill needs them (`pypdf` for `add-paper`, `requests` for any custom REST work, etc.), and I can reach domains you explicitly add to the allow list below. Anything else is blocked. This is defense-in-depth: limits the blast radius if I'm ever misled by a malformed skill or a malicious file fetch into trying to reach somewhere unexpected.
+>
+>    - **`All`**. Most permissive, single setting, no per-domain micromanagement. Pick this if you want maximum convenience and aren't worried about the broader access. (Reminder, since this surprises people: this is *my VM's* internet access, not yours. Picking `All` doesn't open anything up on your local machine.)
+>
+> 2. **In the Domain Allow List, add these four domains, one at a time** (click the input, type the domain, click **Add**, repeat):
+>    - `api.github.com`
+>    - `codeload.github.com`
+>    - `github.com`
+>    - `raw.githubusercontent.com`
+>
+>    (Each `Add` click commits that domain immediately. There's no batch paste and no separate Save button — adding it IS saving it. The UI doesn't accept comma-separated or newline-separated bulk input; it's strictly one domain at a time.)
+>
+> 3. **Optional: also add paper-source domains you know you'll commonly use.** If you know you regularly download papers from specific sites, add those now too — it'll save you from having to restart in another fresh chat the first time the `add-paper` skill needs them. Common ones, by domain:
+>    - General preprint servers: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`
+>    - DOI redirects (covers many journal landing pages): `doi.org`
+>    - Economics working papers: `nber.org`, `ssrn.com`
+>    - Government / agency: `pubmed.ncbi.nlm.nih.gov`, `www.cdc.gov`, `www.fda.gov`
+>
+>    Add the ones you'll actually use; skip the ones you won't. You can always add more later by coming back to this Settings page — but remember, each addition requires starting a fresh chat to pick up the change. Better to over-include now than to repeatedly restart.
+>
+>    Note: the `www.` prefix on `www.biorxiv.org` and `www.medrxiv.org` is intentional — those sites' canonical hostnames include `www.`, while `arxiv.org` and `doi.org` don't. Match each site's canonical hostname; don't normalize them."
+
+### 2c — Hand off to a fresh chat
+
+Once the user confirms they've added the domains:
+
+> "Great. Now: this current chat won't see the new permissions, so we need to restart. Open a new claude.ai chat, and re-paste the same bootstrap prompt you used a few minutes ago. The new chat will see the egress configuration and we'll continue from where we left off. You don't need to redo anything you just configured in Settings — that's saved at your account level. **Stop here in this chat; we're done.**"
+
+Stop. Don't try to push past the egress deny in this session.
+
+(If you want to confirm before stopping that the user understands the restart, ask them to read back what they're about to do. Optional.)
+
+### 2d — Returning user fast path
+
+If the probe in 2a returned `HTTP/2 200`, briefly announce that egress is already configured, mention which preset / domains you can see if any are visible, and continue immediately to Step 3. No restart needed.
+
+---
+
+## Step 3 — Read user preferences (if available)
 
 Check whether claude.ai's user-level customizations expose any of: name, role, research domain, interaction style. If they do, briefly record what you see. **This is the starting point for the interview, not the authoritative answer** — the user gets to confirm or override anything in Step 7.
 
@@ -45,16 +124,16 @@ If no user-level customizations are visible to you, skip silently. The interview
 
 ---
 
-## Step 3 — GitHub readiness
+## Step 4 — GitHub readiness
 
-### 3a — GitHub account
+### 4a — GitHub account
 
 Ask: *"Do you have a GitHub account?"*
 
-- **Yes** → ask for their username, record as `<USERNAME>`. Continue to 3b.
-- **No** → walk them through signup at `https://github.com/signup`. Free tier is fine for everything in this workflow. Wait until they confirm an account exists with a username they'll remember. Record the username.
+- **Yes** → ask for their username, record as `<USERNAME>`. Continue to 4b.
+- **No** → walk them through signup at `https://github.com/signup`. Free tier is fine for everything in this workflow (private repos, unlimited collaborators, fine-grained PATs, branch protection — all on Free since 2019/2024). Wait until they confirm an account exists with a username they'll remember. Record the username.
 
-### 3b — Personal Access Token
+### 4b — Personal Access Token
 
 Ask: *"Do you have a fine-grained Personal Access Token (PAT) ready to use, or do we need to make one?"*
 
@@ -82,7 +161,7 @@ TOKEN="<the-pasted-token>"
 USERNAME="<their-username-from-3a>"
 ```
 
-Then run a smoke test against the GitHub API to verify the token works:
+Then run a smoke test against the GitHub API to verify the token works (egress is already on at this point — we confirmed it in Step 2):
 
 ```bash
 curl -sI -H "Authorization: token $TOKEN" \
@@ -91,7 +170,7 @@ curl -sI -H "Authorization: token $TOKEN" \
   "https://api.github.com/user"
 ```
 
-Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error, the Domain Allow List likely doesn't include `api.github.com` yet — that's Step 6, which we haven't done; come back to verifying the token after Step 6.
+Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error or `host_not_allowed`, something changed about egress between Step 2 and now — go back and re-probe.
 
 **Verification affordance.** The token lives only in your shell process from here. You can verify it's not written anywhere by:
 - `env | grep -c TOKEN` → should return `1` (env var set)
@@ -102,7 +181,7 @@ Don't echo the token. Don't write it to any file. Don't include it in commit mes
 
 ---
 
-## Step 4 — Research project topic + repo name
+## Step 5 — Research project topic + repo name
 
 Ask: *"What's the topic of this first research project? One sentence is fine."*
 
@@ -112,73 +191,9 @@ Validate the final name: lowercase, alphanumeric and hyphens only, ≤39 charact
 
 ---
 
-## Step 5 — Settings: Domain Allow List
-
-Before we can use the PAT for anything substantive, we need network access to `api.github.com`. By default, claude.ai's sandbox blocks all egress; the user enables specific domains in their account-wide Settings. **This step always runs**, even for returning users — pasting the same domain list again is idempotent (saving an unchanged value is a no-op), so the cost of running it on every bootstrap is ~10 seconds and the benefit is that we never get stuck on the network-vs-existence-check chicken-and-egg.
-
-Walk them through:
-
-> "Open a new browser tab to: https://claude.ai/settings/capabilities
->
-> Find: **Allow Network Egress** → **Domain Allow List**.
->
-> Paste these domains, **one per line**:
-> ```
-> api.github.com
-> codeload.github.com
-> github.com
-> raw.githubusercontent.com
-> arxiv.org
-> doi.org
-> www.biorxiv.org
-> www.medrxiv.org
-> ```
->
-> Click **Save**. The change takes effect immediately for new requests in this chat.
->
-> **Paste-format fallback.** If the field rejects newline-separated values, try comma-separated (`api.github.com,codeload.github.com,github.com,raw.githubusercontent.com,arxiv.org,doi.org,www.biorxiv.org,www.medrxiv.org`). If that's also rejected, paste them one at a time, clicking Save between each. **Tell me which format worked** — we want to lock in the canonical format for future bootstrap users."
-
-**Why these domains:** the first four are required for the GitHub workflow (REST API, raw content fetches, repo cloning if the user ever uses Claude Code locally). The last four are paper-source domains for the `add-paper` skill — covering arXiv, bioRxiv, medRxiv, and DOI redirects, which are most common in research workflows. The `www.` prefix on `www.biorxiv.org` and `www.medrxiv.org` is **intentional** — those are those sites' canonical hostnames; `arxiv.org` and `doi.org` canonically don't use `www.`. Don't "normalize" them.
-
-After the user confirms they've saved, run a smoke test (allow-list reachability, no auth):
-
-```bash
-curl -sI https://api.github.com/zen
-```
-
-Expected: `HTTP/2 200`.
-
-**If the smoke test fails** (connection error, or 4xx with `x-deny-reason: host_not_allowed`):
-
-1. Have the user re-check that they actually clicked **Save** in the allow-list UI. The form sometimes appears to accept input but doesn't persist without an explicit save.
-2. Wait ~30 seconds and retry — there's sometimes a brief platform-side delay before allow-list changes propagate.
-3. **If retries still fail, the cleanest workaround is a fresh chat.** Tell the user:
-   > "The allow-list change hasn't reached this chat session — it may not propagate to chats that were already open before you saved. The fix is to start a fresh chat and re-paste the same bootstrap prompt you just used. The new chat will see the allow-list change.
-   >
-   > You **will** need to re-walk the early steps with the new agent — claude.ai chats don't share memory, so the new agent has zero context from this one. Specifically:
-   > - The PAT itself is still valid in your GitHub account; you just need to paste it again into the new chat (the value goes into the new chat's bash sandbox as `$TOKEN`).
-   > - You'll re-confirm your username, topic, and repo name. Use the same answers you gave me.
-   > - The allow-list configuration is saved server-side at the user-Settings level, so Step 5 will pass immediately for the new agent — no need to redo it.
-   >
-   > Total re-walk: probably 60–90 seconds. Then the new agent picks up from where we got stuck."
-   Stop the current chat there. Don't try to push past a network-deny in this session.
-
-If the unauth smoke test passes, also re-verify the PAT now that we have network (this is the verification you were going to do back in Step 3b before the egress proxy stopped you):
-
-```bash
-curl -sI -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/user"
-```
-
-Expected: `HTTP/2 200`. If you get `401`, the PAT is invalid (expired, mistyped, wrong scopes); have them re-create per Step 3b. If you get `403`, the PAT lacks scope; check the Step 3b walkthrough's permissions list.
-
----
-
 ## Step 6 — Check whether `basic_config` already exists
 
-Now that the allow list permits `api.github.com` and the PAT is verified, query for the user's `basic_config` repo:
+The allow list and PAT are both verified at this point (Step 2 confirmed egress, Step 4 verified the token). Now query for the user's `basic_config` repo:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" \
@@ -203,7 +218,7 @@ Branch on result:
 
 Run the interview in **three thematic batches** rather than nine sequential questions. After each batch, briefly summarize back what you heard before moving on.
 
-If Step 2 found user-level customizations, frame the relevant questions as "From your claude.ai profile I see X — want to use that, or different?" rather than asking from scratch.
+If Step 3 found user-level customizations, frame the relevant questions as "From your claude.ai profile I see X — want to use that, or different?" rather than asking from scratch.
 
 ### Batch 1 — Identity (3 fields)
 
@@ -261,7 +276,7 @@ curl -sX POST \
 ```
 
 Use `<DESC>` = `"Lifetime config for claude_researcher workflow."` for `basic_config`.
-Use `<DESC>` = `"<TOPIC>"` (the user's one-sentence topic from Step 4) for the research repo.
+Use `<DESC>` = `"<TOPIC>"` (the user's one-sentence topic from Step 5) for the research repo.
 
 `auto_init:true` causes GitHub to create an initial commit with an auto-generated `README.md`. We'll overwrite it in Step 9.
 
@@ -275,7 +290,7 @@ curl -sI -H "Authorization: token $TOKEN" \
 
 Expect `HTTP/2 200`. The `private` field in the JSON body should be `true`. If anything else, stop and surface to the user.
 
-If `basic_config` already existed (Step 5 returned 200), skip its creation; just create the research repo.
+If `basic_config` already existed (Step 6 returned 200), skip its creation; just create the research repo.
 
 ---
 
@@ -420,9 +435,9 @@ The canonical Custom Instructions text lives at:
 
 **WebFetch it.** Substitute the placeholders before showing the result to the user:
 
-- `<TOKEN>` → the PAT collected in Step 3b
-- `<USERNAME>` → the GitHub username from Step 3a
-- `<REPO>` → the research repo name from Step 4
+- `<TOKEN>` → the PAT collected in Step 4b
+- `<USERNAME>` → the GitHub username from Step 4a
+- `<REPO>` → the research repo name from Step 5
 
 Present the rendered text to the user as a single code block. Tell them:
 
@@ -444,9 +459,9 @@ Wait for them to do this and report back. **Expected:** the agent in the new cha
 
 If validation fails, the most common causes (in rough order of likelihood):
 
-1. **PAT expired or wrong scope** → re-create per Step 3b. Most common.
+1. **PAT expired or wrong scope** → re-create per Step 4b. Most common.
 2. **Custom Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 10. Spot-check that no literal placeholders remain.
-3. **Domain Allow List incomplete or hasn't propagated** → re-check Settings per Step 5, including running the `curl -sI https://api.github.com/zen` smoke test. If the allow-list change was made *during* this Project's first chat, it may not have propagated; restart in a fresh chat (per Step 5's fresh-session fallback).
+3. **Domain Allow List incomplete or hasn't propagated** → re-check Settings per Step 2, including running the `curl -sI https://api.github.com/zen` smoke test. If the allow-list change was made *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 2c's hand-off).
 4. **`CLAUDE.md` upstream URL unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and the URL `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/CLAUDE.md` resolves. If the repo was recently flipped from private to public, give CDN cache up to 5 minutes to propagate.
 
 Help the user troubleshoot. Iterate until validation passes.
@@ -469,9 +484,9 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 
 ## Appendix — Common issues
 
-- **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 3b.
+- **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 4b.
 - **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: read & write` permission. Re-create with that permission added.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
-- **Connection error / "could not resolve host":** Domain Allow List doesn't permit the host. Re-check Step 6.
-- **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 5's existence check; if `basic_config` exists, skip it; same for the research repo (different curl, same logic).
+- **Connection error / "could not resolve host":** Domain Allow List doesn't permit the host (or the change hasn't propagated to this chat). Re-check Step 2; if the change was made during this chat, restart in a fresh one (Step 2c).
+- **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 6's existence check; if `basic_config` exists, skip it; same for the research repo (different curl, same logic).
 - **User reports their PAT can't be granted "Administration" permission:** they may have an organization restriction on their account. Have them either (a) use a personal account where they're the owner, or (b) ask their org admin to permit fine-grained PATs with Administration scope, or (c) fall back to a classic PAT with `repo` scope (deprecated but still works).
