@@ -17,6 +17,9 @@ github.com
 raw.githubusercontent.com
 
 # --- Paper sources (PDF download for the add-paper skill) ---
+# Note: the `www.` prefix on biorxiv/medrxiv is intentional. Those sites'
+# canonical hostnames include `www.`, while arxiv.org and doi.org canonically
+# don't. Match each site's canonical hostname; do not "normalize" them.
 arxiv.org
 doi.org
 www.biorxiv.org

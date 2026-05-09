@@ -112,9 +112,66 @@ Validate the final name: lowercase, alphanumeric and hyphens only, ≤39 charact
 
 ---
 
-## Step 5 — Check whether `basic_config` already exists
+## Step 5 — Settings: Domain Allow List
 
-Use the PAT to query for the user's `basic_config` repo:
+Before we can use the PAT for anything substantive, we need network access to `api.github.com`. By default, claude.ai's sandbox blocks all egress; the user enables specific domains in their account-wide Settings. **This step always runs**, even for returning users — pasting the same domain list again is idempotent (saving an unchanged value is a no-op), so the cost of running it on every bootstrap is ~10 seconds and the benefit is that we never get stuck on the network-vs-existence-check chicken-and-egg.
+
+Walk them through:
+
+> "Open a new browser tab to: https://claude.ai/settings/capabilities
+>
+> Find: **Allow Network Egress** → **Domain Allow List**.
+>
+> Paste these domains, **one per line**:
+> ```
+> api.github.com
+> codeload.github.com
+> github.com
+> raw.githubusercontent.com
+> arxiv.org
+> doi.org
+> www.biorxiv.org
+> www.medrxiv.org
+> ```
+>
+> Click **Save**. The change takes effect immediately for new requests in this chat.
+>
+> **Paste-format fallback.** If the field rejects newline-separated values, try comma-separated (`api.github.com,codeload.github.com,github.com,raw.githubusercontent.com,arxiv.org,doi.org,www.biorxiv.org,www.medrxiv.org`). If that's also rejected, paste them one at a time, clicking Save between each. **Tell me which format worked** — we want to lock in the canonical format for future bootstrap users."
+
+**Why these domains:** the first four are required for the GitHub workflow (REST API, raw content fetches, repo cloning if the user ever uses Claude Code locally). The last four are paper-source domains for the `add-paper` skill — covering arXiv, bioRxiv, medRxiv, and DOI redirects, which are most common in research workflows. The `www.` prefix on `www.biorxiv.org` and `www.medrxiv.org` is **intentional** — those are those sites' canonical hostnames; `arxiv.org` and `doi.org` canonically don't use `www.`. Don't "normalize" them.
+
+After the user confirms they've saved, run a smoke test (allow-list reachability, no auth):
+
+```bash
+curl -sI https://api.github.com/zen
+```
+
+Expected: `HTTP/2 200`.
+
+**If the smoke test fails** (connection error, or 4xx with `x-deny-reason: host_not_allowed`):
+
+1. Have the user re-check that they actually clicked **Save** in the allow-list UI. The form sometimes appears to accept input but doesn't persist without an explicit save.
+2. Wait ~30 seconds and retry — there's sometimes a brief platform-side delay before allow-list changes propagate.
+3. **If retries still fail, the cleanest workaround is a fresh chat.** Tell the user:
+   > "The allow-list change hasn't reached this chat session — it may not propagate to chats that were already open before you saved. The fix is to start a fresh chat and re-paste the same bootstrap prompt you just used. The new chat will see the allow-list change. You don't need to redo anything you've already configured (the PAT is still valid, the allow-list is saved); the new chat will just pick up from where we got stuck."
+   Stop the current chat there. Don't try to push past a network-deny in this session.
+
+If the unauth smoke test passes, also re-verify the PAT now that we have network (this is the verification you were going to do back in Step 3b before the egress proxy stopped you):
+
+```bash
+curl -sI -H "Authorization: token $TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  "https://api.github.com/user"
+```
+
+Expected: `HTTP/2 200`. If you get `401`, the PAT is invalid (expired, mistyped, wrong scopes); have them re-create per Step 3b. If you get `403`, the PAT lacks scope; check the Step 3b walkthrough's permissions list.
+
+---
+
+## Step 6 — Check whether `basic_config` already exists
+
+Now that the allow list permits `api.github.com` and the PAT is verified, query for the user's `basic_config` repo:
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" \
@@ -130,44 +187,8 @@ This is a read-only call against the user's own namespace. The response is just 
 
 Branch on result:
 
-- **404 (does not exist) — first-time user.** Continue to Step 6.
-- **200 (exists) — returning user.** Skip Steps 6 and 7 entirely (the user already configured Settings and went through the interview before). Jump to Step 8 and only create the new research repo.
-
----
-
-## Step 6 (first-time only) — Settings: Domain Allow List
-
-Tell the user that the API calls coming up (to create repos and write files) need network access to `api.github.com`, which by default isn't allowed in claude.ai's sandbox. They need to enable it once globally; it'll then apply to every claude.ai chat going forward.
-
-Walk them through:
-
-> "Open a new browser tab to: https://claude.ai/settings/capabilities
->
-> Find: **Allow Network Egress** → **Domain Allow List**.
->
-> Paste these domains, one per line:
-> ```
-> api.github.com
-> codeload.github.com
-> github.com
-> raw.githubusercontent.com
-> arxiv.org
-> doi.org
-> www.biorxiv.org
-> www.medrxiv.org
-> ```
->
-> Click **Save**. The change takes effect immediately."
-
-After they confirm, run a smoke test:
-
-```bash
-curl -sI https://api.github.com/zen
-```
-
-Expected: `HTTP/2 200`. If you get a connection error or 4xx, the allow list change hasn't taken effect or wasn't saved. Have them re-check; if persistent after a retry, surface to the user — there may be a cache or platform-side delay (~5 min) before allow-list changes propagate.
-
-**Why these domains:** the first four are required for the GitHub workflow (REST API, raw content fetches, repo cloning if the user ever uses Claude Code locally). The last four are paper-source domains for the `add-paper` skill — covering arXiv, bioRxiv, medRxiv, and DOI redirects, which are most common in research workflows.
+- **404 (does not exist) — first-time user.** Continue to Step 7 (interview).
+- **200 (exists) — returning user.** Skip Step 7 entirely (the user already went through the interview during their previous bootstrap). Jump to Step 8 and only create the new research repo.
 
 ---
 
@@ -418,7 +439,7 @@ If validation fails, the most common causes (in rough order of likelihood):
 
 1. **PAT expired or wrong scope** → re-create per Step 3b. Most common.
 2. **Custom Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 10. Spot-check that no literal placeholders remain.
-3. **Domain Allow List incomplete** → re-check Settings per Step 6, including running the `curl -sI https://api.github.com/zen` smoke test.
+3. **Domain Allow List incomplete or hasn't propagated** → re-check Settings per Step 5, including running the `curl -sI https://api.github.com/zen` smoke test. If the allow-list change was made *during* this Project's first chat, it may not have propagated; restart in a fresh chat (per Step 5's fresh-session fallback).
 4. **`CLAUDE.md` upstream URL unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and the URL `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/CLAUDE.md` resolves. If the repo was recently flipped from private to public, give CDN cache up to 5 minutes to propagate.
 
 Help the user troubleshoot. Iterate until validation passes.
