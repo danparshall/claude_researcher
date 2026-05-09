@@ -31,6 +31,40 @@
 
 ---
 
+## Implementation Status Tracker
+
+The phase numbering below was set in the original plan (2026-05-08). Some phases evolved differently than anticipated — in particular, BOOTSTRAP.md absorbed most of Phase 7's planned reference docs during the Phase 4 smoke-test restructure. This table tracks **actual** state vs. nominal state. Read alongside the phase sections that follow.
+
+| Phase | Nominal scope | Actual state | Remaining work |
+|---|---|---|---|
+| **1** Get dev repo on GitHub | `gh repo create`, push initial commit | ✅ **Done** (2026-05-08) | None |
+| **2** Populate `template/` skeleton | README, LICENSE copies, ATTRIBUTION, `_PROJECT_INSTRUCTIONS.md.template`, `domain_allowlist.txt`, `.gitkeep` dirs | ✅ **Done** (2026-05-08) | None |
+| **3** Write `BOOTSTRAP.md` | Orchestration script for one-time setup chat | ✅ **Done** (2026-05-09 morning) → heavily restructured (see Phase 4) | None |
+| **4** Write `CLAUDE.md` | Runtime instructions every session loads | ✅ **Done + smoke-tested** (2026-05-09). Custom-Instructions architecture pivot during execution. End-to-end Step 9 validation in fresh claude.ai chat passed: tier dial, two-fetch architecture, credential payload, SKILL_INDEX manifest, branch resolution all confirmed working. | None — Phase 4 is genuinely complete |
+| **4.5** Collaborator mode | Direct-collaborator support (professor/grad-student model) | 🅿️ **Deferred to v1.1** | Six sub-tasks specified; ships when first real collaborator needs it |
+| **4.6** CLAUDE.md retrofit from AITaxBID audit | Five Tier B/C patterns universalized in `template/CLAUDE.md` | 📋 **Spec'd this session** (2026-05-09 evening). Source: AITaxBID audit (PR #1, merged `6397c33`) | Tasks 26.6.1–26.6.5 + commit. ~30-60 min. Can interleave with Phase 5 or fold into a Phase 6 commit. |
+| **5** Helper scripts in `template/scripts/` | `rest_helpers.py`, `create_repo.py`, `seed_repo.py`, `extract_pdf_text.py` | 🟡 **Not started, but logic proven inline.** Smoke-test agent invented equivalent script logic at runtime; Phase 5 codifies it as reusable. **Defensible to defer** if you accept that skills will embed REST recipes inline. | Tasks 27–33. ~3-4 hours. |
+| **6** Skills | 6 Nori REST-adapts + 9 Nori carryovers + drop-list + 3 AITaxBID-sourced ports + SKILL_INDEX finalize | 🟡 **SKILL_INDEX stub exists** (Phase 4 task 26 / `681ed9d`), no per-skill `SKILL.md` files yet | Tasks 34–44 (existing) + 40a-40c (AITaxBID expansions, this session). ~14-18 hours total. Biggest remaining chunk by far. |
+| **7** Reference docs (`template/reference/`) | `WHY_REST.md`, `PAT_SETUP.md`, `PROJECT_SETUP.md` with screenshots | 🔄 **Largely superseded.** BOOTSTRAP.md absorbed the content inline during Phase 4 restructure: WHY_REST → BOOTSTRAP Step 1; PAT_SETUP → Step 2b + "About PAT scope" + "Token handling"; PROJECT_SETUP → Steps 1a-1d + Step 8. `template/reference/` has only a `.gitkeep`. | **Optional:** screenshots for PAT creation / Project setup if Phase 9 surfaces friction. ~30 min if needed. Otherwise skip. |
+| **8** Self-walkthrough by Dan | Fresh GitHub account, paste bootstrap, walk through, iterate to <20 min | ✅ **Done** (2026-05-09). Smoke test in incognito claude.ai chats covered Steps 0-9 end-to-end. **Caveat:** the <20-minute timing target is unverified — today's session had author-iteration during the test. Worth one clean re-test in a fresh chat with no edits. | One clean timing re-test (~30 min) before Phase 9. |
+| **9** Recruit-and-walkthrough with collaborator | Tame collaborator runs bootstrap unaided; capture friction; iterate | 🔴 **Not done — the meaningful remaining validation.** Everything before this proves the bootstrap works *for Dan*; only Phase 9 surfaces non-Dan friction. | Identify candidate; observe; iterate. ~1-2 hr session + 1-3 hr iteration. Plus candidate availability. |
+| **10** Publish | Decide strategy, update README, test from clean machine, open placeholder issues | 🟡 **Mostly done implicitly.** Task 58 (publish strategy): repo flipped public 2026-05-09 (decision was "dev-repo-public" — `docs/` visible — accepted to enable smoke testing; **worth a deliberate revisit** when not in the middle of testing). Task 59 (README bootstrap prompt): done in different shape — moved to ROOT README, commit `2b8d03d`. Task 60 (test from clean machine): done today via incognito chats. | Task 61 (placeholder issue to validate pre-filled URL composition): ~15 min. **Plus** the publish-strategy revisit (decide whether `docs/convos/`, `docs/plans/` should remain public long-term). |
+
+### What's actually left, ranked
+
+1. **Phase 9 collaborator walkthrough** — the only remaining test that materially de-risks v1. ~2-5 hr including iteration.
+2. **Phase 6 skill ports** — biggest implementation chunk; required for the runtime to have skills it claims to have. ~14-18 hr.
+3. **Phase 5 helper scripts** — quality-of-life, not function. ~3-4 hr.
+4. **Phase 4.6 CLAUDE.md retrofit** — small, focused. ~30-60 min.
+5. **Publish-strategy revisit** — design decision, not implementation. ~15 min thinking + whatever follow-on.
+6. **Phase 10 task 61** — placeholder issue, validates URL composition. ~15 min.
+7. **(optional) Phase 8 timing re-test** — fresh chat, no edits. ~30 min.
+8. **(optional) Phase 7 screenshots** — only if Phase 9 surfaces friction. ~30 min if so.
+
+The sequence is loose. Phase 4.6 + Phase 5 + Phase 6 are independent of Phase 9 and can run in parallel with collaborator-recruitment timing. Phase 9 finds defects that drive small follow-on commits to BOOTSTRAP/CLAUDE/skills. The publish-strategy revisit is best done before Phase 9 (so collaborators don't accidentally see internal-thinking artifacts you'd rather they not).
+
+---
+
 ## Testing Plan
 
 This is primarily a content/prose project, not a software project. The unit-test-first discipline doesn't apply directly. The relevant tests are:
