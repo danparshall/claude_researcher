@@ -154,12 +154,28 @@ curl -sI -H "Authorization: token $TOKEN" \
 
 Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error or `host_not_allowed`, something changed about egress between Step 1 and now — go back and re-probe.
 
-**Verification affordance.** The token lives only in your shell process from here. You can verify it's not written anywhere by:
-- `env | grep -c TOKEN` → should return `1` (env var set)
-- After repo creation/seeding (Steps 6–7), grep the user's repos for any literal `github_pat_` prefix → should return nothing
-- The token is never echoed back to the user in chat output and never written to any file
+### Token handling
 
-Don't echo the token. Don't write it to any file. Don't include it in commit messages.
+**Don't:**
+- Echo the token in chat output.
+- Write it to any user-visible file — their git repos (about to be created), exported transcripts, anything the user could see.
+- Include it in commit messages.
+
+**Do whatever's practical for your VM's bash workflow.** claude.ai's bash sandbox doesn't persist env vars across separate bash invocations — each `bash` call starts a fresh shell. You'll need to handle this somehow; both of these are fine:
+
+- **Inline approach.** Put `TOKEN=... USERNAME=...` at the start of every `curl` command. Verbose but unambiguous.
+- **Ephemeral scratch approach.** Write the token to your VM's scratch dir (e.g., `/home/claude/.bootstrap_env`) with `chmod 600`, source it at the top of each bash call, and `rm` it before Step 9 (validation). The scratch dir is not user-visible, not transmitted anywhere, and resets between sessions — the practical risk is essentially zero. The "don't write to any file" rule above is about user-visible surfaces, not your own VM's ephemeral storage.
+
+Pick whichever feels cleaner. If you go with the scratch file, mention to the user briefly that you've done so and that you'll clean it up at the end — transparency wins over silent decisions.
+
+**Verification affordance.** Once bootstrap is done:
+- `env | grep -c TOKEN` after cleanup → should return `0`.
+- `ls /home/claude/.bootstrap_env 2>/dev/null` → should return nothing.
+- After repo creation/seeding (Steps 6–7), grep the user's repos for any literal `github_pat_` prefix → should return nothing.
+
+### About PAT scope
+
+The PAT you just generated is broadly scoped (**All repositories**) because it has to be able to create repos that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Custom Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
 
 ---
 
@@ -445,6 +461,28 @@ Present the rendered text to the user as a single code block. Tell them:
 **Verification affordance.** Once the user confirms the paste, ask them to spot-check that all three substitutions are present in the pasted text — the literal strings `<TOKEN>`, `<USERNAME>`, `<REPO>` should NOT appear; the actual values should. If any placeholder is still literal, the runtime agent won't be able to authenticate — have them re-render and re-paste.
 
 > **Token handling:** the PAT lives only in the Custom Instructions text in the user's claude.ai account, not in any file in their GitHub repos. Don't echo the token back in chat output, don't write it to any seed file, don't include it in commit messages.
+
+### PAT scope and lifecycle (heads-up to the user)
+
+After confirming the paste, briefly explain the user's options for ongoing PAT use. **You don't need to do anything here** — this is purely informational so the user can decide what they want for hardening later. Tell them:
+
+> "A heads-up about the PAT we just used. It's scoped to **All repositories** because it had to be able to create new repos that didn't exist yet — that's appropriate for setup. For ongoing use (every future research session in this Project), you have a few options:
+>
+> - **Keep using this PAT.** Simplest. The same PAT can create future research projects via re-running the bootstrap; you paste the same value into each new Project's Custom Instructions. One PAT to rotate when it expires. Trade-off: every Project chat that uses it has access to all your repos.
+>
+> - **Rotate down to a per-project PAT.** Now that this research repo exists, you can generate a NEW fine-grained PAT scoped to just `basic_config` + this one research repo — much narrower. Replace the broad PAT in this Project's Custom Instructions with the narrow one, then revoke the broad PAT (or hold it as a 'bootstrap-only PAT' you spin up briefly when starting new projects). Tightest scope per Project; more PATs to manage.
+>
+> - **Per-project PATs going forward.** Generate a new fine-grained PAT for each future research project at bootstrap time, scoped just to that project's repo. Revoke after that project's lifetime ends.
+>
+> v1 of the workflow runs identically under any of these. If you don't have a strong preference, the first option is the path of least resistance. We'll proceed."
+
+**Cleanup now.** If you wrote the token to ephemeral scratch in Step 2b (`/home/claude/.bootstrap_env` or similar), this is the moment to remove it:
+
+```bash
+rm -f /home/claude/.bootstrap_env
+```
+
+The token has now finished its setup-time job; it lives in the user's Custom Instructions for ongoing use, not in your VM's scratch.
 
 ---
 
