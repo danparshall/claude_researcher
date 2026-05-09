@@ -83,7 +83,31 @@ The runtime instructions every working session loads.
 23. Write the wrap-up / merge-to-main path: open PR via REST → merge → `git mv docs/active/<branch> docs/historical/<branch>` → update STATUS.md "Archived Research Lines" table.
 24. Write the git-fluency calibration section: read `git_fluency` from personal_info.md, calibrate terminology and verbosity (novice → "research line" not "branch", explain merges as "finalizing into the permanent record"; fluent → terse). **Also calibrate commit policy by tier:** novice → checkpoint often + under the hood (write each save without asking); occasional → light narration + confirm before structural changes (archives, merges); fluent → terse, ask only when truly destructive. Rationale captured in [`docs/convos/20260508_phase1_phase2_initial_build.md`](../convos/20260508_phase1_phase2_initial_build.md) Decisions Made section.
 25. Write the issue-reporting section: when user reports a problem, compose pre-filled URL `https://github.com/danparshall/claude_researcher/issues/new?title=<X>&body=<Y>`, include git_fluency tier and CLAUDE.md SHA, never include PAT or personal_info contents beyond the tier.
-26. **Glue + commit.** Replace `template/BOOTSTRAP.md` Step 10's placeholder code block with the canonical custom-instructions text (typically: a short snippet directing the runtime agent to fetch + follow `CLAUDE.md` from upstream, plus references to the uploaded `_PROJECT_INSTRUCTIONS.md` and to `basic_config/personal_info.md`). Then commit: `Phase 4: CLAUDE.md — runtime session orchestration; BOOTSTRAP.md Step 10 backfilled`.
+26. **Glue + commit.** Replace `template/BOOTSTRAP.md` Step 10's placeholder code block with the canonical custom-instructions text. **Architecture pivot during execution:** the canonical text is the contents of `_PROJECT_INSTRUCTIONS.md.template` itself (with TOKEN/USERNAME/REPO substituted) — pasted into the Project's **Custom Instructions** field, NOT uploaded as a file. The "upload `_PROJECT_INSTRUCTIONS.md`" subsection in Step 10 is therefore deleted; Step 11's troubleshooting cause list is updated to match. Rationale: Custom Instructions are in every chat's context from the very first message, so the agent has credentials + recipes before any fetch happens — strictly better than file-upload for an authentication-bearing payload. Captured in [`docs/convos/20260509_phase4_runtime_and_skill_index.md`](../convos/20260509_phase4_runtime_and_skill_index.md). Commit: `Phase 4: CLAUDE.md + SKILL_INDEX.md stub; BOOTSTRAP.md Step 10 collapsed onto Custom Instructions`.
+
+## Phase 4.5 — Collaborator mode (deferred to v1.1)
+
+`claude_researcher` v1 ships solo-only: it assumes the acting user owns the research repo (`OWNER == USERNAME`). Real research labs typically have a professor + grad student model where the professor owns the repo and students contribute. v1.1 adds direct-collaborator support without the heavier fork-based or org-based alternatives.
+
+**Tracking ticket:** opened during this session; surface as upstream issue when ready to schedule.
+
+**Required changes:**
+
+26.5.1. **OWNER/USERNAME split in `_PROJECT_INSTRUCTIONS.md.template`.** Add `OWNER` env var (defaults to `USERNAME` for solo case). Update read/write recipes to use `$OWNER/$REPO` instead of `$USERNAME/$REPO`. Keep `USERNAME` for `basic_config` location and committer name.
+
+26.5.2. **Bootstrap interview branch.** Add Step 4.5: "Are you starting a new research project, or joining an existing one as a collaborator?" If joining, ask for the owner's username and repo name; verify access via REST (GET on the repo); skip Step 8's repo creation; capture OWNER as separate field.
+
+26.5.3. **Branch protection on `main` for collaborative repos.** Phase 5's `seed_repo.py` adds a `--collaborative` flag. When set, after seeding, calls `PUT /repos/{owner}/{repo}/branches/main/protection` (or the newer Rulesets API) to require review before merge.
+
+26.5.4. **`Role: owner | collaborator` field in `personal_info.md` schema.** New field, set during bootstrap interview. CLAUDE.md uses it to choose between owner-mode wrap-up (PR-and-self-merge) and collaborator-mode wrap-up (PR-only-stop).
+
+26.5.5. **Wrap-up flow split.** CLAUDE.md §6 already handles the merge-blocked case gracefully; v1.1 just makes the collaborator path a first-class flow rather than a fallback. The directory move (`docs/active/<X>/` → `docs/historical/<X>/`) lives on the owner's plate, triggered when the owner next sees the merged PR in their session.
+
+26.5.6. **PAT scope guidance for collaborators.** PAT_SETUP.md (Phase 7 reference doc) gets a section for grad students: how to scope a fine-grained PAT to a repo you don't own (under "Repository access" → "Selected repositories", you can pick repos you've been added to as a collaborator).
+
+**Out of scope for v1.1:** GitHub Organizations as repo owners (defer to v2.0); fork-based workflow (defer indefinitely — direct-collaborator is lighter and matches the lab mental model better).
+
+**Acceptance:** a grad student bootstraps from a fresh claude.ai account, gets added as a collaborator on the professor's repo, completes a research line that the professor merges via the GitHub UI, and the next session by either party correctly archives the line.
 
 ## Phase 5: Write helper scripts in `template/scripts/`
 

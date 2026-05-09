@@ -382,47 +382,27 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 > 2. **Description:** `<TOPIC>`
 > 3. Click **Create**.
 >
-> Once you're inside the new Project, you'll need two things from me:
-> - text to paste into the **Custom Instructions** field
-> - a file to **Upload** to the Project's files panel"
+> Once you're inside the new Project, you'll paste a block of text into the **Custom Instructions** field. That text holds the credentials and curl recipes I'll use to talk to your repos. **Don't** upload anything as a file — the Custom Instructions field is the only paste target."
 
-### Custom Instructions text (paste into the Project's instructions field)
+### Custom Instructions text — what to paste
 
-> **NOTE:** Phase 4 of the implementation plan defines the canonical custom-instructions text. Until that phase ships, the bootstrap should provide a brief placeholder pointing the runtime agent at the upstream `CLAUDE.md`. Replace this section with the canonical text once Phase 4 lands.
+The canonical Custom Instructions text lives at:
 
-Provide the user with this text in a code block:
+> `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/_PROJECT_INSTRUCTIONS.md.template`
 
-```
-At session start, fetch and follow the instructions at:
-https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/CLAUDE.md
+**WebFetch it.** Substitute the placeholders before showing the result to the user:
 
-Project files include `_PROJECT_INSTRUCTIONS.md` with the credentials and REST API recipes for this user's repos. Read it.
+- `<TOKEN>` → the PAT collected in Step 3b
+- `<USERNAME>` → the GitHub username from Step 3a
+- `<REPO>` → the research repo name from Step 4
 
-Personal context lives at `<USERNAME>/basic_config/personal_info.md`. Read it via the REST API at session start.
+Present the rendered text to the user as a single code block. Tell them:
 
-This Project corresponds to GitHub repo `<USERNAME>/<RESEARCH_REPO>`. All research artifacts (status, convos, plans, papers) live there.
-```
+> "Copy this entire block and paste it into your new Project's **Custom Instructions** field. The Custom Instructions field is the right home for this — it puts the credentials and recipes into every chat's context from the very first message, before any fetching happens. **Don't upload this as a file.**"
 
-(Substitute `<USERNAME>` and `<RESEARCH_REPO>` with the actual values before showing it to the user.)
+**Verification affordance.** Once the user confirms the paste, ask them to spot-check that all three substitutions are present in the pasted text — the literal strings `<TOKEN>`, `<USERNAME>`, `<REPO>` should NOT appear; the actual values should. If any placeholder is still literal, the runtime agent won't be able to authenticate — have them re-render and re-paste.
 
-### `_PROJECT_INSTRUCTIONS.md` (upload as a file)
-
-Fetch the template:
-
-```
-https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/_PROJECT_INSTRUCTIONS.md.template
-```
-
-Substitute the placeholders:
-- `<TOKEN>` → leave as the literal string `<TOKEN>` (the token is not embedded in the file; the runtime agent will set it from chat or environment). The user will be told at runtime that they need to set `TOKEN` once per session.
-- `<USERNAME>` → user's GitHub username
-- `<REPO>` → research repo name
-
-Present the rendered content as a code block. Tell the user:
-
-> "Save this as a file called `_PROJECT_INSTRUCTIONS.md` (note the leading underscore) and upload it to the Project's Files panel — usually a button labeled 'Add files' or '+'. Once uploaded, it appears in the Project's file list and is included in every chat in this Project."
-
-**Verification affordance.** Once the user confirms upload, ask them to confirm the filename starts with an underscore. If the underscore is missing, the file won't be recognized by the runtime agent's setup. Have them rename and re-upload if needed.
+> **Token handling:** the PAT lives only in the Custom Instructions text in the user's claude.ai account, not in any file in their GitHub repos. Don't echo the token back in chat output, don't write it to any seed file, don't include it in commit messages.
 
 ---
 
@@ -437,12 +417,11 @@ Wait for them to do this and report back. **Expected:** the agent in the new cha
 If validation fails, the most common causes (in rough order of likelihood):
 
 1. **PAT expired or wrong scope** → re-create per Step 3b. Most common.
-2. **`_PROJECT_INSTRUCTIONS.md` not uploaded or mis-named** → re-upload. Note: filename must start with underscore.
-3. **Custom Instructions not pasted in Project** → re-paste per Step 10.
-4. **Domain Allow List incomplete** → re-check Settings per Step 6, including running the smoke test.
-5. **Phase 4 hasn't shipped yet (`CLAUDE.md` doesn't exist upstream)** → expected during early development; the runtime agent won't have full instructions until Phase 4 lands. Bootstrap is still successful even if the runtime agent is partially functional.
+2. **Custom Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 10. Spot-check that no literal placeholders remain.
+3. **Domain Allow List incomplete** → re-check Settings per Step 6, including running the `curl -sI https://api.github.com/zen` smoke test.
+4. **`CLAUDE.md` upstream URL unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and the URL `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/CLAUDE.md` resolves. If the repo was recently flipped from private to public, give CDN cache up to 5 minutes to propagate.
 
-Help the user troubleshoot. Iterate until validation passes (or until you hit cause #5, which is acceptable).
+Help the user troubleshoot. Iterate until validation passes.
 
 ---
 
