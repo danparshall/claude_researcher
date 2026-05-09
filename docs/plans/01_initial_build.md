@@ -14,6 +14,18 @@
 
 **Tech Stack:** Markdown for everything human-facing. Python 3.12 for `scripts/` (run in claude.ai's sandbox via Bash). GitHub REST API (Contents endpoint primarily; Git Data API for the v2 atomic-commit helper). No build step, no package manager, no test framework — this is a content-and-prose repo.
 
+**Status (as of 2026-05-09):** Phases 1–3 complete. See [`STATUS.md`](../../STATUS.md) for current state and the [`docs/convos/`](../convos/) directory for session records, especially:
+
+- [`20260508_phase1_phase2_initial_build.md`](../convos/20260508_phase1_phase2_initial_build.md) — Phase 1+2 work and the `git_fluency`-tiered commit-policy decision
+- [`20260509_phase3_bootstrap_design.md`](../convos/20260509_phase3_bootstrap_design.md) — Phase 3 work and three architectural findings (two fetch mechanisms; "treat as typed" backfires; confirmation gates scripted, not invented)
+
+**Architectural decisions taken during execution that affect later phases:**
+
+- **Two fetch mechanisms.** WebFetch (claude.ai built-in) reaches public upstream content verbatim with no allow-list configuration; sandbox bash-curl with PAT handles the user's private repos and requires `api.github.com` in user-Settings allow list. CLAUDE.md (Phase 4) and skill ports (Phase 6) should choose the right mechanism per call.
+- **Settings is user-wide** (not per-Project) for the Domain Allow List. The `basic_config/domain_allowlist.txt` is a record / portability artifact, not a per-Project paste target.
+- **Confirmation gates scripted into orchestration files**, not delegated to agent judgment. CLAUDE.md (Phase 4) should script confirmations at sensitive-action boundaries (merges, archive moves, etc.) rather than expect the agent to invent them.
+- **Verification affordances offered, not demanded**, following the kill-convo design pattern. Availability of verification builds trust without requiring use.
+
 ---
 
 ## Testing Plan
@@ -69,9 +81,9 @@ The runtime instructions every working session loads.
 21. Write the branch-resolution logic: (a) direct name match against STATUS.md inventory, (b) indirect-via-path match for `docs/active/<X>/...`, (c) if neither, list open research lines and ask the wrap-up question.
 22. Write the project-confusion handling section: when user names a repo that doesn't match `_PROJECT_INSTRUCTIONS.md`'s REPO, state mismatch and steer to switch Projects.
 23. Write the wrap-up / merge-to-main path: open PR via REST → merge → `git mv docs/active/<branch> docs/historical/<branch>` → update STATUS.md "Archived Research Lines" table.
-24. Write the git-fluency calibration section: read `git_fluency` from personal_info.md, calibrate terminology and verbosity (novice → "research line" not "branch", explain merges as "finalizing into the permanent record"; fluent → terse).
+24. Write the git-fluency calibration section: read `git_fluency` from personal_info.md, calibrate terminology and verbosity (novice → "research line" not "branch", explain merges as "finalizing into the permanent record"; fluent → terse). **Also calibrate commit policy by tier:** novice → checkpoint often + under the hood (write each save without asking); occasional → light narration + confirm before structural changes (archives, merges); fluent → terse, ask only when truly destructive. Rationale captured in [`docs/convos/20260508_phase1_phase2_initial_build.md`](../convos/20260508_phase1_phase2_initial_build.md) Decisions Made section.
 25. Write the issue-reporting section: when user reports a problem, compose pre-filled URL `https://github.com/danparshall/claude_researcher/issues/new?title=<X>&body=<Y>`, include git_fluency tier and CLAUDE.md SHA, never include PAT or personal_info contents beyond the tier.
-26. Commit: `Phase 4: CLAUDE.md — runtime session orchestration`.
+26. **Glue + commit.** Replace `template/BOOTSTRAP.md` Step 10's placeholder code block with the canonical custom-instructions text (typically: a short snippet directing the runtime agent to fetch + follow `CLAUDE.md` from upstream, plus references to the uploaded `_PROJECT_INSTRUCTIONS.md` and to `basic_config/personal_info.md`). Then commit: `Phase 4: CLAUDE.md — runtime session orchestration; BOOTSTRAP.md Step 10 backfilled`.
 
 ## Phase 5: Write helper scripts in `template/scripts/`
 
