@@ -1,0 +1,38 @@
+# Personal Info
+
+This file is the agent's "who is the user" reference. Every research session reads it at start-up to calibrate how to interact, what conventions to follow, and how to talk to the user.
+
+The format below is the v1 schema. Agents reading this file should be able to find each field by header. If you're updating fields manually, keep the headers exact.
+
+## Identity
+
+- **Name:** <NAME>
+- **Current role:** <ROLE>
+
+## History
+
+### Academic
+<ACADEMIC_HISTORY>
+
+### Work
+<WORK_HISTORY>
+
+## How I work
+
+### Tools and languages
+<PROGRAMMING_LANGUAGES_AND_TOOLS>
+
+### Research interests
+<RESEARCH_AREAS>
+
+### Interaction style
+<INTERACTION_STYLE_NOTES>
+
+## Operating preferences
+
+- **Git fluency:** <novice | occasional | fluent>
+- **Paper naming format:** `<PAPER_NAMING>`
+
+## Last updated
+
+<YYYY-MM-DD by bootstrap | by manual edit on YYYY-MM-DD>
