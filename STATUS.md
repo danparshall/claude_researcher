@@ -13,7 +13,8 @@ There are no `papers/`, `docs/active/`, or `docs/historical/` directories and th
 ## Current state
 
 - **Plan:** [`docs/plans/01_initial_build.md`](docs/plans/01_initial_build.md) — 10 phases + Phase 4.5 v1.1 stub, ~67 tasks total.
-- **Currently at:** Phases 1–4 complete, including a substantial post-test restructure of `BOOTSTRAP.md` (12 commits across the day). Bootstrap is now 11 steps (down from 13), with cleaner meta→user→project hierarchy. Smoke-tested end-to-end through Step 6's repo creation (including the 403-Administration-missing recovery path). Steps 7–10 (file seeding, Project setup, validation, done) remain untested.
+- **Currently at:** Phases 1–4 complete, including a substantial post-test restructure of `BOOTSTRAP.md` (12 commits across the day) and a user-facing rewrite of the root `README.md` (commit `2b8d03d`). Bootstrap is now 11 steps (down from 13), with cleaner meta→user→project hierarchy. Smoke-tested end-to-end through Step 6's repo creation (including the 403-Administration-missing recovery path). Steps 7–10 (file seeding, Project setup, validation, done) remain untested.
+- **Public entry point:** [`github.com/danparshall/claude_researcher`](https://github.com/danparshall/claude_researcher) — root README now has the canonical bootstrap prompt as a copy-pasteable code block.
 - **Suggested next session:** resume the smoke test from Step 7 with the latest cache-busted URL (`?v=a238635`), then Phase 5 (helper scripts) or Phase 6 (skill ports). Slight preference for Phase 5 first.
 - **Branch:** main only. No research lines / feature branches.
 - **GitHub remote:** [`github.com/danparshall/claude_researcher`](https://github.com/danparshall/claude_researcher) — **public** (flipped 2026-05-09 to enable `raw.githubusercontent.com` reads from external claude.ai chats during bootstrap testing).

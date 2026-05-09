@@ -159,4 +159,17 @@ Smoke test resumed past Step 2b and surfaced three more issues, all fixed before
 
 3. **First-repo UX was project-only.** Step 5 assumed the user has a specific research project in mind. New users who just want to start using the workflow now have a knowledge-base path: Step 5 split into 5a (ask which) / 5b (research-`<topic>`) / 5c (`knowledge_base`). Same seed structure either way; `knowledge_base` is just untyped accumulation space until ideas crystallize.
 
-Final commit of the day: `a238635`. Bootstrap end-to-end has now been smoke-tested through Step 6's repo creation (with the 403-then-fix path exercised). Steps 7–10 (seeding, Project setup, validation) still untested.
+Final BOOTSTRAP-affecting commit of the day: `a238635`. Bootstrap end-to-end has now been smoke-tested through Step 6's repo creation (with the 403-then-fix path exercised). Steps 7–10 (seeding, Project setup, validation) still untested.
+
+### Update 3 — Root README made user-facing (commit `2b8d03d`)
+
+The repo's root `README.md` was previously dev-focused — first thing visitors saw was "Development repo for...". Anyone clicking the public GitHub URL had to dig to find the bootstrap prompt. Rewrote root README so anyone landing on `github.com/danparshall/claude_researcher` sees:
+
+- Project intro (one paragraph: browser-only research workflow for claude.ai)
+- "Quick start" section with the **copy-pasteable bootstrap prompt** in a code block, using the canonical (no cache-buster) URL `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/BOOTSTRAP.md`
+- "What you'll need" callout (GitHub free tier, Claude.ai Pro/Team, ~15 min, knowledge_base option)
+- "What's in this repo" inventory with paths reflecting the current dev-repo layout (`template/BOOTSTRAP.md`, etc.)
+- License + reporting-issues
+- A "Developer info" section below a horizontal rule pointing at the implementation plan, design convo, and STATUS — for contributors who want to look under the hood
+
+`template/README.md` stays unchanged — it's the future-state version that becomes canonical once Phase 10 promotes `template/` contents to the repo root. Dual maintenance for now; resolves at publish. Commit: `2b8d03d`.
