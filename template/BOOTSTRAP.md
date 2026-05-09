@@ -245,10 +245,22 @@ Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION
 > "Three preference questions:
 >
 > 1. **Git fluency** — pick one: **novice** ('I've only used GitHub.com via the web UI'), **occasional** ('I clone and push from the command line sometimes'), or **fluent** ('I use git daily, including merge / rebase / cherry-pick'). This calibrates how chatty I am about git operations.
-> 2. **Paper naming convention** — when I save papers to your repo, what filename format do you want? Default is `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf` (e.g., `Vaswani_Polosukhin__2017--attention_is_all_you_need.pdf`). Double underscore (`__`) separates the author block from the year; double dash (`--`) separates the year from the slug. For solo-authored papers, use the same surname for both author fields (or omit the second — your call). Press Enter to accept or specify your own.
+> 2. **Paper naming convention** — when I save papers to your repo, what filename format do you want? Default is `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`, with one disambiguation rule for common surnames:
+>
+>    - **Default surname rendering:** just the surname, capitalized as in the paper. Example: `Vaswani_Polosukhin__2017--attention_is_all_you_need.pdf`.
+>    - **Common-surname rendering:** `SurnameF` (surname plus the first author's first-name initial, no separator) when the surname is common enough that you'd otherwise end up with collisions. Apply to common Anglo surnames (Smith, Jones, Patel, Singh, etc.) and East Asian surnames (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato, etc. — use judgment). Example: `SmithJ_PatelA__2024--stress_sleep_adolescents.pdf`.
+>    - Apply the same rule to the last-author surname independently.
+>    - **Solo-authored papers:** use the same surname for both author fields, or omit the second — your call.
+>    - **Punctuation:** `__` (double underscore) separates the author block from the year; `--` (double dash) separates year from slug; `_` (single underscore) separates within blocks.
+>
+>    Press Enter to accept the default + rule, or specify your own format.
 > 3. **Extra paper-source domains** — besides arXiv, bioRxiv, medRxiv, and DOI redirects (already in your allow list), any other domains you'll routinely download papers from? If yes, name them; we'll add them to your allow list and to your `domain_allowlist.txt`."
 
-Record as `<GIT_FLUENCY>`, `<PAPER_NAMING>` (default `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf` if they accepted), and any extras to add.
+Record as `<GIT_FLUENCY>`, `<PAPER_NAMING>`, and any extras to add. If they accepted the default, `<PAPER_NAMING>` should capture both the format string AND the disambiguation rule, since the runtime agent needs both to render filenames consistently. Use this canonical text when writing to `personal_info.md`:
+
+> `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Use `SurnameF` (surname plus first-name initial, no separator) when the surname is common enough that collisions are likely — Anglo (Smith, Jones, Patel, Singh, etc.) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato, etc.); use judgment. Solo-authored papers: same surname for both fields, or omit the second.
+
+If the user provided their own format, capture exactly what they typed; don't try to merge their format with the default rule.
 
 After all three batches, summarize the full interview to the user in one paragraph. Get explicit confirmation before proceeding.
 
