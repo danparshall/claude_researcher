@@ -153,7 +153,14 @@ Expected: `HTTP/2 200`.
 1. Have the user re-check that they actually clicked **Save** in the allow-list UI. The form sometimes appears to accept input but doesn't persist without an explicit save.
 2. Wait ~30 seconds and retry — there's sometimes a brief platform-side delay before allow-list changes propagate.
 3. **If retries still fail, the cleanest workaround is a fresh chat.** Tell the user:
-   > "The allow-list change hasn't reached this chat session — it may not propagate to chats that were already open before you saved. The fix is to start a fresh chat and re-paste the same bootstrap prompt you just used. The new chat will see the allow-list change. You don't need to redo anything you've already configured (the PAT is still valid, the allow-list is saved); the new chat will just pick up from where we got stuck."
+   > "The allow-list change hasn't reached this chat session — it may not propagate to chats that were already open before you saved. The fix is to start a fresh chat and re-paste the same bootstrap prompt you just used. The new chat will see the allow-list change.
+   >
+   > You **will** need to re-walk the early steps with the new agent — claude.ai chats don't share memory, so the new agent has zero context from this one. Specifically:
+   > - The PAT itself is still valid in your GitHub account; you just need to paste it again into the new chat (the value goes into the new chat's bash sandbox as `$TOKEN`).
+   > - You'll re-confirm your username, topic, and repo name. Use the same answers you gave me.
+   > - The allow-list configuration is saved server-side at the user-Settings level, so Step 5 will pass immediately for the new agent — no need to redo it.
+   >
+   > Total re-walk: probably 60–90 seconds. Then the new agent picks up from where we got stuck."
    Stop the current chat there. Don't try to push past a network-deny in this session.
 
 If the unauth smoke test passes, also re-verify the PAT now that we have network (this is the verification you were going to do back in Step 3b before the egress proxy stopped you):
