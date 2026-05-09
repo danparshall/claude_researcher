@@ -1,0 +1,19 @@
+# claude_researcher Domain Allow List
+#
+# Paste the non-comment lines below into your claude.ai Project at:
+#   Project Settings > Capabilities > Allow Network Egress > Domain Allow List
+#
+# One domain per line. Strip the comment lines (starting with #) before
+# pasting if claude.ai's allow-list field does not tolerate them.
+
+# --- Workflow-required (GitHub REST API + raw content fetch) ---
+api.github.com
+codeload.github.com
+github.com
+raw.githubusercontent.com
+
+# --- Paper sources (PDF download for the add-paper skill) ---
+arxiv.org
+doi.org
+www.biorxiv.org
+www.medrxiv.org
