@@ -31,6 +31,7 @@ The format below is the v1 schema. Agents reading this file should be able to fi
 ## Operating preferences
 
 - **Git fluency:** <novice | occasional | fluent>
+- **Mode:** <claude.ai-only | also-local>
 - **Paper naming format:** `<PAPER_NAMING>`
 
 ## Last updated

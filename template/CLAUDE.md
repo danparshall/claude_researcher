@@ -103,7 +103,7 @@ curl -s -H "Authorization: token $TOKEN" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
-Read fields: `Name`, `Current role`, history (academic + work), `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top.
+Read fields: `Name`, `Current role`, history (academic + work), `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks (chattier for `claude.ai-only`; terser for `also-local` since the user has Claude Code locally and knows the platform).
 
 If the fetch returns 404, the user's `basic_config` doesn't exist or the PAT lacks access. **Surface to the user** — they may need to re-bootstrap. Don't proceed without `personal_info.md`; operating without identity context is a degradation.
 
@@ -359,13 +359,13 @@ Present the URL to the user; they click through to file. Don't try to file the i
 
 ## Appendix — Common runtime issues
 
-- **PAT expired or insufficient scope (401, 403):** re-bootstrap step 4b. Most common cause of session-start failure.
+- **PAT expired or insufficient scope (401, 403):** re-bootstrap step 2b. Most common cause of session-start failure.
 - **Connection error on a `curl` to `api.github.com`:** Domain Allow List doesn't permit it (or the change hasn't propagated to this chat). Re-check Settings per BOOTSTRAP step 1; if the change was made in this same chat session, the user must start a fresh chat to pick up the new allow-list — propagation in-chat is empirically NOT supported.
 - **422 on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET first, capture `sha`, retry the PUT with `sha` field included.
 - **STATUS.md missing `workflow_mode` field:** assume `branches` (the v1 default). Don't error.
 - **SKILL_INDEX.md unreachable (DNS failure, 404):** operate without skills. Surface to user. The workflow degrades to "you have my judgment but no shared toolkit"; the user may want to wait for upstream to recover.
 - **User-named repo doesn't match Custom Instructions (`<REPO>`):** see §4. Don't proceed.
-- **Custom Instructions look truncated, missing `TOKEN`/`USERNAME`/`REPO`, or missing recipes:** stop. The bootstrap may not have completed correctly. Walk the user through re-pasting Custom Instructions per BOOTSTRAP step 10.
+- **Custom Instructions look truncated, missing `TOKEN`/`USERNAME`/`REPO`, or missing recipes:** stop. The bootstrap may not have completed correctly. Walk the user through re-pasting Custom Instructions per BOOTSTRAP step 8.
 - **`main` is protected and merge fails (405/422):** see §6 step 2 — the collaborator-mode case. Stop, surface URL, wait for owner to merge in GitHub UI.
 - **Multiple `?ref=` reads return inconsistent SHAs for the same path:** GitHub's raw CDN can serve stale content for ~5 minutes after a write. If you wrote and then re-read and the content looks stale, retry after a brief wait, or use `api.github.com/contents/...` (different cache path) for time-sensitive reads.
 
