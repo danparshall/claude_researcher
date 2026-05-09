@@ -9,12 +9,20 @@ The agent reads its instructions from this repo at runtime, and reads/writes you
 If a colleague pointed you here, paste the prompt below into a fresh chat in claude.ai. The agent will walk you through ~15 minutes of one-time setup; after that, every future research session starts with a single sentence ("let's work on `<topic>`") in a new chat.
 
 ```
-You are running the claude_researcher bootstrap. Fetch and follow the
-instructions at:
+You are an agent helping a researcher set up the claude_researcher workflow — a one-time setup that lets researchers leverage Claude fully on the web even when their work machine is locked down and can't run Claude Code locally. Bootstrapping is the first stage: it walks the user through a browser-based setup that creates their personal config repo and first research repo, so every research session afterward just works.
 
-https://raw.githubusercontent.com/danparshall/claude_researcher/main/BOOTSTRAP.md
+The project's source files are public and readable ahead of time at:
+  https://github.com/danparshall/claude_researcher
 
-Read that file end-to-end, then begin. Do not skip steps.
+You can inspect any file there at any point during the bootstrap to verify what you're being asked to do. Nothing is hidden.
+
+The interview you'll run collects data that gets written, in a specific format, into the user's `basic_config/personal_info.md` and a few related files (`STATUS.md`, `domain_allowlist.txt`). Every future research session reads those files to know who the user is and how they work — so the formats specified in the orchestration file matter.
+
+Sensitive operations (repo creation, PAT handling, file writes, claude.ai settings changes) have explicit confirmation gates scripted into the orchestration file. Feel free to add your own confirmation prompts at any boundary that gives you pause — I'd rather one round-trip of confirmation than have you push past concerns.
+
+Now fetch and follow:
+
+  https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/BOOTSTRAP.md
 ```
 
 > **You will need:** a GitHub account (free tier is fine), a Claude.ai Pro or Team account, and ~15 minutes for setup. The bootstrap will help you create a fine-grained GitHub PAT and configure your first research project.

@@ -4,13 +4,13 @@ This file is uploaded to your claude.ai Project. The agent reads it at the start
 
 ## Why this uses the GitHub REST API
 
-claude.ai runs your conversation in a sandboxed Python environment. By default the sandbox cannot reach the public internet — standard `git clone` and `git push` over SSH or HTTPS will not work. The agent talks to GitHub through an explicit allow list:
+claude.ai's sandbox has restricted network egress. Standard `git clone` and `git push` won't reach `github.com` over SSH or HTTPS. To make the sandbox able to read and write the user's GitHub repos, network access to `api.github.com` (and a few related domains) was permitted during bootstrap at:
 
-> **Project Settings → Capabilities → Allow Network Egress → Domain Allow List**
+> **Settings → Capabilities → Allow Network Egress → Domain Allow List**
 
-That allow list was configured during bootstrap and lives in `<USERNAME>/basic_config/domain_allowlist.txt`. It permits `api.github.com` for the REST API, plus `raw.githubusercontent.com` for fetching upstream skill specs, plus a small list of paper-source domains for the `add-paper` skill.
+This is a user-wide setting (configured once, applies across all your claude.ai chats — not per-Project). The exact domains configured are recorded in `<USERNAME>/basic_config/domain_allowlist.txt` for reference and for re-use on a different machine.
 
-So instead of cloning the repo, the agent uses GitHub's [Contents API](https://docs.github.com/en/rest/repos/contents) to read and write files one at a time. Recipes are below.
+So instead of cloning the repo, the agent uses GitHub's [Contents API](https://docs.github.com/en/rest/repos/contents) to read and write files via the curl recipes below. (Reads of public upstream content — like skill specs at `raw.githubusercontent.com/danparshall/claude_researcher` — go through claude.ai's built-in WebFetch tool, which doesn't require allow-list configuration. Those don't need recipes here.)
 
 ## Credentials
 
