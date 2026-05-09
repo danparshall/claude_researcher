@@ -245,10 +245,10 @@ Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION
 > "Three preference questions:
 >
 > 1. **Git fluency** — pick one: **novice** ('I've only used GitHub.com via the web UI'), **occasional** ('I clone and push from the command line sometimes'), or **fluent** ('I use git daily, including merge / rebase / cherry-pick'). This calibrates how chatty I am about git operations.
-> 2. **Paper naming convention** — when I save papers to your repo, what filename format do you want? Default is `{year}_{first_author}_{slug}` (e.g., `2024_smith_attention_is_all_you_need.pdf`). Press Enter to accept or specify your own.
+> 2. **Paper naming convention** — when I save papers to your repo, what filename format do you want? Default is `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf` (e.g., `Vaswani_Polosukhin__2017--attention_is_all_you_need.pdf`). Double underscore (`__`) separates the author block from the year; double dash (`--`) separates the year from the slug. For solo-authored papers, use the same surname for both author fields (or omit the second — your call). Press Enter to accept or specify your own.
 > 3. **Extra paper-source domains** — besides arXiv, bioRxiv, medRxiv, and DOI redirects (already in your allow list), any other domains you'll routinely download papers from? If yes, name them; we'll add them to your allow list and to your `domain_allowlist.txt`."
 
-Record as `<GIT_FLUENCY>`, `<PAPER_NAMING>` (default `{year}_{first_author}_{slug}` if they accepted), and any extras to add.
+Record as `<GIT_FLUENCY>`, `<PAPER_NAMING>` (default `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf` if they accepted), and any extras to add.
 
 After all three batches, summarize the full interview to the user in one paragraph. Get explicit confirmation before proceeding.
 
