@@ -13,13 +13,14 @@ There are no `papers/`, `docs/active/`, or `docs/historical/` directories and th
 ## Current state
 
 - **Plan:** [`docs/plans/01_initial_build.md`](docs/plans/01_initial_build.md) — 10 phases, 61 tasks.
-- **Currently at:** Phase 1 — create the GitHub remote and push.
+- **Currently at:** Phase 3 ready — write `BOOTSTRAP.md` (tasks 9–18). Phases 1 and 2 complete.
 - **Branch:** main only. No research lines / feature branches.
-- **GitHub remote:** not yet created (Phase 1 task 1).
+- **GitHub remote:** [`github.com/danparshall/claude_researcher`](https://github.com/danparshall/claude_researcher) — private. Created 2026-05-08.
 
 ## Recent sessions
 
-- **2026-05-08** — Design conversation establishing dual-repo collaborator model, REST-API-via-PAT, on-demand skill fetching, bootstrap interview, runtime session flow, skill REST adaptations. Plan written. License (Apache 2.0 + Ship of Theseus) committed at root. Convo: [`docs/convos/20260508_claude_ai_researcher_design.md`](docs/convos/20260508_claude_ai_researcher_design.md).
+- **2026-05-08 (initial build execution)** — Phase 1 (GitHub remote + push) and Phase 2 (`template/` skeleton: README, LICENSE copies, ATTRIBUTION.md, `_PROJECT_INSTRUCTIONS.md.template` rewrite, domain_allowlist.txt baseline, `.gitkeep` dirs) completed. Design tangent: Phase 4 commit policy will be `git_fluency`-tiered (novice = checkpoint often + under the hood; occasional = light narration + confirm before structural changes; fluent = terse). Side-finding: `--system-prompt` only replaces the default system prompt — tool descriptions, CLAUDE.md, skills, and hooks all load through other layers — see [`docs/convos/20260508_sysprompt_layer_analysis.md`](docs/convos/20260508_sysprompt_layer_analysis.md). Convo: [`docs/convos/20260508_phase1_phase2_initial_build.md`](docs/convos/20260508_phase1_phase2_initial_build.md).
+- **2026-05-08 (design)** — Design conversation establishing dual-repo collaborator model, REST-API-via-PAT, on-demand skill fetching, bootstrap interview, runtime session flow, skill REST adaptations. Plan written. License (Apache 2.0 + Ship of Theseus) committed at root. Convo: [`docs/convos/20260508_claude_ai_researcher_design.md`](docs/convos/20260508_claude_ai_researcher_design.md).
 
 ## Open questions (live)
 
@@ -29,3 +30,7 @@ See plan's "Questions" section for full list. Highlights:
 - pypdf availability in claude.ai's sandbox (verify before Phase 5).
 - Fine-grained PAT cross-org write capability (relevant for v2 issue auto-file).
 - Whether to publish `docs/` alongside `template/` at Phase 10.
+
+## Known issues
+
+- **Nori `commit-author.js` hook produces malformed commit messages.** Inserts literal `\n\n` escape sequences instead of newlines, collapsing every commit into a single subject line with visible backslash-n. Cosmetic only; affects every Dan-authored commit using the hook (multiple repos). Worth filing upstream against `tilework-tech/nori-skillsets`. Detail in [`docs/convos/20260508_phase1_phase2_initial_build.md`](docs/convos/20260508_phase1_phase2_initial_build.md).
