@@ -148,3 +148,15 @@ The test agent's behavior was largely excellent and worth noting as evidence the
 **Resume the smoke test from Step 3 onward** in a fresh session, using the latest cache-busted URL (`?v=42648a4`). Token handling is now explicitly documented; the previous pause point shouldn't recur. Walk through repo creation, file seeding, Project setup, and validation — each is a new failure surface that hasn't been exercised end-to-end.
 
 After the bootstrap is end-to-end clean, **Phase 5 (helper scripts in `template/scripts/`)** is the natural next phase, then Phase 6 (skill ports). Slight preference for Phase 5 first so skills have working helpers to call.
+
+### Update 2 — Three more fixes after the handoff was started (commit `a238635`)
+
+Smoke test resumed past Step 2b and surfaced three more issues, all fixed before final handoff:
+
+1. **Administration permission was missing on the PAT.** GitHub's PAT-creation UI defaults all permissions to "No access"; users click through Step 2b without setting Administration to Read and write, then hit 403 on `POST /user/repos` in Step 6. Step 2b now has a `⚠️` warning callout calling Administration "THE MOST-SKIPPED PERMISSION" and an explicit confirmation prompt before proceeding.
+
+2. **403 recovery was over-aggressive.** The doc said "re-create the PAT" — but fine-grained PATs are editable in place; the token value stays the same. Added an "If you skipped Administration" subsection to Step 6 with the exact edit-recipe (Settings → PAT → set Administration → Update). The smoke-test agent figured this out on its own; we just captured it as canonical guidance.
+
+3. **First-repo UX was project-only.** Step 5 assumed the user has a specific research project in mind. New users who just want to start using the workflow now have a knowledge-base path: Step 5 split into 5a (ask which) / 5b (research-`<topic>`) / 5c (`knowledge_base`). Same seed structure either way; `knowledge_base` is just untyped accumulation space until ideas crystallize.
+
+Final commit of the day: `a238635`. Bootstrap end-to-end has now been smoke-tested through Step 6's repo creation (with the 403-then-fix path exercised). Steps 7–10 (seeding, Project setup, validation) still untested.
