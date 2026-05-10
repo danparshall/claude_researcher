@@ -2,7 +2,7 @@
 
 This is the manifest of skills available in `claude_researcher`. The runtime agent fetches this file at session start (per `CLAUDE.md` §2d) to know what skills exist and when to use them. Individual `SKILL.md` files are **fetched on-demand** when their trigger conditions match — don't load all of them upfront.
 
-**Status:** stub. Per-skill `SKILL.md` files are not yet ported (Phase 6 of the implementation plan). Until that phase ships, the URLs below 404. The manifest contract (the fields and shape of each entry) is locked in this file; per-skill bodies fill in as Phase 6 lands.
+**Status:** partial. The **Working-style skills** below (9 carryovers from upstream Nori) are live — their URLs resolve. The **Session lifecycle** and **Knowledge-management** sections are still stubs; their URLs 404 until those skills are ported (Waves 2-3 of [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md)). Don't try to fetch a 404'd skill — use your judgment for that lifecycle role until it lands.
 
 ---
 
