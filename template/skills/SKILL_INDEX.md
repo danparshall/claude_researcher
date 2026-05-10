@@ -2,7 +2,7 @@
 
 This is the manifest of skills available in `claude_researcher`. The runtime agent fetches this file at session start (per `CLAUDE.md` §2d) to know what skills exist and when to use them. Individual `SKILL.md` files are **fetched on-demand** when their trigger conditions match — don't load all of them upfront.
 
-**Status:** partial. The **Working-style skills** below (9 carryovers from upstream Nori) are live — their URLs resolve. The **Session lifecycle** and **Knowledge-management** sections are still stubs; their URLs 404 until those skills are ported (Waves 2-3 of [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md)). Don't try to fetch a 404'd skill — use your judgment for that lifecycle role until it lands.
+**Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle** and **Knowledge-management** skills are Researcher-authored, shipped verbatim with a REST-adaptation banner at the top of each: the workflow shape is right, but they reference `git add` / `git commit` / `git push` (Claude Code idiom). When you fetch one, translate those to the REST `write_update` / `write_new` recipes from your Custom Instructions. Proper REST adaptation lands in [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md) Waves 2-3.
 
 ---
 
