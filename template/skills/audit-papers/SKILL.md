@@ -3,7 +3,21 @@ name: Audit-Papers
 description: Check papers/ structure for completeness and accuracy — every PDF has text extraction, every paper is indexed in PAPER_INDEX.md and summarized in PAPER_SUMMARIES.md, summaries are factually accurate. Prompts the user for discrepancies.
 ---
 
-> **Note for claude.ai runtime:** this skill was written for Claude Code (local git). In claude.ai's sandbox, translate `git add` / `git commit` / `git push` to the REST `write_update` / `write_new` recipes from your Custom Instructions. The conceptual workflow below is unchanged.
+## Runtime detection
+
+Before following the rest of this skill, determine your environment:
+
+```bash
+if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
+  echo "claude.ai sandbox"
+else
+  echo "Claude Code"
+fi
+```
+
+**If `claude.ai sandbox`:** translate every `git add` / `git commit` / `git push` in this skill into the REST `write_update` / `write_new` recipes from your Custom Instructions. Translate local paths like `/Users/<user>/.claude/skills/...` into `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/...` URLs (fetched via WebFetch).
+
+**If `Claude Code`:** follow the skill body as-is.
 
 <required>
 CRITICAL: Add the following steps to your Todo list using TodoWrite:
