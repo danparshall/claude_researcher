@@ -109,7 +109,93 @@ This validates: the calibration tier dial, the two-fetch-mechanism architecture,
 
 - This convo + plan diff is the deliverable for this session. No skill bodies written yet.
 - **Phase 4 closure:** STATUS.md gets updated to reflect Step 9 pass at session end (finish-convo). The `raw.githubusercontent.com` finding becomes a small follow-on TODO, not a blocker.
-- **Suggested next session:** Phase 5 (helper scripts) per the existing plan ordering preference, then Phase 6 starting with `writing-skill` (lowest-friction port). Phase 4.6 retrofit can interleave with Phase 5 since it's a small, isolated CLAUDE.md edit.
+- **Suggested next session:** start [`docs/plans/02_skill_ports.md`](../plans/02_skill_ports.md) Wave 0 (provenance + sync infrastructure, ~1 hr) then Wave 1 (SWE carryovers, ~1-2 hr). 9 working skills in `template/skills/` within ~3 hours. Wave 2 (session lifecycle) and Phase 4.6 (CLAUDE.md retrofit) come next.
+
+---
+
+## Continuation (later same evening) — Phase 7+ scope, publish strategy, Nori chain, wave-based plan
+
+After the Phase 4 Step 9 validation result, the session continued with several additional decisions and one new plan doc. Captured below in the order they happened.
+
+### Phase 7+ scope reduction recognized
+
+User asked "what else is happening in Phase 5/6?" then "what's in Phase 7+?" — answering forced us to look at the original plan against the actual smoke-test-driven evolution. **Most of Phase 7-10 is already retired implicitly:** BOOTSTRAP.md absorbed `WHY_REST.md` / `PAT_SETUP.md` / `PROJECT_SETUP.md` content during the Phase 4 restructure; today's smoke test was effectively Phase 8's self-walkthrough; Phase 10 task 58 (publish strategy) and task 59 (README bootstrap prompt) and task 60 (test from clean machine) are all done in different shapes than originally specified.
+
+**Real remaining work in Phases 7-10:**
+
+- **Phase 9 collaborator walkthrough** — only remaining test that materially de-risks v1; everything before proves it works *for Dan*. User noted "external user part is already underway."
+- Phase 10 task 61 (placeholder issue to validate pre-filled URL) — ~15 min.
+- Phase 8 timing re-test in fresh chat with no edits — ~30 min.
+- (optional) Phase 7 screenshots if Phase 9 surfaces friction.
+
+The **Implementation Status Tracker** at the top of `01_initial_build.md` was added to make nominal-vs-actual phase state legible at a glance. Updated several times during this session as decisions came in.
+
+### Publish strategy revisited and resolved
+
+Status: **resolved as status-quo with framing repair.** Original Phase 10 task 58 default was "leave docs/ in dev repo only; revisit if collaborators ask 'why did you decide X?'." On 2026-05-09 the dev repo was flipped public to enable smoke-test reads from `raw.githubusercontent.com` — that bypassed the original default without a deliberate decision.
+
+User clarified: **Andrea Lopez-Luzuriaga is a collaborator on this project**, which removes the only real concern with `docs/convos/` being public (the AITaxBID audit naming her). Decision: keep dev-repo-public; add an "About" section to the root `README.md` that frames the project as a Dan + Andrea collaboration sharing learnings with the academic community. Done in commit `a18ef92` (initial) + `048d140` (linked to personal websites: danparshall.com, andrealopezluzuriaga.com) + `8a8b9cf` (TLD fix to .net).
+
+The "About" framing converts the candor of `docs/convos/` from "internal-asides leaked" to "deliberate transparency" — which is closer to the truth anyway.
+
+### Andrea invited as collaborator (operationally)
+
+User provided GitHub handle `aflopezluzuriaga`. Invited via `gh api -X PUT /repos/.../collaborators/aflopezluzuriaga -f permission=push`. Standard Write role. Invitation pending Andrea's acceptance.
+
+### Three-layer Nori propagation chain established
+
+User clarified the architectural framing: **`claude_researcher` = Nori Researcher + non-CLI tricks**. User authors the Nori Researcher skillset; Researcher leverages parts of the Nori SWE skillset (which user does NOT author). So the propagation chain has 3 layers:
+
+```
+Nori SWE          (external upstream; user doesn't author)
+   ↓
+Nori Researcher   (user authors; depends on SWE for working-style skills)
+   ↓
+claude_researcher (user authors; depends on Researcher; adds REST adaptations)
+```
+
+Implication: **changes to SWE upstream don't reach claude_researcher unless the user carries them forward through both layers.** A drift-detection mechanism is real value, not premature abstraction.
+
+### Skill categorization by adaptation effort
+
+Building on the AITaxBID audit's tier framing + the propagation chain, skills bucket into three categories with different upstream relationships:
+
+- **SWE carryovers** (~9 skills: brainstorming, TDD, debugging, etc.) — pure-thought skills, touch zero environmental axes, no REST adaptation needed. Ports are essentially `cp` + provenance stamp.
+- **Researcher skills** (finish-convo, update-docs, add-paper, audit-*, init-research-repo, write-a-plan, handle-large-tasks) — user authors both Nori (local) and claude_researcher (REST) implementations. Real adaptation work where they touch the file I/O / commit semantics axes.
+- **AITaxBID-derived skills** (writing-skill, branch-document-review, document-processing) — separate upstream maintainer (Andrea), snapshot pattern with deferred propagation.
+
+Frontmatter convention: each ported `SKILL.md` carries one (or more) of `nori_swe_source` / `nori_researcher_source` / `aitaxbid_source` with stamped SHA at port time. Multiple sources allowed for synthesis ports (Wave 3's `add-paper` will be the first — Researcher workflow + AITaxBID Protocol B fold-in).
+
+### Wave-based skill-port plan written
+
+Created [`docs/plans/02_skill_ports.md`](../plans/02_skill_ports.md), commit `2d2ba27`. Wave-based execution plan ordered for time-to-first-usable-skill given beta users imminent:
+
+- **Wave 0** Provenance + sync infrastructure (~1 hr)
+- **Wave 1** SWE carryovers — 9 skills via `cp` + stamp (~1-2 hr) → **first ship-ready state**
+- **Wave 2** Session lifecycle (finish-convo, update-docs) — ~2-3 hr
+- **Wave 3** Knowledge management (add-paper × 2, audit-docs, audit-papers) — ~4-5 hr
+- **Wave 4** AITaxBID Tier A (writing-skill, branch-document-review) — ~3-4 hr
+- **Wave 5** Deferred (document-processing, init-research-repo)
+
+Plan also locks in: Phase 5 helpers slot between Waves 2 and 3 (skills can embed REST recipes inline pre-Phase-5); Phase 4.6 CLAUDE.md retrofit interleaves between Wave 1 and Wave 2; Phase 9 collaborator walkthrough runs in parallel.
+
+**Beta-user-imminent caveat surfaced in the plan:** before any beta user is pointed at the repo, `SKILL_INDEX.md` should be trimmed to only-ported skills. Currently lists 14 skills, none of which exist as `SKILL.md` files yet — fetch failures would be a poor first impression.
+
+## Decisions Made (continuation)
+
+- **Publish strategy: status quo + About section.** Dev repo stays public including `docs/`. Andrea is a collaborator so naming her is fine. Root README has an About section linking to both personal websites.
+- **Andrea added as repo collaborator** (`aflopezluzuriaga`, Write permission). Operational, not just textual.
+- **3-layer propagation chain is the correct mental model.** Drives the provenance frontmatter convention, sync script, and drift-detection check.
+- **Provenance per skill is per-source** — multiple sources allowed for synthesis ports. Wave 3's `add-paper` exercises this first.
+- **Wave-based shipping** over phase-based. 01_initial_build.md's Phase 5/6/4.6 task structure is preserved; 02_skill_ports.md adds the *ordering* layer optimized for time-to-first-usable-skill.
+- **Phase 5 helpers are NOT prerequisite** for Wave 2-4 skill ports. Skills embed REST recipes inline initially; refactor to helpers between Waves 2 and 3.
+
+## Open Questions (continuation, carry-forward)
+
+- **`SKILL_INDEX.md` trimming timing.** When does it happen — before Wave 1, alongside Wave 1, or as a pre-emptive Wave 0 task? Listed in 02_skill_ports.md Open Questions but not assigned a wave.
+- **Synthesis-skill provenance YAML shape.** Decision deferred to Wave 0 (frontmatter convention is locked there before Wave 1 starts stamping). Multiple top-level keys (`nori_researcher_source`, `aitaxbid_source`) vs. a single list vs. nested — pick at Wave 0.
+- **`raw.githubusercontent.com` Step 8 finding** (carry-forward from earlier in this session). Not investigated. Fold into Wave 1 smoke-test of carryover URLs since the same allow-list mechanism is involved.
+- **Phase 9 candidate.** User mentioned "external user part is already underway" — implies a specific candidate is in motion. Not named; not blocking.
 
 ## Provenance
 
