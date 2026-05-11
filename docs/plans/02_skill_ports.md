@@ -190,7 +190,7 @@ Tasks (when scheduled):
 
 ## Phase 5 helpers — when to land
 
-01's Phase 5 (helper scripts: `rest_helpers.py`, `create_repo.py`, `seed_repo.py`, `extract_pdf_text.py`) is **NOT** prerequisite for shipping skills. Wave 2-4 skills can embed REST recipes inline using the Custom Instructions recipes the smoke-test agent already proved.
+01's Phase 5 (helper scripts: `rest_helpers.py`, `create_repo.py`, `seed_repo.py`, `extract_pdf_text.py`) is **NOT** prerequisite for shipping skills. Wave 2-4 skills can embed REST recipes inline using the Project Instructions recipes the smoke-test agent already proved.
 
 **Recommended timing:** start Phase 5 helpers between Wave 2 and Wave 3, OR after Wave 3. Reason: by then you'll have 4 REST-adapted skills with embedded recipes, and the patterns to extract will be obvious. Refactor the embedded recipes into helper calls in a single follow-on commit per skill.
 
