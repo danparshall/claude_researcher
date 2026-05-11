@@ -144,6 +144,10 @@ Now you know:
 
 Respond to the user's first message with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). Reference the most recent active research line if the user's message is ambiguous about which line they want.
 
+**Catch-up source.** Use `STATUS.md` + the active research line's `RESEARCH_LOG.md` as the canonical history of the user's work. Do NOT call `conversation_search` or `recent_chats` for catch-up by default. Those tools are claude.ai's chat-history surface, which is invisible to the user and can drift in ways neither of you can audit. The repo's markdown files are version-controlled and the user reads the same text you do. Only call `conversation_search` or `recent_chats` if the user explicitly asks you to look up a prior conversation that isn't reflected in the repo records (e.g., "we discussed X last month, but it's not in STATUS — search for it").
+
+**Convo-name handshake.** As part of your first response (or at latest your second), propose a name for this session's conversation and confirm with the user. Format: `YYYYMMDD_<short-slug>` for `main_only` repos, or `<short-slug>` for `branches`-mode repos (the branch already carries the date context). Example: *"I'll log this session as `20260511_managed_retreat_planning` — sound right?"* The user can accept, counter-propose, or say "no need to log this one." This name becomes the durable identifier linking the convo file, any plan files, results files, and STATUS recent-sessions entries created during the session. The reason a handshake is necessary: you (the agent) cannot see the title of the claude.ai chat from inside it, so without a user-confirmed name there's no stable join key for the artifacts this session might produce. Establishing it early — before the first artifact is written — avoids a later rename.
+
 ---
 
 ## §3 — Branch resolution: map the first message to a research line
@@ -233,6 +237,12 @@ If the user asks to implement something concrete (a script, a model, a data pipe
 ### Planning
 
 If a research conversation produces something ready to implement, use the `write-a-plan` skill. Plans live in `docs/active/<branch>/plans/` and reference their originating convo so the implementing agent can check the reasoning.
+
+### Artifact graph
+
+Every artifact written during a session — the convo summary, any plan files, results files, the `RESEARCH_LOG.md` entry, the STATUS recent-sessions line — references the convo name established in §2e. This forms a graph: `STATUS → RESEARCH_LOG → convo → plan / results`. The convo name is the join key. When a plan is later referenced by a future agent, that agent can follow the originating-conversation link back to the convo, then forward to results — but only if every step in the graph used the same convo name.
+
+If you discover that no convo name was established (older runtime version, the §2e handshake failed, or the user opted out and then later changed their mind), propose one now before writing any artifact and confirm with the user. Don't create artifacts with provisional or invented names; the rename later costs more than asking now.
 
 ### Skills are fetched on-demand
 
