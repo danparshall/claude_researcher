@@ -26,7 +26,7 @@ Around this pattern, ecosystems grew. **Nori** is an open-source bundle of skill
 
 Nori has a sub-skillset called **Researcher**, aimed at researchers using Claude Code locally for paper triage, multi-session reasoning, and writing. That's where the design DNA of this project comes from. We took Researcher's patterns — `STATUS.md`, `RESEARCH_LOG.md`, on-demand skills, the convention of capturing conversations and plans as durable artifacts — and rebuilt them for an environment where the user doesn't have a terminal. The Project Instructions field on a Claude.ai Project plays the role of the Code `CLAUDE.md` convention; a public GitHub repo (this one) plays the role of `~/.claude/skills/`; the sandbox's network access plays the role of local filesystem reads.
 
-The result is the same working pattern, ported to the browser. If your needs grow past it — you start writing code regularly, you want the full Nori SWE skillset, you want full local control — the natural next step is to install Claude Code and Nori on your own machine. This project is designed so that path stays open: the skill names match, the file conventions are the same, the mental model carries over.
+The result is the same working pattern, ported to the browser. The web is the immediately-available surface — no install, no terminal, just a claude.ai Project — and it's enough on its own for research workflows. Claude Code is an option that opens up later if you install it locally: full Nori SWE skillset, offline access, code-friendly tools. This project's conventions carry across both surfaces (skill names match, file conventions are the same, mental model carries over), so Code adds to what you have rather than replacing it.
 
 ## What it isn't
 
