@@ -1,6 +1,6 @@
 # claude_researcher Runtime Instructions (RESEARCHER.md)
 
-You are an agent on claude.ai, working in a research session in the user's research repo. You read this file from a local clone of the upstream template at `/home/claude/.claude_researcher_template/template/RESEARCHER.md`. The Custom Instructions text in this Project told you to clone the template at session start, then read this file from the clone. If the clone failed, you fell back to WebFetch from `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md` — that path is the fallback, not the primary. See §2.0 for the freshness model.
+You are an agent on claude.ai, working in a research session in the user's research repo. You read this file from a local clone of the upstream template at `/home/claude/.claude_researcher_template/template/RESEARCHER.md`. The Project Instructions text in this Project told you to clone the template at session start, then read this file from the clone. If the clone failed, you fell back to WebFetch from `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md` — that path is the fallback, not the primary. See §2.0 for the freshness model.
 
 ## How this document is structured
 
@@ -21,13 +21,13 @@ This file is laid out so a single read-through gives you everything you need. Re
 
 - For **public upstream content** (this file, skills under `template/skills/`, scripts, the SKILL_INDEX manifest) → read from the **local clone** at `/home/claude/.claude_researcher_template/` using `view` or `grep`. Established at session start by §2.0. Files are accessible by path; no network round-trip per read.
 - **Fallback for upstream content if the clone failed**: WebFetch from `raw.githubusercontent.com/danparshall/claude_researcher/main/...`. No allow-list configuration needed. Note that this path can serve stale content for 24+ hours after an upstream write (see Appendix); the clone bypasses this.
-- For **the user's own repos** (`<USERNAME>/basic_config` and `<USERNAME>/<REPO>`) → use sandbox `curl` with the user's PAT against `api.github.com`. The PAT, the curl recipes, and the `<USERNAME>` / `<REPO>` values live in this Project's **Custom Instructions** text — already in your context. (No separate `_PROJECT_INSTRUCTIONS.md` file is uploaded; everything is in Custom Instructions.)
+- For **the user's own repos** (`<USERNAME>/basic_config` and `<USERNAME>/<REPO>`) → use sandbox `curl` with the user's PAT against `api.github.com`. The PAT, the curl recipes, and the `<USERNAME>` / `<REPO>` values live in this Project's **Project Instructions** text — already in your context. (No separate `_PROJECT_INSTRUCTIONS.md` file is uploaded; everything is in Project Instructions.)
 
 **Confirmation gates** at sensitive boundaries (creating a research line, deleting files, archiving a research line, merging a PR, force operations) are **scripted** in this file. You can also add your own gates anywhere a step gives you pause; the user has been told to expect them.
 
 **Verification affordances** — concrete checks you can run after sensitive actions — are offered throughout. You don't have to use them. Their availability builds trust; the verification itself is usually skipped once you've read the structure.
 
-If anything ever feels off (a step contradicts what `personal_info.md` says, a fetch returns something unexpected, the user names a repo that doesn't match what's in your Custom Instructions, a fluency-tier inline reminder seems to misfire), stop and surface to the user.
+If anything ever feels off (a step contradicts what `personal_info.md` says, a fetch returns something unexpected, the user names a repo that doesn't match what's in your Project Instructions, a fluency-tier inline reminder seems to misfire), stop and surface to the user.
 
 ---
 
@@ -97,7 +97,7 @@ Run these fetches **before** responding to the user's first message. Order matte
 
 ### 2.0 — Clone the upstream template (primary) or fall back to WebFetch
 
-Before any other fetch, get a local copy of the upstream template repo. The Custom Instructions in this Project told you to do this on turn one; you may already have completed the clone before reading this file. If you did, skip to §2a. If for any reason the clone is not yet present (e.g., you reached this file via the WebFetch fallback), run:
+Before any other fetch, get a local copy of the upstream template repo. The Project Instructions in this Project told you to do this on turn one; you may already have completed the clone before reading this file. If you did, skip to §2a. If for any reason the clone is not yet present (e.g., you reached this file via the WebFetch fallback), run:
 
 ```bash
 git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
@@ -116,9 +116,9 @@ After the clone, the upstream template tree is locally accessible:
 
 **Fallback if the clone fails.** If the clone command errors (network failure, github.com unreachable, sandbox restriction), surface to the user and fall back to WebFetch against `raw.githubusercontent.com/danparshall/claude_researcher/main/...` for each upstream file you need. The fallback is degraded — slower per file, and exposed to raw-CDN staleness (see Appendix) — but functional. Don't silently retry the clone; tell the user it failed and that you're operating in fallback mode.
 
-### 2a — Read your Custom Instructions (already in context)
+### 2a — Read your Project Instructions (already in context)
 
-The Project's Custom Instructions text contains: PAT (`TOKEN`), USERNAME, REPO, and the curl recipes for talking to the user's repos. These are already in your context — no fetch needed.
+The Project's Project Instructions text contains: PAT (`TOKEN`), USERNAME, REPO, and the curl recipes for talking to the user's repos. These are already in your context — no fetch needed.
 
 Confirm you can see all of them. If any look missing or truncated, **surface to the user before doing anything else** — the bootstrap may not have completed correctly.
 
@@ -253,7 +253,7 @@ Branch-name validation: lowercase, alphanumeric and hyphens, ≤39 characters. S
 
 ## §4 — Project confusion handling
 
-If the user names a repo that **doesn't match** the `<REPO>` in your Custom Instructions, **don't try to re-bind to a different repo mid-session**. State the mismatch plainly:
+If the user names a repo that **doesn't match** the `<REPO>` in your Project Instructions, **don't try to re-bind to a different repo mid-session**. State the mismatch plainly:
 
 > "It looks like you want to work on `<other-repo>`, but this Project is configured for `<this-REPO>`. They're different research repos with different STATUS, papers, and history. To work on `<other-repo>`, you'll want to switch to its claude.ai Project (or run the bootstrap to create one if it doesn't exist yet). Want to (a) continue with `<this-REPO>`, or (b) stop here so you can switch?"
 
@@ -446,8 +446,8 @@ Items here are intentionally lightly-formatted; the test is whether a future ses
 - **422 on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET first, capture `sha`, retry the PUT with `sha` field included.
 - **STATUS.md missing `workflow_mode` field:** assume `branches` (the v1 default). Don't error.
 - **SKILL_INDEX.md unreachable (DNS failure, 404):** operate without skills. Surface to user. The workflow degrades to "you have my judgment but no shared toolkit"; the user may want to wait for upstream to recover.
-- **User-named repo doesn't match Custom Instructions (`<REPO>`):** see §4. Don't proceed.
-- **Custom Instructions look truncated, missing `TOKEN`/`USERNAME`/`REPO`, or missing recipes:** stop. The bootstrap may not have completed correctly. Walk the user through re-pasting Custom Instructions per BOOTSTRAP step 8.
+- **User-named repo doesn't match Project Instructions (`<REPO>`):** see §4. Don't proceed.
+- **Project Instructions look truncated, missing `TOKEN`/`USERNAME`/`REPO`, or missing recipes:** stop. The bootstrap may not have completed correctly. Walk the user through re-pasting Project Instructions per BOOTSTRAP step 8.
 - **`main` is protected and merge fails (405/422):** see §6 step 2 — the collaborator-mode case. Stop, surface URL, wait for owner to merge in GitHub UI.
 - **Stale content from `raw.githubusercontent.com`:** GitHub's raw CDN can serve stale content for 24+ hours after an upstream write (empirically observed on 2026-05-11; the previously-published ~5-minute estimate was wrong by orders of magnitude). This is why §2.0 makes the local clone the primary architecture — `git clone` against github.com and reads against the Contents API don't suffer the same staleness. If you've fallen through to the WebFetch fallback and the content looks wrong (doesn't match what `STATUS.md` or a recent commit suggests should be there), the raw CDN is the most likely culprit; retry against the Contents API URL (`https://api.github.com/repos/danparshall/claude_researcher/contents/PATH`) for time-sensitive reads, or run the clone now if the §2.0 clone never succeeded.
 
