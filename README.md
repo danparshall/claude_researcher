@@ -1,12 +1,8 @@
 # claude_researcher
 
-A browser-only research workflow for [claude.ai](https://claude.ai). Adapted from the [Nori researcher Skillset](https://github.com/tilework-tech/nori-skillsets) so non-CLI-savvy collaborators (scientists, professors, economists) on locked-down work machines can use a research-first workflow with nothing but a browser, a Claude.ai Pro account, and a GitHub PAT.
+A toolkit that turns Claude into a research collaborator, using only a browser, an Anthropic account, and a GitHub account. Descended from the **Researcher** skillset built for the [Nori](https://github.com/tilework-tech/nori-skillsets) agentic workflow.
 
-The agent reads its instructions from this repo at runtime, and reads/writes your research artifacts via the GitHub REST API from claude.ai's server-side sandbox.
-
-## About
-
-`claude_researcher` is a collaboration between [Dan Parshall](https://danparshall.com) and [Andrea Lopez-Luzuriaga](https://andrealopezluzuriaga.net/) — two researchers sharing what we've learned about effective Claude techniques with the academic community. We maintain this repo as a public artifact so other labs and research groups can use, fork, or adapt the workflow for their own projects. The reasoning behind specific design choices lives in [`docs/`](docs/) for anyone who wants to see how the pieces got assembled.
+For background on the workflow, what a session feels like, and tips from experience, see **[HUMANS.md](HUMANS.md)**.
 
 ## Quick start
 
@@ -34,11 +30,15 @@ Now fetch and follow:
 ## What's in this repo
 
 - **[`template/BOOTSTRAP.md`](template/BOOTSTRAP.md)** — one-time setup orchestration the agent follows during your first chat.
-- **[`template/CLAUDE.md`](template/CLAUDE.md)** — runtime instructions every working session loads.
+- **[`template/CLAUDE.md`](template/CLAUDE.md)** — runtime instructions every working session loads. *(Will be renamed to `RESEARCHER.md` in a future commit, to free `CLAUDE.md` for per-repo use.)*
 - **[`template/skills/`](template/skills/)** — Markdown skill specs the agent fetches on demand (`finish-convo`, `add-paper`, `audit-docs`, etc.).
 - **[`template/scripts/`](template/scripts/)** — Python helpers the agent runs in claude.ai's sandbox.
 - **[`template/reference/`](template/reference/)** — human-readable docs (PAT setup, claude.ai Project setup, why this uses REST).
 - **[`template/templates/`](template/templates/)** — starter files the bootstrap copies into your repos (`personal_info.md.template`, `domain_allowlist.txt`).
+
+## About
+
+`claude_researcher` is a collaboration between [Dan Parshall](https://danparshall.com) and [Andrea Lopez-Luzuriaga](https://andrealopezluzuriaga.net/) — two researchers sharing what we've learned about effective Claude techniques with the academic community. We maintain this repo as a public artifact so other labs and research groups can use, fork, or adapt the workflow for their own projects. The reasoning behind specific design choices lives in [`docs/`](docs/) for anyone who wants to see how the pieces got assembled.
 
 ## Reporting issues
 
@@ -52,7 +52,7 @@ Apache 2.0 plus a Ship of Theseus v0.1 addendum, both inherited from the Nori up
 
 ## Developer info
 
-This is currently the `claude_researcher` **development repo**. The user-facing files (`BOOTSTRAP.md`, `CLAUDE.md`, skills, scripts, reference docs, templates) live under [`template/`](template/) and will be promoted to the root once the publish strategy lands (Phase 10 in the implementation plan).
+This is currently the `claude_researcher` **development repo**. User-facing files live under [`template/`](template/) and will be promoted to the root once the publish strategy lands (Phase 10 in the implementation plan).
 
 - **Implementation plan:** [`docs/plans/01_initial_build.md`](docs/plans/01_initial_build.md)
 - **Design conversation:** [`docs/convos/20260508_claude_ai_researcher_design.md`](docs/convos/20260508_claude_ai_researcher_design.md)
