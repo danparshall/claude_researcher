@@ -41,6 +41,7 @@ If for some reason no convo name was established (older runtime version that pre
 
 **Date:** YYYY-MM-DD
 **Branch:** branch-name
+**Surface:** claude.ai | claude-code
 
 ## Summary
 2-3 paragraphs of what was discussed and explored this session.
