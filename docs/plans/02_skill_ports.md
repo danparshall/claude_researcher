@@ -198,11 +198,11 @@ This trades a small amount of refactor work later for a meaningfully faster ship
 
 ---
 
-## Phase 4.6 CLAUDE.md retrofit — when to interleave
+## Phase 4.6 RESEARCHER.md retrofit — when to interleave
 
-The five Tier B/C universal rules from the AITaxBID audit (tracker-not-past-chats, 3+-repetition codification, Parking Lot, "do not infer — ask," show-before-committing universalized) belong in `template/CLAUDE.md`. ~30-60 min of focused edits.
+The five Tier B/C universal rules from the AITaxBID audit (tracker-not-past-chats, 3+-repetition codification, Parking Lot, "do not infer — ask," show-before-committing universalized) belong in `template/RESEARCHER.md` (originally targeted `template/CLAUDE.md`, redirected to the renamed file by Plan 03). ~30-60 min of focused edits.
 
-**Recommended timing:** after Wave 1, before Wave 2. CLAUDE.md gets one cohesive update that lands when there are real skills for it to coordinate.
+**Recommended timing:** after Wave 1, before Wave 2. RESEARCHER.md gets one cohesive update that lands when there are real skills for it to coordinate.
 
 ---
 
