@@ -30,7 +30,7 @@ Both environments set positive markers; the probe checks for either side affirma
 
 1. Determine the current branch name and convo name.
 
-The convo name is the user-confirmed identifier established during the §2e handshake at session start (see `template/CLAUDE.md`). It links every artifact you write this session — the convo summary, any plans, results files, the RESEARCH_LOG entry, the STATUS line. Format: `YYYYMMDD_<short-slug>` for `main_only` repos, or `<short-slug>` for `branches`-mode repos.
+The convo name is the user-confirmed identifier established during the §2e handshake at session start (see `template/RESEARCHER.md`). It links every artifact you write this session — the convo summary, any plans, results files, the RESEARCH_LOG entry, the STATUS line. Format: `YYYYMMDD_<short-slug>` for `main_only` repos, or `<short-slug>` for `branches`-mode repos.
 
 If for some reason no convo name was established (older runtime version that pre-dates the handshake, the §2e step was skipped, or the user initially opted out and now wants to log the session), propose one now and confirm with the user before writing any files. Do not invent a provisional name; the rename later costs more than asking now.
 
