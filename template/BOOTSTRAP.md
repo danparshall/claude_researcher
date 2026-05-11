@@ -437,7 +437,7 @@ _PROJECT_INSTRUCTIONS.md
 
 This repo is configured for the [claude_researcher](https://github.com/danparshall/claude_researcher) workflow. Research sessions happen in a corresponding claude.ai Project that reads this repo via the GitHub REST API.
 
-For agent-facing instructions, see the upstream [`CLAUDE.md`](https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/CLAUDE.md). Personal context (name, preferences, etc.) is in [`<USERNAME>/basic_config`](https://github.com/<USERNAME>/basic_config).
+For agent-facing instructions, see the upstream [`RESEARCHER.md`](https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md). Personal context (name, preferences, etc.) is in [`<USERNAME>/basic_config`](https://github.com/<USERNAME>/basic_config).
 ```
 
 #### `.gitignore`
@@ -525,14 +525,14 @@ Tell the user:
 
 > "Open a new chat in your `<RESEARCH_REPO>` Project. Just say 'hi' or 'let's begin' — see what happens."
 
-Wait for them to do this and report back. **Expected:** the agent in the new chat fetches `CLAUDE.md` from the upstream repo, reads the `_PROJECT_INSTRUCTIONS.md` from Project files, fetches `personal_info.md` from `basic_config`, and greets the user by name with a reference to their topic.
+Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Custom Instructions, reads `RESEARCHER.md` from the local clone, fetches `personal_info.md` from `basic_config` via the Contents API, and greets the user by name with a reference to their topic.
 
 If validation fails, the most common causes (in rough order of likelihood):
 
 1. **PAT expired or wrong scope** → re-create per Step 2b. Most common.
 2. **Custom Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
 3. **Domain Allow List incomplete or hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` smoke test. If the allow-list change was made *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
-4. **`CLAUDE.md` upstream URL unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and the URL `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/CLAUDE.md` resolves. If the repo was recently flipped from private to public, give CDN cache up to 5 minutes to propagate.
+4. **Clone fails / `RESEARCHER.md` unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and `git clone --depth 1 https://github.com/danparshall/claude_researcher.git` succeeds in the sandbox. Agents that can't clone should fall back to `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md`. If the repo was recently flipped from private to public, the clone reflects current state immediately, but the raw-CDN fallback path can lag by 24+ hours.
 
 Help the user troubleshoot. Iterate until validation passes.
 
