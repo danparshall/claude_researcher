@@ -1,6 +1,6 @@
 ---
 name: Init-Research-Repo
-description: Use when setting up a new repo (or an existing repo) for the research-first workflow — creates docs/active/ and docs/historical/ directories, adds Research Context to CLAUDE.md, seeds STATUS.md with the Archived Research Lines table
+description: Use when setting up a new repo (or an existing repo) for the research-first workflow — creates docs/active/ and docs/historical/ directories, seeds STATUS.md with the Archived Research Lines table
 ---
 
 ## Runtime detection
@@ -28,12 +28,11 @@ Both environments set positive markers; the probe checks for either side affirma
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
 
-1. Check what already exists (CLAUDE.md, STATUS.md, docs/)
+1. Check what already exists (STATUS.md, docs/)
 2. Create directory structure
-3. Add Research Context section to CLAUDE.md
-4. Seed STATUS.md with research sections
-5. Create initial RESEARCH_LOG.md if on a branch
-6. Report what was created
+3. Seed STATUS.md with research sections
+4. Create initial RESEARCH_LOG.md if on a branch
+5. Report what was created
 </required>
 
 # Init Research Repo
@@ -44,17 +43,18 @@ Announce at start: "I'm using the Init Research Repo skill to set up the researc
 
 ## The Process
 
+The research-first workflow's epistemic norms and doc-structure conventions (the "Research Context") are **persona-level** — they live in upstream `RESEARCHER.md`, read by the agent every session, rather than duplicated into each repo's `CLAUDE.md`. Claude Code users can use `RESEARCHER.md` as their `~/.claude/CLAUDE.md`, optionally concatenated with their user-level instructions. A per-repo `CLAUDE.md` is for **project-specific** standing notes — this skill doesn't create or modify it; that's the user's prerogative.
+
 ### Step 1: Check What Exists
 
 Before creating anything, check what's already in place:
 
 ```bash
-ls -la CLAUDE.md STATUS.md README.md 2>/dev/null
+ls -la STATUS.md README.md 2>/dev/null
 ls -d docs/ docs/active/ docs/historical/ 2>/dev/null
 ```
 
 - If `docs/active/` already exists, this repo may already be set up — ask the user before overwriting
-- If CLAUDE.md exists, we'll be appending to it, not replacing it
 
 ### Step 2: Create Directory Structure
 
@@ -71,29 +71,7 @@ if [ "$BRANCH" != "main" ] && [ "$BRANCH" != "master" ]; then
 fi
 ```
 
-### Step 3: Add Research Context to CLAUDE.md
-
-If CLAUDE.md exists, check whether it already has a "Research Context" section. If not, append this block (or insert it before "Project Context" if that section exists):
-
-```markdown
-## Research Context
-
-This is an active research project. All findings are provisional — evidence accumulates gradually.
-
-**Document structure:**
-- `docs/active/<branch-name>/` — active research lines, with `convos/`, `plans/`, `results/`, and `RESEARCH_LOG.md`
-- `docs/historical/<topic>/` — archived research lines. **Do NOT read unless the user specifically asks.** The "Archived Research Lines" table in STATUS.md summarizes what's there.
-- `docs/` root — general project docs
-
-**Epistemic norms:**
-- Do NOT treat any prior doc as settled truth
-- Read `docs/active/<branch>/RESEARCH_LOG.md` to understand the trajectory of thinking on a research line
-- When the user says "the data showed X, let's pivot," trust them — they have seen results you haven't
-```
-
-If CLAUDE.md doesn't exist, ask the user before creating one — they may have a specific structure in mind.
-
-### Step 4: Seed STATUS.md
+### Step 3: Seed STATUS.md
 
 If STATUS.md exists, check whether it already has an "Archived Research Lines" section. If not, append:
 
@@ -135,7 +113,7 @@ Lines moved to docs/historical/ — not currently active, but available for refe
 | (none yet) | | | |
 ```
 
-### Step 5: Create Initial RESEARCH_LOG.md (if on a branch)
+### Step 4: Create Initial RESEARCH_LOG.md (if on a branch)
 
 If we're on a named branch (not main/master), create `docs/active/<branch>/RESEARCH_LOG.md`:
 
@@ -149,7 +127,7 @@ Purpose: [ask the user for a one-sentence description]
 (Sessions will be logged here, newest first)
 ```
 
-### Step 6: Report
+### Step 5: Report
 
 Tell the user what was created:
 
@@ -157,7 +135,6 @@ Tell the user what was created:
 Research workflow initialized:
   - docs/active/           (active research lines)
   - docs/historical/       (archived research lines)
-  - CLAUDE.md              (Research Context section added)
   - STATUS.md              (Archived Research Lines table + Recent Sessions section added)
   [- docs/active/<branch>/ (with RESEARCH_LOG.md, convos/, plans/, results/)]
 
