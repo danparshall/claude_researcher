@@ -21,7 +21,7 @@ Both [`LICENSE`](LICENSE) (Apache 2.0) and [`LICENSE-ADDENDUM.txt`](LICENSE-ADDE
 ## What's new in this work
 
 - Bootstrap orchestration ([`BOOTSTRAP.md`](BOOTSTRAP.md)) for one-time browser-based setup.
-- Runtime [`CLAUDE.md`](CLAUDE.md) adapted for claude.ai's session model (custom instructions + uploaded `_PROJECT_INSTRUCTIONS.md` + REST API access via PAT).
+- Runtime [`RESEARCHER.md`](RESEARCHER.md) adapted for claude.ai's session model (Project Instructions bootstrap + REST API access via PAT).
 - REST API adaptations of git-CLI-using skills (`finish-convo`, `update-docs`, `add-paper`, `init-research-repo`, `audit-docs`, `audit-papers`).
 - Python helpers in [`scripts/`](scripts/) for the REST workflow and PDF text extraction.
 - `_PROJECT_INSTRUCTIONS.md` template + Domain Allow List baseline.
