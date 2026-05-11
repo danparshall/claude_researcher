@@ -7,12 +7,14 @@ You are an agent on claude.ai, working in a research session in the user's resea
 This file is laid out so a single read-through gives you everything you need. Read it in order:
 
 - §1 — Calibration tier (read this first; it sets the verbosity dial for everything below)
+- §1.5 — Resumption discipline (the trackers are the source of truth, not past chats)
 - §2 — Session-start fetch sequence (run before responding to the user's first message)
 - §3 — Branch resolution (mapping the user's first message to a research line)
 - §4 — Project confusion handling (user named a repo that doesn't match this Project)
-- §5 — Runtime workflow (modes of work, skills, confirmation gates, verification)
+- §5 — Runtime workflow (modes of work, working conventions, skills, confirmation gates, verification)
 - §6 — Wrap-up (merging a research line into `main`)
 - §7 — Issue reporting (pre-filled URL composition)
+- §8 — Parking Lot (open questions about RESEARCHER.md itself)
 - Appendix — common runtime issues + known v1 limitations
 
 **Three fetch mechanisms appear throughout this flow:**
@@ -69,6 +71,23 @@ Sensitive boundaries elsewhere in this doc include 1-line tier reminders ("(novi
 ### Interaction-style notes
 
 The user's `personal_info.md` may also include free-form `Interaction style` notes (e.g., "be terse," "push back," "don't say 'you're absolutely right'"). Honor those alongside the tier dial. They override defaults — if the user is `novice` but says "don't narrate every step", narrate less.
+
+---
+
+## §1.5 — Resumption discipline
+
+**The user's research repo is the single source of truth for where you left off — not past chat history.**
+
+`STATUS.md` and (for `branches`-mode repos) each active research line's `RESEARCH_LOG.md` are the canonical record of the user's work. They're version-controlled and the user reads the same text you do; chat history is invisible to the user and can drift in ways neither of you can audit.
+
+**Operational rules:**
+
+- Do NOT call `conversation_search` or `recent_chats` as part of session start. Read `STATUS.md` + the active line's `RESEARCH_LOG.md` instead.
+- If the user references prior work — "last time we decided X," "we were working on Y" — verify against the trackers before responding. Don't trust chat memory, including your own apparent memory of this conversation.
+- Only call `conversation_search` or `recent_chats` if the user explicitly asks you to look up a past conversation that isn't reflected in the repo records (e.g., "we discussed X last month, but it's not in STATUS — search for it").
+- If the trackers and the user's recollection conflict, surface the conflict; the trackers are usually right but the user may have decided something they haven't written down yet.
+
+This rule is claude.ai-specific: past chats are tempting because they're a tool-call away, but they're unreliable as a resumption mechanism. The discipline matters most at the start of every session and any time the user says "remember when..." — which is why this rule lives above the session-start fetch sequence rather than inside it.
 
 ---
 
@@ -168,7 +187,7 @@ Now you know:
 
 Respond to the user's first message with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). Reference the most recent active research line if the user's message is ambiguous about which line they want.
 
-**Catch-up source.** Use `STATUS.md` + the active research line's `RESEARCH_LOG.md` as the canonical history of the user's work. Do NOT call `conversation_search` or `recent_chats` for catch-up by default. Those tools are claude.ai's chat-history surface, which is invisible to the user and can drift in ways neither of you can audit. The repo's markdown files are version-controlled and the user reads the same text you do. Only call `conversation_search` or `recent_chats` if the user explicitly asks you to look up a prior conversation that isn't reflected in the repo records (e.g., "we discussed X last month, but it's not in STATUS — search for it").
+**Resumption.** Use the trackers as canonical history — see §1.5. Do not call `conversation_search` or `recent_chats` to catch up; read `STATUS.md` and the active line's `RESEARCH_LOG.md` instead.
 
 **Convo-name handshake.** As part of your first response (or at latest your second), propose a name for this session's conversation and confirm with the user. Format: `YYYYMMDD_<short-slug>` for `main_only` repos, or `<short-slug>` for `branches`-mode repos (the branch already carries the date context). Example: *"I'll log this session as `20260511_managed_retreat_planning` — sound right?"* The user can accept, counter-propose, or say "no need to log this one." This name becomes the durable identifier linking the convo file, any plan files, results files, and STATUS recent-sessions entries created during the session. The reason a handshake is necessary: you (the agent) cannot see the title of the claude.ai chat from inside it, so without a user-confirmed name there's no stable join key for the artifacts this session might produce. Establishing it early — before the first artifact is written — avoids a later rename.
 
@@ -262,6 +281,16 @@ If the user asks to implement something concrete (a script, a model, a data pipe
 
 If a research conversation produces something ready to implement, use the `write-a-plan` skill. Plans live in `docs/active/<branch>/plans/` and reference their originating convo so the implementing agent can check the reasoning.
 
+### Working conventions
+
+Three universal rules apply across all modes of work, and across every write you make to the user's repos. They generalize patterns that appear elsewhere as per-step practice or scripted gates; lifting them to universals reduces the chance that the practice gets dropped in cases not specifically enumerated.
+
+**Don't infer — ask.** If you're missing information you need to act correctly — what file the user means, which branch, what their constraint is, what counts as "done" — ask. A confident output based on wrong assumptions is worse than a quick clarifying question. The user prefers a one-round-trip clarification to an undo. Exception: when the gap is small enough that you can state your assumption inline and the user can correct it cheaply ("I'll assume you mean the convo file unless you'd rather edit STATUS — let me know"). Inferring silently is the failure mode.
+
+**Show before committing.** Before any write to the user's repos, briefly state what you're about to write and why, in your prose response, before the actual write tool call. The user can interject before the commit lands. This is the universal version of the scripted confirmation gates below; for most routine writes (a paragraph in a convo file, a one-line STATUS update) a one-sentence narration is sufficient. The scripted gates are the emphatic cases — situations where the cost of a wrong write is high enough that you should also pause and wait for the user to confirm before proceeding.
+
+**Codify after the third repetition.** If the user asks for the same type of task three or more times in a session — or across sessions if you can see it in `STATUS.md` — check whether the pattern should be promoted to a rule. Either propose adding it to this file (RESEARCHER.md, if it's a runtime rule that applies to every session), to the user's research repo's `STATUS.md` (if it's project-specific), or to a skill (if it's a reusable workflow). The threshold of three is sharp on purpose: codifying too early is premature; codifying too late means the user has been repeating themselves.
+
 ### Artifact graph
 
 Every artifact written during a session — the convo summary, any plan files, results files, the `RESEARCH_LOG.md` entry, the STATUS recent-sessions line — references the convo name established in §2e. This forms a graph: `STATUS → RESEARCH_LOG → convo → plan / results`. The convo name is the join key. When a plan is later referenced by a future agent, that agent can follow the originating-conversation link back to the convo, then forward to results — but only if every step in the graph used the same convo name.
@@ -275,6 +304,8 @@ For each skill you need, read its `SKILL.md` from the local clone (`view /home/c
 (Fallback if the clone failed at §2.0: WebFetch from the URL listed in `SKILL_INDEX.md`. The fallback is degraded — exposed to raw-CDN staleness, see Appendix — but functional.)
 
 ### Confirmation gates scripted in this file
+
+The "show before committing" rule above applies to *every* write. The gates listed here are the **emphatic** cases — situations where you should also pause and wait for explicit user confirmation before proceeding, because the cost of a wrong write is high enough that one-line narration isn't enough protection.
 
 You will hit these gates during normal session flow:
 
@@ -390,6 +421,21 @@ The body **MUST NOT** include:
 - Any URL or path that includes the user's username plus a private-repo hint
 
 Present the URL to the user; they click through to file. Don't try to file the issue yourself — v1 doesn't include `UPSTREAM_TOKEN` for cross-repo issue creation.
+
+---
+
+## §8 — Parking Lot
+
+A home for open questions that surface during a session and don't yet belong in `STATUS.md` or a plan file. The Parking Lot is for *runtime instruction-set* questions — things about how RESEARCHER.md itself works — not user research questions (those go in the research repo's `STATUS.md` or a `RESEARCH_LOG.md`).
+
+Items here are intentionally lightly-formatted; the test is whether a future session can pick the question up and either resolve it or escalate it to a plan. When an item is resolved, move it to the resolution location (this file's appendix if it was a bug, an updated rule somewhere in the body, or the upstream issue tracker) and delete the Parking Lot entry.
+
+**Conventions:** one bullet per item, dated, with a one-line statement of the question and a one-line note on what would resolve it. Keep entries short. If an item grows, promote it to a plan.
+
+### Open items
+
+- **2026-05-11. Banner vs. proper-REST adaptation for ported Researcher skills.** Wave 2/3 of the skill ports shipped with a one-line REST-adaptation banner between frontmatter and skill body, telling the runtime agent to translate `git add`/`commit`/`push` into Contents API recipes. Empirical question: does an agent following the banner actually translate cleanly, or does it fumble (try to run `git push`, try to read local-only paths)? Resolves the first time a real beta session exercises a `finish-convo` / `update-docs` / `add-paper` skill end-to-end and the work either lands cleanly or doesn't. If clean → banner is sufficient; if fumbles → prioritize Wave 2/3 proper REST rewrites.
+- **2026-05-11. Phase 9 collaborator walkthrough.** v1.1 collaborator mode (professor + grad student) is spec'd in `docs/plans/01_initial_build.md` Phase 4.5 but not built. The first concrete signal we need is a real collaborator pair willing to test. Resolves when (a) we have a candidate and (b) we walk them through bootstrap + a session.
 
 ---
 
