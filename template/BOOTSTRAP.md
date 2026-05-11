@@ -177,7 +177,7 @@ Pick whichever feels cleaner. If you go with the scratch file, mention to the us
 
 ### About PAT scope
 
-The PAT you just generated is broadly scoped (**All repositories**) because it has to be able to create repos that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Custom Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
+The PAT you just generated is broadly scoped (**All repositories**) because it has to be able to create repos that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Project Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
 
 ---
 
@@ -473,11 +473,11 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 > 2. **Description:** `<TOPIC>`
 > 3. Click **Create**.
 >
-> Once you're inside the new Project, you'll paste a block of text into the **Custom Instructions** field. That text holds the credentials and curl recipes I'll use to talk to your repos. **Don't** upload anything as a file — the Custom Instructions field is the only paste target."
+> Once you're inside the new Project, you'll paste a block of text into the **Project Instructions** field. That text holds the credentials and curl recipes I'll use to talk to your repos. **Don't** upload anything as a file — the Project Instructions field is the only paste target."
 
-### Custom Instructions text — what to paste
+### Project Instructions text — what to paste
 
-The canonical Custom Instructions text lives at:
+The canonical Project Instructions text lives at:
 
 > `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/_PROJECT_INSTRUCTIONS.md.template`
 
@@ -489,11 +489,11 @@ The canonical Custom Instructions text lives at:
 
 Present the rendered text to the user as a single code block. Tell them:
 
-> "Copy this entire block and paste it into your new Project's **Custom Instructions** field. The Custom Instructions field is the right home for this — it puts the credentials and recipes into every chat's context from the very first message, before any fetching happens. **Don't upload this as a file.**"
+> "Copy this entire block and paste it into your new Project's **Project Instructions** field. The Project Instructions field is the right home for this — it puts the credentials and recipes into every chat's context from the very first message, before any fetching happens. **Don't upload this as a file.**"
 
 **Verification affordance.** Once the user confirms the paste, ask them to spot-check that all three substitutions are present in the pasted text — the literal strings `<TOKEN>`, `<USERNAME>`, `<REPO>` should NOT appear; the actual values should. If any placeholder is still literal, the runtime agent won't be able to authenticate — have them re-render and re-paste.
 
-> **Token handling:** the PAT lives only in the Custom Instructions text in the user's claude.ai account, not in any file in their GitHub repos. Don't echo the token back in chat output, don't write it to any seed file, don't include it in commit messages.
+> **Token handling:** the PAT lives only in the Project Instructions text in the user's claude.ai account, not in any file in their GitHub repos. Don't echo the token back in chat output, don't write it to any seed file, don't include it in commit messages.
 
 ### PAT scope and lifecycle (heads-up to the user)
 
@@ -501,9 +501,9 @@ After confirming the paste, briefly explain the user's options for ongoing PAT u
 
 > "A heads-up about the PAT we just used. It's scoped to **All repositories** because it had to be able to create new repos that didn't exist yet — that's appropriate for setup. For ongoing use (every future research session in this Project), you have a few options:
 >
-> - **Keep using this PAT.** Simplest. The same PAT can create future research projects via re-running the bootstrap; you paste the same value into each new Project's Custom Instructions. One PAT to rotate when it expires. Trade-off: every Project chat that uses it has access to all your repos.
+> - **Keep using this PAT.** Simplest. The same PAT can create future research projects via re-running the bootstrap; you paste the same value into each new Project's Project Instructions. One PAT to rotate when it expires. Trade-off: every Project chat that uses it has access to all your repos.
 >
-> - **Rotate down to a per-project PAT.** Now that this research repo exists, you can generate a NEW fine-grained PAT scoped to just `basic_config` + this one research repo — much narrower. Replace the broad PAT in this Project's Custom Instructions with the narrow one, then revoke the broad PAT (or hold it as a 'bootstrap-only PAT' you spin up briefly when starting new projects). Tightest scope per Project; more PATs to manage.
+> - **Rotate down to a per-project PAT.** Now that this research repo exists, you can generate a NEW fine-grained PAT scoped to just `basic_config` + this one research repo — much narrower. Replace the broad PAT in this Project's Project Instructions with the narrow one, then revoke the broad PAT (or hold it as a 'bootstrap-only PAT' you spin up briefly when starting new projects). Tightest scope per Project; more PATs to manage.
 >
 > - **Per-project PATs going forward.** Generate a new fine-grained PAT for each future research project at bootstrap time, scoped just to that project's repo. Revoke after that project's lifetime ends.
 >
@@ -515,7 +515,7 @@ After confirming the paste, briefly explain the user's options for ongoing PAT u
 rm -f /home/claude/.bootstrap_env
 ```
 
-The token has now finished its setup-time job; it lives in the user's Custom Instructions for ongoing use, not in your VM's scratch.
+The token has now finished its setup-time job; it lives in the user's Project Instructions for ongoing use, not in your VM's scratch.
 
 ---
 
@@ -525,12 +525,12 @@ Tell the user:
 
 > "Open a new chat in your `<RESEARCH_REPO>` Project. Just say 'hi' or 'let's begin' — see what happens."
 
-Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Custom Instructions, reads `RESEARCHER.md` from the local clone, fetches `personal_info.md` from `basic_config` via the Contents API, and greets the user by name with a reference to their topic.
+Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Project Instructions, reads `RESEARCHER.md` from the local clone, fetches `personal_info.md` from `basic_config` via the Contents API, and greets the user by name with a reference to their topic.
 
 If validation fails, the most common causes (in rough order of likelihood):
 
 1. **PAT expired or wrong scope** → re-create per Step 2b. Most common.
-2. **Custom Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
+2. **Project Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
 3. **Domain Allow List incomplete or hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` smoke test. If the allow-list change was made *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
 4. **Clone fails / `RESEARCHER.md` unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and `git clone --depth 1 https://github.com/danparshall/claude_researcher.git` succeeds in the sandbox. Agents that can't clone should fall back to `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md`. If the repo was recently flipped from private to public, the clone reflects current state immediately, but the raw-CDN fallback path can lag by 24+ hours.
 
