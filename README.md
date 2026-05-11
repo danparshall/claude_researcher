@@ -30,7 +30,7 @@ Now fetch and follow:
 ## What's in this repo
 
 - **[`template/BOOTSTRAP.md`](template/BOOTSTRAP.md)** — one-time setup orchestration the agent follows during your first chat.
-- **[`template/CLAUDE.md`](template/CLAUDE.md)** — runtime instructions every working session loads. *(Will be renamed to `RESEARCHER.md` in a future commit, to free `CLAUDE.md` for per-repo use.)*
+- **[`template/RESEARCHER.md`](template/RESEARCHER.md)** — runtime instructions every working session loads. The agent reads this from a local clone of this repo (cloned at session start; see RESEARCHER.md §2.0).
 - **[`template/skills/`](template/skills/)** — Markdown skill specs the agent fetches on demand (`finish-convo`, `add-paper`, `audit-docs`, etc.).
 - **[`template/scripts/`](template/scripts/)** — Python helpers the agent runs in claude.ai's sandbox.
 - **[`template/reference/`](template/reference/)** — human-readable docs (PAT setup, claude.ai Project setup, why this uses REST).
