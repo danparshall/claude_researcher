@@ -1,6 +1,6 @@
 # claude_researcher
 
-A toolkit that turns Claude into a research collaborator, using only a browser, an Anthropic account, and a GitHub account. Descended from the **Researcher** skillset built for the [Nori](https://github.com/tilework-tech/nori-skillsets) agentic workflow.
+A toolkit that turns Claude into a research collaborator, using only a browser, an Anthropic account, and a GitHub account. Descended from the **Researcher** skillset built for the [Nori](https://github.com/tilework-tech/nori-skillsets) agentic workflow. The goal is to unlock the full power of Agentic-based research approach, even for a researcher with no special knowledge of git or AI.  It's designed to need the bare minimum to get started, and Claude will teach you what you need along the way.
 
 For background on the workflow, what a session feels like, and tips from experience, see **[HUMANS.md](HUMANS.md)**.
 
