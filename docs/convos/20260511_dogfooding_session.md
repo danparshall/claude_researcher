@@ -1,0 +1,50 @@
+# Dogfooding Session — Sysprompt Comparison, Stale-CDN Finding, Clone-First Design, HUMANS.md Ship
+
+**Date:** 2026-05-11
+**Branch:** main (`main_only` workflow)
+
+## Summary
+
+Dan kicked this session off as a dogfooding pass: he wants to switch from Claude Code to claude.ai web UI for his own work so he can surface friction points for collaborators before they hit them. The session moved through three substantively-different phases. First, comparing the system-prompt layering between claude.ai and Claude Code, to understand what work the researcher persona's `CLAUDE.md` actually does in each surface. Second, auditing `SKILL_INDEX.md` — which exposed a much bigger problem than the immediate symptom: `raw.githubusercontent.com` was serving 24+ hour stale content despite the file being correct on `main` via the Contents API. Third, designing the clone-first session-start fix as the response, and splitting README into a slim quick-start plus a long-form HUMANS.md so the dogfooding-discovered framing (academic audience, Nori heritage, persona-as-archetype) has a docked home.
+
+The shipping outcomes are HUMANS.md (new) and a slimmed README pointing at it, plus a coordinated plan (Plan 03) capturing the deferred work: clone-first CLAUDE.md edit, `template/CLAUDE.md` → `template/RESEARCHER.md` rename, `_PROJECT_INSTRUCTIONS.md.template` slimming, and a STATUS Known Issues entry for the stale-CDN finding.
+
+## Topics Explored
+
+- **claude.ai vs. Claude Code system prompt layering.** Confirmed Dan's 2026-05-08 finding (six injection layers in Code) generalizes to claude.ai. Canonical reference for claude.ai is published at `platform.claude.com/docs/en/release-notes/system-prompts`; the page covers Sonnet 4.6, Opus 4.6, Opus 4.5, Haiku 4.5, Sonnet 4.5 (and Opus 4.7, though our fetch truncated before reaching it — Simon Willison's blog has the 4.6→4.7 diff). For Claude Code, Anthropic doesn't publish; the best community-maintained source is `Piebald-AI/claude-code-system-prompts` (updated within minutes of each Code release; current snapshot v2.1.138, May 8 2026). The Piebald repo documents 110+ prompts: main agent + 24 tool descriptions + 3 sub-agent prompts (Plan/Explore/Task) + utility prompts + ~40 system reminders.
+- **Structural asymmetry.** claude.ai base is comparatively thin (~5K words, mostly tone/refusals/wellbeing) — CLAUDE.md does most of the operational work. Claude Code base is heavily opinionated on the operational layer (tool description prose like "NEVER commit unless asked" in the Bash tool description) — CLAUDE.md mostly does *override* work, fighting defaults that don't suit research. Concrete consequence for the researcher persona: the two surfaces want different CLAUDE.md content, not identical content that "happens to work in both."
+- **`SKILL_INDEX.md` stub vs. live state.** STATUS.md says SKILL_INDEX was updated on 2026-05-10 to "all sections live." The Contents API confirms this (sha `1eefd048c6afb4feb90b4860cb4b3662004d4d1d`). But `raw.githubusercontent.com` was serving the *old stub* content saying "URLs below 404" — and continued doing so 24+ hours after the ship. Re-fetching the raw URL multiple times across the session returned stale bytes each time.
+- **Three remediation options considered.** Cache-bust the file (uncertain — depends on CDN behavior); switch upstream fetches to `api.github.com/contents` (works, uses different infra, slightly uglier client-side); clone-first (works, fastest, bypasses CDN entirely, biggest architectural simplification). User picked clone-first as both the latency win and the staleness fix.
+- **Empirical clone test.** Dan asked whether the clone change is "trivial" or fundamentally architectural. Initial sketch overstated the change — the lazy-loading frame doesn't go away, just the *source* of each read changes from network to disk. Verified empirically: `git clone --depth 1 https://github.com/danparshall/claude_researcher.git` in the sandbox completes in 335ms for the 896K repo. (An earlier "clone succeeded with empty result" was a false signal — git refused to clone into `.` since that directory always exists; clone into a fresh target path works fine.)
+- **Custom Instructions vs. CLAUDE.md placement.** CLAUDE.md edit propagates to existing Projects automatically next session. Custom Instructions edit fires *before* CLAUDE.md is fetched (full bypass — even CLAUDE.md itself comes from the clone). Decided to do both, with CLAUDE.md edit as the propagating primary.
+- **README scoping for academic audience.** Current README jumps straight into a 100-line bootstrap prompt with no framing. For non-coder academics reading cold, the first 200 words contain two unexplained terms ("Nori" and "non-CLI-savvy") and no motivation for what the project does. Decided to split: a one-paragraph slim README + a long-form HUMANS.md that explains the workflow, the Code/Nori heritage, gives an example session walkthrough, and includes tips.
+- **Persona-as-archetype framing.** Surfaced as the most counter-intuitive but load-bearing tip for HUMANS.md: agents form working mental models of the role they've been cast into. Aggressive guardrail language reads as "you are someone who needs to be hemmed in" and produces sloppier output; collaborator framing produces collaborator output. Being warm to the agent is in the user's selfish interest.
+- **`CLAUDE.md` name collision.** Keeping the upstream runtime file named `CLAUDE.md` blocks the future Andrea/AITaxBID pattern of per-repo `CLAUDE.md` overrides (Phase 6 deferred). Renaming to `RESEARCHER.md` frees the conventional name. Mechanical change, multi-file reference sweep, deferred to Plan 03.
+
+## Provisional Findings
+
+- **Clone-first is the right session-start primitive for this surface.** ~335ms beats a single WebFetch round-trip; removes per-skill fetch latency entirely; bypasses raw-CDN staleness; enables `view`/`grep` over `template/skills/`. The lazy-loading frame is preserved — agent still reads skill bodies on-demand, just from disk. Failure mode is a single point (clone fails → nothing), mitigated by fallback to WebFetch.
+- **`raw.githubusercontent.com` staleness is a real ongoing risk for any upstream content fetched that way.** Not just the SKILL_INDEX case. The CLAUDE.md appendix anticipates "~5 minutes" — empirically it's at least 24 hours in some cases. Clone-first incidentally solves this for the dogfooded path; fallback WebFetch retains the exposure.
+- **The README → HUMANS.md split fits the audience.** Quick-start stays bounded for a reader who wants to just start; everything that explains the project sits in a separate file pointed at by one line in README. Tested by writing both and reading them in sequence — the cognitive load is much better split than combined.
+- **The "treat agents as collaborators" framing has empirical bite.** It's been quietly load-bearing in this whole project's design (the `Persona` naming, `personal_info.md`'s `Interaction style` field, the "trusted colleague" defaults in CLAUDE.md). Worth surfacing explicitly in HUMANS.md since most users won't notice it on their own.
+
+## Decisions Made
+
+- **Land HUMANS.md (new) and slim README (update) this session.** Done — commits `09719f9` (HUMANS.md) and `5eb84f6` (README).
+- **Defer the clone-first work to next session as a coordinated plan.** Captured in [`docs/plans/03_clone_first_and_companion_cleanups.md`](../plans/03_clone_first_and_companion_cleanups.md). Three coupled tasks: clone-first CLAUDE.md edit + `RESEARCHER.md` rename + reference sweep; `_PROJECT_INSTRUCTIONS.md.template` slimming; STATUS.md Known Issues entry for stale-CDN.
+- **Do not pursue cache-busting `SKILL_INDEX.md` as a separate fix.** Clone-first covers it; cache-bust would be a one-off workaround rather than a fix.
+- **Do not add a `PERSONA` extensibility hook.** Single-purpose Researcher is the better story for the academic audience; "install Nori" remains the answer for anyone wanting more.
+- **Do not rename references in historical `docs/convos/`** during the eventual Task 1 reference sweep. Convos are append-only chronological record; rewriting them falsifies that record.
+
+## Results
+
+- [`HUMANS.md`](../../HUMANS.md) — new file, commit `09719f9`. Long-form companion to README: what the project is, what a session feels like, where it comes from (Code/Nori heritage), what it isn't, and tips including the persona-as-archetype point.
+- [`README.md`](../../README.md) — updated, commit `5eb84f6`. Slimmed to tagline + pointer to HUMANS.md + quick-start. The "About" section, license, and developer info stayed; the long-form explanation moved to HUMANS.md.
+- [`docs/plans/03_clone_first_and_companion_cleanups.md`](../plans/03_clone_first_and_companion_cleanups.md) — new file, this session's commit. Plan for next session.
+
+## Open Questions
+
+- **Will the empirical 335ms clone time hold up under load?** Single-data-point benchmark from a single sandbox at a single time of day. First beta session that exercises clone-first under real conditions is the test. Worth instrumenting the fallback rate informally during early dogfooding.
+- **Is `--depth 1` the right default?** Current lean: yes, shallow is correct — we never read git history of the template.
+- **How aggressively should existing Projects be prompted to update their Custom Instructions after Plan 03 lands?** Three options: (a) opt-in chore note in HUMANS.md; (b) actively prompted by the agent if it detects old recipes in Custom Instructions; (c) silent (existing recipes still work, just redundant after the clone gives them via RESEARCHER.md). Lean: (a) — least intrusive, matches the "we maintain RESEARCHER.md, you set Custom Instructions once" principle.
+- **Should Task 3's STATUS.md Known Issue entry also recommend the api.github.com/contents fallback as a secondary mitigation?** The current fallback path in Task 1 is WebFetch-from-raw; a more robust fallback would be Contents API. Marginal robustness for added complexity — flagged in Plan 03 "Out of scope" but worth revisiting if early dogfooding shows clone failures.
