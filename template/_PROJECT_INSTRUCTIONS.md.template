@@ -1,20 +1,8 @@
 # Project Instructions — claude_researcher
 
-This file is uploaded to your claude.ai Project. The agent reads it at the start of every session to learn how to reach your GitHub repos.
-
-## Why this uses the GitHub REST API
-
-claude.ai's sandbox has restricted network egress. Standard `git clone` and `git push` won't reach `github.com` over SSH or HTTPS. To make the sandbox able to read and write the user's GitHub repos, network access to `api.github.com` (and a few related domains) was permitted during bootstrap at:
-
-> **Settings → Capabilities → Allow Network Egress → Domain Allow List**
-
-This is a user-wide setting (configured once, applies across all your claude.ai chats — not per-Project). The exact domains configured are recorded in `<USERNAME>/basic_config/domain_allowlist.txt` for reference and for re-use on a different machine.
-
-So instead of cloning the repo, the agent uses GitHub's [Contents API](https://docs.github.com/en/rest/repos/contents) to read and write files via the curl recipes below. (Reads of public upstream content — like skill specs at `raw.githubusercontent.com/danparshall/claude_researcher` — go through claude.ai's built-in WebFetch tool, which doesn't require allow-list configuration. Those don't need recipes here.)
+Full runtime instructions live upstream in `template/RESEARCHER.md`. At session start, clone the upstream template and read `RESEARCHER.md` from the clone.
 
 ## Credentials
-
-Set these once per session, before any REST call:
 
 ```bash
 TOKEN="<TOKEN>"
@@ -22,61 +10,28 @@ USERNAME="<USERNAME>"
 REPO="<REPO>"
 ```
 
-`<TOKEN>` is the fine-grained GitHub PAT created during bootstrap, scoped to read `<USERNAME>/basic_config` and read/write `<USERNAME>/<REPO>`. `<REPO>` is just the repo name (not `owner/repo`) — the curl recipes below combine it with `<USERNAME>`. Do not commit these values anywhere.
+`<TOKEN>` is your fine-grained GitHub PAT, scoped to read `<USERNAME>/basic_config` and read/write `<USERNAME>/<REPO>`. `<REPO>` is just the repo name (not `owner/repo`). Do not commit these values anywhere.
 
-## Reading a file
+## Session start
 
-```bash
-curl -s -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/contents/PATH" \
-  | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
-```
-
-## Writing a new file
+Your **first action** is to clone the upstream template, then read `RESEARCHER.md` from the clone:
 
 ```bash
-CONTENT=$(base64 -w0 /path/to/local/file)
-curl -s -X PUT -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/contents/PATH" \
-  -d "{\"message\":\"commit msg\",\"committer\":{\"name\":\"$USERNAME\",\"email\":\"$USERNAME@users.noreply.github.com\"},\"content\":\"$CONTENT\"}"
+git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
 ```
 
-## Updating an existing file (requires the file's sha)
+Then read `/home/claude/.claude_researcher_template/template/RESEARCHER.md` and follow its session-start sequence.
 
-```bash
-SHA=$(curl -s -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/contents/PATH" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['sha'])")
-curl -s -X PUT -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/contents/PATH" \
-  -d "{\"message\":\"commit msg\",\"committer\":{\"name\":\"$USERNAME\",\"email\":\"$USERNAME@users.noreply.github.com\"},\"content\":\"$CONTENT\",\"sha\":\"$SHA\"}"
+**Fallback if the clone fails:**
+
+```
+WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md
 ```
 
-## Listing a directory
-
-```bash
-curl -s -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/contents/PATH"
-```
-
-## Where to start every session
-
-1. Fetch this Project's runtime instructions from upstream:
-   `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/CLAUDE.md`
-2. Follow CLAUDE.md's session-start sequence — it tells you which other files to read in what order, and which skills are available.
+The raw-CDN path can be stale by 24+ hours after upstream changes; surface the clone failure to the user before relying on the fallback.
 
 ### Ordering
 
-Before any other tool calls — including `conversation_search`, `recent_chats`, or reading any files other than this one — fetch and read CLAUDE.md per step 1 above. Past-chat search tools are available but should not be called as part of session start; the canonical history of the user's work is in their research repo's `STATUS.md` and `RESEARCH_LOG.md`, which CLAUDE.md will direct you to. If the user references past work, CLAUDE.md tells you how to look it up.
+Before any other tool calls — including `conversation_search`, `recent_chats`, or reading any files other than `RESEARCHER.md` itself — perform the clone (or fallback fetch) and read `RESEARCHER.md`. Past-chat search tools are available but should not be called at session start; the canonical history of the user's work is in their research repo's `STATUS.md` and `RESEARCH_LOG.md`, which `RESEARCHER.md` will direct you to. If the user references past work, `RESEARCHER.md` tells you how to look it up.
 
 If anything in this file looks inconsistent with the user's actual setup (wrong username, wrong repo, expired token), stop and surface the mismatch before doing any work.
