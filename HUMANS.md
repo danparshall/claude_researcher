@@ -37,6 +37,22 @@ This project is scoped on purpose. It's trying to be very good at *one thing*: m
 - **A coding environment.** You can do small amounts of analysis or scripting through the agent, but the design center is research conversation, paper management, and durable notes — not building software.
 - **A perfect abstraction.** The Project Instructions field is one place where you have to paste a small block of text to bootstrap each Project. It's a one-time setup per Project, but it's not invisible.
 
+## Where instructions to Claude live
+
+If you've used Claude Code, you've encountered a small ecosystem of files where instructions to the agent can live — `~/.claude/CLAUDE.md` for user-level rules across all projects, a `CLAUDE.md` in each repo for project-level rules, a skills folder for reusable workflows. The web has direct analogs:
+
+- **Personal preferences** in claude.ai Settings — the web analog of `~/.claude/CLAUDE.md`. Applies to all your claude.ai chats, regardless of Project.
+- **Project Instructions** — the per-Project field; the analog of a local repo's `CLAUDE.md`. In our bootstrap, the only thing this field does is pass the credentials and bootstrap recipes the agent needs to read the real workflow doc.
+- **`RESEARCHER.md` in the upstream `danparshall/claude_researcher` repo** — the actual workflow rules. At session start, the agent clones the upstream template into its sandbox (a "clone" is just a copy of the repo's files), then reads `RESEARCHER.md` from there. Keeping the workflow doc in the upstream repo — rather than copied into each user's research repo at bootstrap — means every session reads the same canonical version, upstream fixes propagate automatically, and a web-only user still has a real repo-level instructions doc they can read on GitHub.
+
+And then there's the surface this project actually leans on:
+
+- **`personal_info.md` in your `basic_config` repo** (on GitHub, private) — your name, role, git fluency tier, interaction style, paper-naming convention, anything else you want the agent to know across all your research projects.
+
+The deliberate choice: `personal_info.md` is the canonical home for your preferences in this project. Three reasons. First, it works for users with no local machine access, which is the whole design center. Second, it's one place — your personal context applies to every research project you spin up, not a separate setting per Project. Third, you can ask the agent to update it during any session: *"add to my personal_info that I prefer Python over R,"* *"update my interaction style to be terser,"* *"note that I've moved fields."* The agent edits the file, commits it, and the next session reads the new version. It's a real file you can read and edit yourself on GitHub.com — not a black-box memory the agent owns.
+
+The other surfaces still exist and still work. If you have something genuinely universal you want applied to every claude.ai chat regardless of project, the Settings preferences field is the right home. If you eventually install Claude Code locally, the local `CLAUDE.md` files matter again. But for the day-to-day of working in this project, `personal_info.md` is the only surface you need to think about.
+
 ## Tips and notes
 
 ### Treat the agent like a colleague — including in your writing about it
