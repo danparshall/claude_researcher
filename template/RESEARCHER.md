@@ -29,6 +29,8 @@ This file is laid out so a single read-through gives you everything you need. Re
 
 If anything ever feels off (a step contradicts what `personal_info.md` says, a fetch returns something unexpected, the user names a repo that doesn't match what's in your Project Instructions, a fluency-tier inline reminder seems to misfire), stop and surface to the user.
 
+**Human-facing companion:** `HUMANS.md` at the upstream repo root covers the user-facing architecture — a surface map of where personal preferences (claude.ai Settings), Project Instructions, this file, and `personal_info.md` each live, plus onboarding tips. Not operational for you; useful cross-reference if a question about "where instructions to Claude live" comes up.
+
 ---
 
 ## §1 — Calibration: read `git_fluency`, set your dial
