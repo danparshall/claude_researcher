@@ -48,3 +48,56 @@ The shipping outcomes are HUMANS.md (new) and a slimmed README pointing at it, p
 - **Is `--depth 1` the right default?** Current lean: yes, shallow is correct — we never read git history of the template.
 - **How aggressively should existing Projects be prompted to update their Custom Instructions after Plan 03 lands?** Three options: (a) opt-in chore note in HUMANS.md; (b) actively prompted by the agent if it detects old recipes in Custom Instructions; (c) silent (existing recipes still work, just redundant after the clone gives them via RESEARCHER.md). Lean: (a) — least intrusive, matches the "we maintain RESEARCHER.md, you set Custom Instructions once" principle.
 - **Should Task 3's STATUS.md Known Issue entry also recommend the api.github.com/contents fallback as a secondary mitigation?** The current fallback path in Task 1 is WebFetch-from-raw; a more robust fallback would be Contents API. Marginal robustness for added complexity — flagged in Plan 03 "Out of scope" but worth revisiting if early dogfooding shows clone failures.
+
+---
+
+## Continuation — after first wrap
+
+This session continued after the initial `finish-convo` wrap. Dan raised a workflow question that touched on placement: where should the convo-handshake and catch-up rules live, given that agents need them in effect from turn one?
+
+### Empirical question
+
+In what order does an agent in a claude.ai Project actually see its various context inputs? Specifically: does it read chat history and project files *before* it reads RESEARCHER.md (CLAUDE.md today)?
+
+### What was established
+
+From inside the model's own context this session:
+
+- The **system prompt** loads passively before the agent's first inference, and includes behavioral guidance to call `conversation_search` / `recent_chats` when the user's first message has past-context cues ("let's continue X", "as we discussed").
+- **Project Instructions** also load passively before the first inference — they arrive as the first user-role message.
+- **CLAUDE.md** is fetched via tool call *after* the first inference. So its content guidance arrives too late to prevent a parallel `conversation_search` call on turn one.
+- For this user specifically, **claude.ai's auto-memory feature is OFF** — past chats are not auto-loaded into context. The only way past chats enter is if the agent explicitly calls one of the past-chat tools.
+- Empirical check via `recent_chats`: only one prior chat from this Project surfaced (May 9 handoff-paragraph session). That agent did fetch CLAUDE.md first, but the user's message had no past-context cues, so the session doesn't exercise the failure mode.
+
+### Resolution
+
+Split the rule into two layers:
+
+- **Ordering rule** in `_PROJECT_INSTRUCTIONS.md.template` (loads pre-inference): one short paragraph saying "fetch CLAUDE.md before any other tool calls including `conversation_search` and `recent_chats`."
+- **Content rule** in `template/CLAUDE.md` (loads during first tool calls): the actual catch-up source rule, the convo-name handshake, and the artifact-graph note.
+
+This respects the "Project Instructions are identity + ordering, not workflow content" principle — workflow content stays where it can be iterated upstream without users having to re-paste.
+
+### Shipped this round
+
+- `52abf78` — `template/_PROJECT_INSTRUCTIONS.md.template`: ordering rule added under "Where to start every session."
+- `31bb358` — `template/CLAUDE.md`: §2e gains catch-up-source rule + convo-name handshake; §5 gains artifact-graph subsection.
+- `fc936db` — `HUMANS.md`: expanded session-start-fetches tip to explain canonical-record vs chat-history; new "Why you'll be asked to name the conversation" tip.
+- `7c6a5c6` — `template/skills/update-docs/SKILL.md`: convo-name dependency made explicit; fallback path if §2e handshake didn't fire.
+
+### Manual step pending for Dan
+
+The `_PROJECT_INSTRUCTIONS.md.template` change updates the file in the repo (what future bootstraps will paste). It does *not* auto-update this Project's actual Custom Instructions in claude.ai. Dan needs to copy the updated template content into Settings → Profile → Custom Instructions for the ordering rule to take effect in his sessions. The other three changes take effect automatically next session via runtime CLAUDE.md fetch — no manual step required.
+
+### What to watch for next session
+
+- Agent proposes a convo name in the first or second response and waits for confirmation.
+- If the user opens with a past-context cue ("let's continue plan 03"), the agent does NOT call `conversation_search` before reading CLAUDE.md (test of the ordering rule, requires the manual Custom Instructions step above).
+- Agent reaches for STATUS.md and the active line's RESEARCH_LOG.md for catch-up rather than chat history.
+
+If any of these don't happen, that's data worth capturing in the next session's convo.
+
+### Open questions added this round
+
+- If a user forgets the manual Custom Instructions step, what's the failure-mode rate? Should the bootstrap eventually include a "verify Custom Instructions match the template" check, or is the convo-handshake working in CLAUDE.md alone sufficient most of the time?
+- Plan 03's Task 4 (which was discussed but never formally added to the plan file) is now effectively shipped. No plan-file edit needed.
