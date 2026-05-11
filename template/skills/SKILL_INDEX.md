@@ -1,6 +1,6 @@
 # Skill Index
 
-This is the manifest of skills available in `claude_researcher`. The runtime agent fetches this file at session start (per `CLAUDE.md` §2d) to know what skills exist and when to use them. Individual `SKILL.md` files are **fetched on-demand** when their trigger conditions match — don't load all of them upfront.
+This is the manifest of skills available in `claude_researcher`. The runtime agent fetches this file at session start (per `RESEARCHER.md` §2d) to know what skills exist and when to use them. Individual `SKILL.md` files are **fetched on-demand** when their trigger conditions match — don't load all of them upfront.
 
 **Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle** and **Knowledge-management** skills are Researcher-authored, shipped with a `## Runtime detection` header that probes both environments affirmatively: `$IS_SANDBOX` / `/mnt/skills/public` for claude.ai, `$CLAUDECODE=1` for Claude Code, with an `unknown` branch that surfaces misconfiguration instead of silently guessing. In claude.ai mode the agent translates Claude-Code idioms — `git add` / `git commit` / `git push`, and local paths like `/Users/<user>/.claude/skills/...` — into claude.ai-equivalents (REST `write_update` / `write_new` recipes from Project Instructions, and `raw.githubusercontent.com` URLs fetched via WebFetch). Proper REST adaptation — embedding the recipes inline rather than relying on translation — lands in [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md) Waves 2-3.
 
@@ -22,7 +22,7 @@ Skills are grouped by lifecycle role.
 
 ### finish-convo
 
-- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than the full research-line merge in `CLAUDE.md` §6.
+- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than the full research-line merge in `RESEARCHER.md` §6.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/finish-convo/SKILL.md`
 
 ### update-docs
@@ -113,7 +113,7 @@ These skills exist in upstream Nori but don't apply to `claude_researcher`'s cla
 - `use-worktree`, `clean-worktrees` — local-filesystem-only; no parallel to git worktrees in claude.ai sandbox.
 - `webapp-testing`, `building-ui-ux` — out of scope for v1 (no webapp frontend in research workflow).
 - `using-screenshots` — claude.ai handles images natively in chat.
-- `finishing-a-development-branch` — collapsed into `CLAUDE.md` §6 wrap-up (the merge-PR-and-archive flow lives in CLAUDE.md, not a skill).
+- `finishing-a-development-branch` — collapsed into `RESEARCHER.md` §6 wrap-up (the merge-PR-and-archive flow lives in RESEARCHER.md, not a skill).
 - `updating-noridocs` — Nori-specific; no Nori on the web side.
 - `maintaining-decision-docs` — out of scope for v1 research repos.
 
