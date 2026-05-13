@@ -78,6 +78,7 @@ Best explanation: a session this morning operating with the aitaxbid branch's co
 
 ## Open Questions (carry-forward)
 
+- **Source-access from WebUI** (added after finish-convo, commit `f54ea05`): Andrea's AITaxBID source files live in a private GitHub repo (`aflopezluzuriaga/AITaxBID`) and on Dan's local filesystem only. The claude.ai sandbox cannot reach either path without arrangement. Confirm at session start whether the PAT in `claude_researcher`'s Project Instructions can read the private repo; otherwise mirror or paste the relevant files before W4.1 / W4.3 / W3.1 run. Now tracked in Plan 05's Open Questions.
 - **Tier C placement** in user research repos: Option B (new `PROJECT_PARAMS.md`) vs Option C (extend STATUS.md role). Decision needed in WebUI session.
 - **Andrea's AITaxBID kit may have evolved since 2026-05-09.** Re-check SHAs at next session start. If Andrea's `SkillPropagation` repo is accessible, prefer that as canonical source.
 - **Sandbox tooling availability for W4.3** — Plan 04 may have addressed pandoc/LaTeX/python-docx; verify before W4.3 designs around regeneration step.
