@@ -102,7 +102,7 @@ Andrea's YAML frontmatter names the skill `iterative-writing-workflow`. Plan 05'
 
 **Destination:** `template/skills/iterative-writing-workflow/SKILL.md` (or `template/skills/writing-skill/SKILL.md` if the naming question lands the other way).
 
-**Status:** Ready — execute from Claude Code with filesystem access. ~15–30 min including SKILL_INDEX update.
+**Status:** **Shipped 2026-05-13.** Destination is `template/skills/iterative-writing-workflow/SKILL.md` (Andrea's own YAML name was kept per defer-to-Andrea principle). All four transformations applied as specified; ~170 lines.
 
 ### W4.2 — Decide diff mechanism for branch-document-review
 
@@ -127,7 +127,7 @@ Reasoning:
 
 **Loose end the port needs to resolve:** the Compare API caps single-page responses at 300 files. Wave 4 documents are typically single-markdown-file edits, so this is not in scope, but the port spec should mention the cap so a future multi-file extension knows where the cliff is.
 
-**Status:** Recommendation made (Option A). Dan can override at port time. W4.3 assumes Option A for the Step 4 spec below.
+**Status:** **Locked at Option A — implemented in W4.3 ship 2026-05-13.** Compare API used in `branch-document-review` Step 4; 300-file response cap surfaced as inline note for future multi-file extensions.
 
 ### W4.3 — Port Andrea's branch-document-review (Tier A)
 
@@ -162,7 +162,7 @@ Highest-priority port — best fit for the claude.ai web-UI audience because the
      "https://api.github.com/repos/$REPO/compare/$BASE_SHA...$BRANCH"
    ```
    Parse the `files[].patch` unified-diff payload to identify Mode 2 direct edits (lines added/removed/modified that don't fall inside `[...]` blocks). Surface the Compare API's 300-file response cap as a one-line note so future multi-file extensions know where the cliff is.
-2. **Branch-naming convention.** Andrea uses `<project-slug>-<purpose>-<date>` with `mmm-d` for date (e.g. `marta-oecd-edits-may-1`). claude_researcher convo names use `YYYYMMDD`. **Recommendation:** keep Andrea's format verbatim — branch lifetime is typically short so the year-ambiguity in `mmm-d` rarely bites, and the format is part of her field-tested workflow. **Confirm at port time** if Dan prefers `YYYYMMDD` for cross-convention consistency.
+2. **Branch-naming convention. RESOLVED at port time (2026-05-13): `MMdd`** — 2-digit month + 2-digit day, no year (e.g. `0501` for May 1, `0615` for June 15). Andrea's source uses `mmm-d` (e.g. `may-1`); Dan overrode in favor of lexicographic sortability — text-month formats sort wrong because "Dec" comes alphabetically before "Jan", and `m-d` numeric formats sort wrong on single-digit days (`5-15` precedes `5-2`). `MMdd` avoids both failure modes. Year is omitted because branch lifetime is short; cross-year collisions are vanishingly rare. The W4.3 SKILL.md captures this reasoning inline so users see *why* the format was chosen. Project slug examples were also generalized away from Andrea's specific Marta-named projects (`marta-oecd` → `oecd-paper`, `aml-paper` → `tax-policy-brief`, etc.) per the name-stripping rule below.
 3. **Provenance frontmatter:** `aitaxbid_source: ~/code/AITaxBID/skills/BranchWorkflow_Skill.md@e0a736d (2026-05-02)`.
 4. **Drop the footer** *"Last updated: May 2, 2026 — v2.0 (initial version, added in v2.0 from AdmWorkFMM v1.4 work)"* — provenance is in frontmatter now. The version history is Andrea's internal kit detail, not relevant to the ported version.
 5. **Strip "Andrea" / "Marta" name references** throughout. Andrea's source addresses her own collaboration with Marta and the RA by name. The port replaces these with role-generic terms: "Andrea" → "the user" or "the reviewer"; "Marta" → "a coworker"; "the RA" → "a colleague." Drop the "Owner: Andrea Lopez-Luzuriaga" line.
@@ -171,7 +171,7 @@ Highest-priority port — best fit for the claude.ai web-UI audience because the
 
 **Destination:** `template/skills/branch-document-review/SKILL.md`
 
-**Status:** Ready — execute from Claude Code with filesystem access. Sequence after W4.1. Larger than W4.1 (~30–60 min) because of Step 4's diff-parsing logic and the name-stripping pass.
+**Status:** **Shipped 2026-05-13.** All five transformations applied. Branch-naming format resolved as `MMdd` (overrode defer-to-Andrea on lexicographic-sort grounds — see deliverable 2 above). Marta-specific project slug examples generalized. Name-stripping pass verified clean (zero matches for `andrea|marta|the RA|aflopezluzuriaga`).
 
 ### W3.1 retrofit — Fold AITaxBID synthesis into add-paper
 
@@ -310,15 +310,15 @@ Per-project configuration the skills read at runtime. Update only when the proje
 
 ### W4.4 — Update `SKILL_INDEX.md`
 
-Add a "Writing & document workflow" group between knowledge-management and working-style. Entries for `writing-skill` and `branch-document-review`.
+Add a "Writing & document workflow" group between knowledge-management and working-style. Entries for `iterative-writing-workflow` and `branch-document-review`.
 
-**Status:** Stub.
+**Status:** **Shipped 2026-05-13.** New "Writing & document workflow" section live with both entries. Top-of-file status block updated to explain why the AITaxBID skills don't carry the `## Runtime detection` banner (the writing skill is pure-thought, and `branch-document-review` carries its REST recipes inline at Steps 1/4/6).
 
 ### W4.5 — Ship commit
 
 Per Wave 4 ship criterion (Plan 02): beta users have access to the writing workflow and the document-review pattern that fits the claude.ai web-UI audience.
 
-**Status:** Stub.
+**Status:** **Shipped 2026-05-13.** Wave 4 ship criterion met for Tier A skills (`iterative-writing-workflow` + `branch-document-review`). W3.1 (paper_processing fold-in) and W5 (`document-processing`) remain open per Plan 05's path-split.
 
 ---
 
@@ -330,7 +330,7 @@ Per Wave 4 ship criterion (Plan 02): beta users have access to the writing workf
 - ~~Tier C architectural placement~~ — **resolved 2026-05-13.** Option C (extend STATUS.md role) locked. See "Tier C decision" task above for reasoning + knock-on edits.
 - After Plan 05 ships, should the `aitaxbid-skills-audit` branch be archived? The audit doc itself remains valuable as a reference; the branch is stale (14+ commits behind main as of this plan creation).
 - Light-vs-heavy distinction was identified as a Tier B pattern in the audit but is only relevant if a reviewer/editor skill exists — i.e., it lands naturally with W4.3 (`branch-document-review`). No separate task needed.
-- **Branch-naming format for `branch-document-review`** — Andrea's `mmm-d` format vs. claude_researcher's `YYYYMMDD` elsewhere. W4.3 defers to Andrea per principle; confirm or override at port time.
+- ~~**Branch-naming format for `branch-document-review`**~~ — **resolved 2026-05-13 at W4.3 port time.** `MMdd` (2-digit month + 2-digit day, no year). Dan overrode the defer-to-Andrea recommendation on lexicographic-sort grounds (text-month formats put Dec before Jan; single-digit-day numeric formats sort wrong). Reasoning captured inline in the W4.3 SKILL.md so users see the *why*.
 - **Default filename convention for `add-paper`** — three formats in play (Nori, BOOTSTRAP smoke-test, Andrea). W3.1 parameterizes via personal_info.md but doesn't pick a default; decide at port time.
 
 ## What this plan deliberately does NOT cover

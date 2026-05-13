@@ -2,7 +2,7 @@
 
 This is the manifest of skills available in `claude_researcher`. The runtime agent fetches this file at session start (per `RESEARCHER.md` §2d) to know what skills exist and when to use them. Individual `SKILL.md` files are **fetched on-demand** when their trigger conditions match — don't load all of them upfront.
 
-**Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle** and **Knowledge-management** skills are Researcher-authored, shipped with a `## Runtime detection` header that probes both environments affirmatively: `$IS_SANDBOX` / `/mnt/skills/public` for claude.ai, `$CLAUDECODE=1` for Claude Code, with an `unknown` branch that surfaces misconfiguration instead of silently guessing. In claude.ai mode the agent translates Claude-Code idioms — `git add` / `git commit` / `git push`, and local paths like `/Users/<user>/.claude/skills/...` — into claude.ai-equivalents (REST `write_update` / `write_new` recipes from Project Instructions, and `raw.githubusercontent.com` URLs fetched via WebFetch). Proper REST adaptation — embedding the recipes inline rather than relying on translation — lands in [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md) Waves 2-3.
+**Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle** and **Knowledge-management** skills are Researcher-authored, shipped with a `## Runtime detection` header that probes both environments affirmatively: `$IS_SANDBOX` / `/mnt/skills/public` for claude.ai, `$CLAUDECODE=1` for Claude Code, with an `unknown` branch that surfaces misconfiguration instead of silently guessing. In claude.ai mode the agent translates Claude-Code idioms — `git add` / `git commit` / `git push`, and local paths like `/Users/<user>/.claude/skills/...` — into claude.ai-equivalents (REST `write_update` / `write_new` recipes from Project Instructions, and `raw.githubusercontent.com` URLs fetched via WebFetch). Proper REST adaptation — embedding the recipes inline rather than relying on translation — lands in [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md) Waves 2-3. The **Writing & document workflow** skills are AITaxBID-sourced (from Andrea Lopez-Luzuriaga's kit): `iterative-writing-workflow` is pure methodology with no git/CLI operations, and `branch-document-review` carries REST recipes (the GitHub refs/merges/compare endpoints) inline where they're needed — so neither needs the runtime-detection banner.
 
 ---
 
@@ -54,6 +54,20 @@ Skills are grouped by lifecycle role.
 
 - **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-papers/SKILL.md`
+
+---
+
+## Writing & document workflow skills
+
+### iterative-writing-workflow
+
+- **Trigger:** user is working on a writing project that involves both research/reading and producing written deliverables (white papers, policy notes, reports, academic papers, book chapters). Also use when user asks to set up a writing workflow, wants to organize how they collaborate on a document, or says things like "let's start writing," "how should we work on this," or "set up the project."
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/iterative-writing-workflow/SKILL.md`
+
+### branch-document-review
+
+- **Trigger:** Claude and the user are jointly producing a document and the user wants to read and comment on it before signoff — typically a long markdown deliverable with companion artifacts (`.docx`, `.pptx`) generated from it. Do **not** use for general-purpose branch work (experiments, code refactors, parallel versions) — those use plain git.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/branch-document-review/SKILL.md`
 
 ---
 
