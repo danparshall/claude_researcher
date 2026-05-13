@@ -41,9 +41,18 @@ Skills are grouped by lifecycle role.
 
 ### add-paper
 
-- **Trigger:** user asks to add a paper to the collection ("add this paper", "save this PDF", "ingest these papers from `papers/`").
-- **Modes:** download (URL → PDF → text → index) and orphan-ingestion (PDF already in `papers/` → rename per `paper_naming` → text → index).
+- **Trigger:** user asks to add a paper to the collection ("add this paper", "save this PDF", "ingest these papers from `papers/`"). Triage skill: routes academic-style papers to `paper-processing-academic`, institutional-style reports to `paper-processing-institutional`, non-paper documents to `document-processing` (deferred). Run Step 0 here; the routed per-protocol skill handles Steps 1-6.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/add-paper/SKILL.md`
+
+### paper-processing-academic
+
+- **Trigger:** Protocol A workflow for academic-style papers (research with hypothesis + original data analysis). Usually invoked via `add-paper`'s Step 0 dispatch; can be invoked directly when the protocol is already known.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-processing-academic/SKILL.md`
+
+### paper-processing-institutional
+
+- **Trigger:** Protocol B workflow for institutional-style reports (synthesis/policy documents from multilaterals, governments, working groups). Usually invoked via `add-paper`'s Step 0 dispatch; can be invoked directly when the protocol is already known. Step 2 carries institutional-specific extraction rules (preserve acronyms, preserve boxes/figure captions, strip decorative front matter).
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-processing-institutional/SKILL.md`
 
 ### audit-docs
 
