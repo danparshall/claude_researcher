@@ -8,6 +8,8 @@ If you've used Claude.ai for research conversations, you've probably noticed how
 
 `claude_researcher` adds persistent memory of your work to claude.ai — a record of your projects, the papers you've read, the conversations you've had, and the reasoning that came out of them. Each session starts from where you left off. Nothing installs on your machine; everything lives in a private GitHub repository you own, and the agent reads and writes it on your behalf when you start a new chat.
 
+Working with agents effectively comes down to managing three things: **the prompt** (what you ask, with what context and constraints), **data retrieval** (getting the right files and references in front of the agent at the right time), and **the context window** (the finite scratch space the agent has to think in, which fills up as a session runs and eventually triggers a lossy summarization step called *compaction*). `claude_researcher` is built to help with the first two — it gives you opinionated prompting conventions and automatically loads your project status, profile, and conversation history at session start. The third stays on you: a long session that risks compaction should be wrapped and continued in a fresh chat, not pushed through. More on this in *When in doubt, wrap and start fresh* below.
+
 ## What a session feels like
 
 Suppose you're a researcher working on coastal adaptation policy, and you've been at it for a few months. You open Claude.ai, navigate to your `claude_researcher` Project, and start a new chat with: *"Let's pick up on the managed retreat work."*
@@ -89,6 +91,18 @@ Dropping a PDF into chat just shows it to the current conversation. The `add-pap
 
 The agent calibrates to it — your role, your tools, your interaction style. If you've shifted fields, picked up a new methodology, or just noticed the agent's tone is wrong for you, update the file. A line edit takes seconds and changes a lot.
 
+### Top 5 skills to know
+
+The kit ships [19 skills](template/skills/SKILL_INDEX.md), loaded on demand when their triggers fire. You don't need to know any of them by name to use the project — but a few come up so often that knowing them speeds things up:
+
+- **`finish-convo`** — runs at the end of every session. Writes a permanent record of the conversation, updates `STATUS.md`, commits the result. Triggered by phrases like "let's wrap," "good stopping point," or "save and stop." The single most-used skill in the kit.
+- **`brainstorming`** — refines a rough idea via structured Socratic questioning before committing to a direction. Useful before any non-trivial design conversation; invoke explicitly with "let's brainstorm this." Counters the agent's instinct to produce a polished plan too early.
+- **`add-paper`** — ingests a PDF into your literature collection: renames the file to your canonical format, extracts the text, writes a summary, indexes it. Triggered by phrases like "add this paper" or "save this PDF." Run any paper you'll do real work with through this once at the start.
+- **`write-a-plan`** — when a conversation has produced something concrete enough to implement, this skill captures it as a plan document a future agent (with no prior context) can follow. Especially useful when you want to run the implementation in a fresh session — the plan carries the reasoning, not just the to-dos.
+- **`iterative-writing-workflow`** — sets up the project structure for a writing deliverable that involves both research and production (white paper, policy note, report, academic paper). Tracks progress across sessions.
+
 ### When in doubt, wrap and start fresh
 
 Context windows are finite, and a long session accumulates entropy. If the agent feels off, the conversation has wandered, or you're about to start a meaningfully different topic — say "let's wrap." The `finish-convo` skill writes a permanent record of the conversation; the next chat picks up cleanly from there. The wrap is cheap, the long-session drift isn't.
+
+**Never let a session run long enough to trigger compaction.** When the chat approaches its context limit, claude.ai summarizes earlier turns into a lossy synopsis and discards the originals — and you don't get to audit what was thrown away. Compacted sessions feel fine for a few turns and then start producing work that quietly misses earlier context. The fix is structural: as soon as you see the chat getting long, wrap with `finish-convo` and start fresh. The permanent record in your repo carries the real reasoning forward; an in-chat compacted summary is a lossy substitute.
