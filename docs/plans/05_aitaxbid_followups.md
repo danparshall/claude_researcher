@@ -160,6 +160,7 @@ Per Wave 4 ship criterion (Plan 02): beta users have access to the writing workf
 
 ## Open questions
 
+- **Source-access from WebUI:** Andrea's AITaxBID source files live in a private GitHub repo (`aflopezluzuriaga/AITaxBID`) and on Dan's local filesystem only — confirm at session start whether the existing PAT can read the private repo, otherwise arrange to mirror or paste the relevant files before W4.1 / W4.3 / W3.1 run.
 - Andrea's AITaxBID kit may have evolved since 2026-05-09; re-check SHAs at session start. If Andrea's `SkillPropagation` repo is accessible, prefer that as canonical source.
 - Sandbox tooling availability (pandoc, LaTeX) — see W4.0. Plan 04 may have addressed some of this already.
 - Tier C architectural placement — see "Tier C decision" task above. Decide before the WebUI session puts work into a particular surface.
