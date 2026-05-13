@@ -32,7 +32,8 @@ The format below is the v1 schema. Agents reading this file should be able to fi
 
 - **Git fluency:** <novice | occasional | fluent>
 - **Mode:** <claude.ai-only | also-local>
-- **Paper naming format:** `<PAPER_NAMING>`
+- **Paper naming (academic):** `<PAPER_NAMING_ACADEMIC>`
+- **Paper naming (institutional):** `<PAPER_NAMING_INSTITUTIONAL>`
 
 ## Last updated
 

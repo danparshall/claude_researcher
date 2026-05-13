@@ -196,6 +196,8 @@ Same call for `README.md`. STATUS.md tells you what's currently active, recent s
 - `workflow_mode: branches` (default) — each research line is a git branch + a `docs/active/<branch>/` directory. Wrap-up opens a PR and merges. **Use this if the field is absent.**
 - `workflow_mode: main_only` — solo repo, no branches. Each research line is just a `docs/active/<branch>/` directory on `main`. Wrap-up is a directory move + STATUS update; no PR.
 
+STATUS.md may also carry a `## Project parameters` section listing per-project config (`PROJECT_QUESTION`, `CONDITIONAL_SECTION`, `BIB_FILE`, `PAPERS_INDEX`, `paper_summaries.structure`). Skills that need these values read them from STATUS.md — no extra fetch since STATUS.md is already part of session-start.
+
 README.md tells you what the repo is about (the user's framing of their own work).
 
 ### 2d — Read `SKILL_INDEX.md` from the local clone

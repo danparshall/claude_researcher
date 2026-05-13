@@ -238,22 +238,22 @@ Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION
 >
 > 1. **Git fluency** — pick one: **novice** ('I've only used GitHub.com via the web UI'), **occasional** ('I clone and push from the command line sometimes'), or **fluent** ('I use git daily, including merge / rebase / cherry-pick'). This calibrates how chatty I am about git operations.
 > 2. **Mode** — pick one: **claude.ai-only** (you'll work on this only through the web UI; no Claude Code locally), or **also-local** (you have Claude Code installed somewhere and might `git clone` and work locally too). Repos get created identically either way; this just calibrates how chatty I'll be later about claude.ai-specific quirks.
-> 3. **Paper naming convention** — when I save papers to your repo, what filename format do you want? Default is `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`, with one disambiguation rule for common surnames:
+> 3. **Paper naming conventions** — when I save papers to your repo, the filename format depends on whether the paper is academic-style (research with hypothesis + data) or institutional-style (synthesis/policy report). Two defaults:
 >
->    - **Default surname rendering:** just the surname, capitalized as in the paper. Example: `Vaswani_Polosukhin__2017--attention_is_all_you_need.pdf`.
->    - **Common-surname rendering:** `SurnameF` (surname plus the first author's first-name initial, no separator) when the surname is common enough that you'd otherwise end up with collisions. Apply to common Anglo surnames (Smith, Jones, Patel, Singh, etc.) and East Asian surnames (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato, etc. — use judgment). Example: `SmithJ_PatelA__2024--stress_sleep_adolescents.pdf`.
->    - Apply the same rule to the last-author surname independently.
->    - **Solo-authored papers:** use the same surname for both author fields, or omit the second — your call.
->    - **Punctuation:** `__` (double underscore) separates the author block from the year; `--` (double dash) separates year from slug; `_` (single underscore) separates within blocks.
+>    - **Academic default:** `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Common-surname disambiguation: `SurnameF` (surname + first-name initial, no separator) when collisions are likely — Anglo (Smith, Jones, Patel, Singh) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato — use judgment). Solo papers: single surname only (drop the duplicate). Slug is two-or-three descriptive words in kebab-case. Examples: `Vaswani_Polosukhin__2017--attention-is-all-you-need.pdf`, `SmithJ_2024--stress-sleep.pdf`.
+>    - **Institutional default:** `{Institution}_{ShortTitle}_{Year}.pdf`. Institution = short acronym, lowercase (`imf`, `oecd`, `un`); for governments, country + agency in camelCase (`brazilRfb`, `mexicoSat`). ShortTitle = two descriptive words in camelCase. Examples: `imf_g20RevenueAdmin_2025.pdf`, `oecd_taxAdmin30_2023.pdf`.
+>    - **Punctuation (academic only):** `__` (double underscore) separates the author block from the year; `--` (double dash) separates year from slug; `_` (single underscore) separates within blocks.
 >
->    Press Enter to accept the default + rule, or specify your own format.
+>    Press Enter to accept both defaults, or specify your own format(s) — you can override one and keep the default for the other.
 > 4. **Extra paper-source domains** — besides any paper sites you already added during egress setup in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: each new egress domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)"
 
-Record as `<GIT_FLUENCY>`, `<MODE>`, `<PAPER_NAMING>`, and any extra paper-source domains. If they accepted the paper-naming default, `<PAPER_NAMING>` should capture both the format string AND the disambiguation rule, since the runtime agent needs both to render filenames consistently. Use this canonical text when writing to `personal_info.md`:
+Record as `<GIT_FLUENCY>`, `<MODE>`, **two fields** `<PAPER_NAMING_ACADEMIC>` + `<PAPER_NAMING_INSTITUTIONAL>`, and any extra paper-source domains. If the user accepted both defaults, use these canonical texts when writing to `personal_info.md`:
 
-> `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Use `SurnameF` (surname plus first-name initial, no separator) when the surname is common enough that collisions are likely — Anglo (Smith, Jones, Patel, Singh, etc.) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato, etc.); use judgment. Solo-authored papers: same surname for both fields, or omit the second.
+> **Academic:** `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Use `SurnameF` (surname plus first-name initial, no separator) when the surname is common enough that collisions are likely — Anglo (Smith, Jones, Patel, Singh, etc.) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato, etc.); use judgment. Solo-authored papers: single surname only (drop the duplicate). Slug in kebab-case.
 
-If the user provided their own paper-naming format, capture exactly what they typed; don't try to merge their format with the default rule.
+> **Institutional:** `{Institution}_{ShortTitle}_{Year}.pdf`. Institution lowercase acronym for multilaterals (`imf`, `oecd`, `un`, `worldBank`, `idb`); country + agency in camelCase for governments (`brazilRfb`, `mexicoSat`). ShortTitle in camelCase, two descriptive words.
+
+If the user provided their own format(s) for either field, capture exactly what they typed; don't try to merge their format with the default rule. If they accepted one default and overrode the other, record their override only for the field they touched and use the canonical default text for the other.
 
 After all three batches, summarize the full interview to the user in one paragraph. Get explicit confirmation before proceeding.
 
@@ -275,6 +275,12 @@ Record the topic as `<TOPIC>`. Suggest a repo name in the format `research-<shor
 
 Validate the final name: lowercase, alphanumeric and hyphens only, ≤39 characters (GitHub repo names can go to 100, but shorter is friendlier). Record as `<RESEARCH_REPO>`.
 
+Then ask:
+
+> "That sentence is also your `PROJECT_QUESTION` — the question your paper summaries will measure relevance against. If you'd phrase it differently for that purpose, give me a tighter version; otherwise I'll use the same sentence for both."
+
+Record as `<PROJECT_QUESTION>`. If the user accepts using the same sentence as `<TOPIC>`, the two values will be byte-identical — that's fine. If they tighten it, capture the tightened version. This value is written to the research repo's `STATUS.md` `## Project parameters` section in Step 7.
+
 ### 5c — If they want a general knowledge base
 
 For users who are exploring or new to the workflow, `knowledge_base` is the recommended first repo. It has the same structure as a research-* repo (`papers/`, `docs/active/`, `STATUS.md`, etc.) but isn't tied to one specific question. Notes, papers, and observations accumulate there until the user is ready to spin off a focused research project.
@@ -282,6 +288,7 @@ For users who are exploring or new to the workflow, `knowledge_base` is the reco
 Record:
 - `<TOPIC>` = `"General knowledge base — notes, papers, and emerging research ideas."`
 - `<RESEARCH_REPO>` = `knowledge_base`
+- `<PROJECT_QUESTION>` = `"General knowledge base — no single research question yet."` (Users can edit `STATUS.md` `## Project parameters` once a focused question emerges.)
 
 Same seeding flow as a research-* repo from here on.
 
@@ -405,6 +412,16 @@ _PROJECT_INSTRUCTIONS.md
 ## What this repo is
 
 <TOPIC>
+
+## Project parameters
+
+Per-project configuration the skills read at runtime. Update only when the project's scope or conventions change.
+
+- `PROJECT_QUESTION`: <PROJECT_QUESTION>
+- `CONDITIONAL_SECTION`: unset
+- `BIB_FILE`: unset
+- `PAPERS_INDEX`: PAPER_INDEX.md
+- `paper_summaries.structure`: single-file
 
 ## Current state
 

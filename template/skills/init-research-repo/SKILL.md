@@ -73,7 +73,21 @@ fi
 
 ### Step 3: Seed STATUS.md
 
-If STATUS.md exists, check whether it already has an "Archived Research Lines" section. If not, append:
+If STATUS.md exists, check whether it already has a `## Project parameters` section. If not, append:
+
+```markdown
+## Project parameters
+
+Per-project configuration the skills read at runtime. Update only when the project's scope or conventions change.
+
+- `PROJECT_QUESTION`: [to be filled in — one-sentence research question]
+- `CONDITIONAL_SECTION`: unset
+- `BIB_FILE`: unset
+- `PAPERS_INDEX`: PAPER_INDEX.md
+- `paper_summaries.structure`: single-file
+```
+
+Then check whether STATUS.md already has an "Archived Research Lines" section. If not, append:
 
 ```markdown
 ## Archived Research Lines
@@ -99,6 +113,16 @@ Last updated: YYYY-MM-DD
 ## Current Focus
 
 [To be filled in]
+
+## Project parameters
+
+Per-project configuration the skills read at runtime. Update only when the project's scope or conventions change.
+
+- `PROJECT_QUESTION`: [to be filled in — one-sentence research question]
+- `CONDITIONAL_SECTION`: unset
+- `BIB_FILE`: unset
+- `PAPERS_INDEX`: PAPER_INDEX.md
+- `paper_summaries.structure`: single-file
 
 ## Recent Sessions
 
@@ -135,11 +159,12 @@ Tell the user what was created:
 Research workflow initialized:
   - docs/active/           (active research lines)
   - docs/historical/       (archived research lines)
-  - STATUS.md              (Archived Research Lines table + Recent Sessions section added)
+  - STATUS.md              (Project parameters section + Archived Research Lines table + Recent Sessions section added)
   [- docs/active/<branch>/ (with RESEARCH_LOG.md, convos/, plans/, results/)]
 
 Next steps:
-  - Start a research session and the finish-convo skill will populate these
+  - Fill in `PROJECT_QUESTION` in STATUS.md `## Project parameters` (and any optional keys: `CONDITIONAL_SECTION`, `BIB_FILE`)
+  - Start a research session and the finish-convo skill will populate the rest
   - Use `git mv docs/active/<topic> docs/historical/<topic>` to archive completed research lines
 ```
 
