@@ -1,5 +1,5 @@
 ---
-name: Add-Paper
+name: add-paper
 description: Add a paper to the research collection — download PDF, extract text, add to PAPER_INDEX.md and PAPER_SUMMARIES.md. Ensures every paper is fully integrated with text extraction and indexed summaries.
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: Finish-Convo
+name: finish-convo
 description: End a research session — runs update-docs to checkpoint all progress, then commits and pushes. Use update-docs for mid-session checkpoints without ending the session.
 ---
 

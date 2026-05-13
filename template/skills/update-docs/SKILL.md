@@ -1,5 +1,5 @@
 ---
-name: Update-Docs
+name: update-docs
 description: Checkpoint research progress mid-session — create/update convo summary, save results with provenance, update RESEARCH_LOG and STATUS.md. Core operation that finish-convo builds on.
 ---
 

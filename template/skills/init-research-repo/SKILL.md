@@ -1,5 +1,5 @@
 ---
-name: Init-Research-Repo
+name: init-research-repo
 description: Use when setting up a new repo (or an existing repo) for the research-first workflow — creates docs/active/ and docs/historical/ directories, seeds STATUS.md with the Archived Research Lines table
 ---
 

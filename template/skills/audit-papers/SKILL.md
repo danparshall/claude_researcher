@@ -1,5 +1,5 @@
 ---
-name: Audit-Papers
+name: audit-papers
 description: Check papers/ structure for completeness and accuracy — every PDF has text extraction, every paper is indexed in PAPER_INDEX.md and summarized in PAPER_SUMMARIES.md, summaries are factually accurate. Prompts the user for discrepancies.
 ---
 

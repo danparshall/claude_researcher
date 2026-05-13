@@ -1,5 +1,5 @@
 ---
-name: Write-a-Plan
+name: write-a-plan
 description: Use when a research conversation has produced something ready to implement — creates implementation plans that reference their originating conversation, carry epistemic context, and assume the implementing agent has zero codebase context
 ---
 

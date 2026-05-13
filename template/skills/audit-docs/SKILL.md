@@ -1,5 +1,5 @@
 ---
-name: Audit-Docs
+name: audit-docs
 description: Check docs/active/ structure for consistency — every convo indexed in RESEARCH_LOG, every plan linked to a convo, no orphaned files. Prompts the user for discrepancies rather than auto-fixing.
 ---
 
