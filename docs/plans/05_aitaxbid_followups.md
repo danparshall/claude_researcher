@@ -11,8 +11,8 @@
 
 **Originating convos:**
 
-- [`20260509_aitaxbid_skills_audit.md`](../convos/20260509_aitaxbid_skills_audit.md) — original audit findings (lives on `aitaxbid-skills-audit` branch, not main)
-- This session (to be captured at finish-convo) — audit follow-up reconciliation + Plan 05 scaffolding
+- [`20260509_aitaxbid_skills_audit.md`](../convos/20260509_aitaxbid_skills_audit.md) — original audit findings (also on main via PR #1 → `6397c33`)
+- [`20260512_audit_followup_and_plan05.md`](../convos/20260512_audit_followup_and_plan05.md) — audit follow-up reconciliation + Plan 05 scaffolding
 
 **Confidence:** Low (stub). Each task needs detailed scoping next session.
 
