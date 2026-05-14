@@ -74,4 +74,19 @@ State of the `discourse-register` branch in claude_researcher at convo end: stil
 - **Plan B implementation timing.** Plan written; actual implementation is Dan's call. Estimated bite-sized-task count makes it a 1-2 session job in dotfiles.
 - **Persona/discipline core alignment.** Parked, but real. Will need its own brainstorm + plan when picked up. With parity as the explicit goal, this is now a higher-value item than it looked initially.
 - **§0 tightening shape.** Three options offered earlier: (a) demote four trait subheadings to inline bold leads, (b) drop the second corollary paragraph under Push Back, (c) tighten the framing paragraph. Dan hasn't picked. To be resolved when §0 tightening proceeds.
-- **Branch rename.** `discourse-register` no longer reflects scope (DR moved out of this branch). Suggested `tighten-section-0`. Not acted on.
+- **Branch rename.** `discourse-register` no longer reflects scope (DR moved out of this branch). Suggested `tighten-section-0`. Not acted on initially; **resolved late-session — renamed to `tighten-section-0`** (local + origin) per Dan's go-ahead.
+
+## Late-session addendum (after first finish-convo checkpoint)
+
+After the initial finish-convo at ~15:30, three more things happened worth recording:
+
+- **DIALECTICS.md moved from claude_researcher (untracked) to dotfiles/claude/ (committed).** It had been sitting untracked in the public claude_researcher working tree across multiple sessions; contains the verbatim discourse-register exchanges. Moved to `dotfiles/claude/DIALECTICS.md` (private) at dotfiles commit `fa4ede6`. Plan B step 19 simultaneously fixed: previously referenced "the discourse-register branch's RESEARCHER.md §0.5 draft" (broken reference — branch renamed and §0.5 reverted) and named the four section labels (Concede-and-pivot, etc., which Dan had flagged as transcript-adjacent). Step 19 now points the implementing agent at `dotfiles/claude/DIALECTICS.md` as the source.
+- **Parallel session discovered during finish-convo audit.** Between my Plan B initial-draft commit at 14:42 and the DIALECTICS move at 16:27, a parallel Claude session in another terminal tab made five substantive commits on `dotfiles:plan_01_personal_info_sync`:
+  - `167d7da` — Phase 1 (sync_to_basic_config script + tests)
+  - `7dd2bf9` — Phase 2 (Discourse Register section + CLI-ONLY markers)
+  - `7c4af6a` — Phase 3 prep (port basic_config prose into canonical)
+  - `69e0503` — sync state (first successful push to basic_config)
+  - `e2c2a62` — Phase 4 cleanups (CLAUDE.md.template orphan, install.sh fix, nori-researcher boundary README)
+
+  All authored by Dan's git config (`Dan Parshall <parshall.dan@gmail.com>`) but with timestamps spanning this conversation's duration — consistent with a parallel agent in another terminal tab sharing the dotfiles checkout. Per multi-terminal protocol, no interference attempted from this session. Phases 1-4 appear to be done, but substantive completeness not yet verified from this session — Phase 1 alone was specced as multi-step TDD work but its commit was only 2 minutes ahead of Phase 2's; the messages are plausible but contents weren't audited here. Dan has indicated dotfiles is "fine."
+- **Confirmed claude_researcher untouched by parallel agent.** Only the two doc commits from this session exist on `tighten-section-0` (`a37683d` convo + `57bee84` STATUS, plus a third for this checkpoint). Branch diff vs main: pure doc additions, no template/skill/code changes. §0 tightening, the original aim of the branch, still NOT done.
