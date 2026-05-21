@@ -22,7 +22,7 @@ Sensitive operations (repo creation, PAT handling, file writes, claude.ai settin
 
 Now fetch and follow:
 
-  https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/BOOTSTRAP.md
+  https://raw.githubusercontent.com/danparshall/claude_researcher/ea2918a50f80f2f336bc766cde01478af0027e3b/template/BOOTSTRAP.md
 ```
 
 > **You will need:** a GitHub account (free tier is fine — private repos are free since 2019), a Claude.ai Pro or Team account, and ~15 minutes. The bootstrap will help you create a fine-grained GitHub PAT and configure your first research project (or a general `knowledge_base` repo if you don't have a specific project in mind yet).
