@@ -235,7 +235,7 @@ Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION
 >    - **Punctuation (academic only):** `__` (double underscore) separates the author block from the year; `--` (double dash) separates year from slug; `_` (single underscore) separates within blocks.
 >
 >    Press Enter to accept both defaults, or specify your own format(s) — you can override one and keep the default for the other.
-> 4. **Extra paper-source domains** — besides any paper sites you already added during egress setup in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: each new egress domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)"
+> 4. **Extra paper-source domains** — *(this will not be relevant if your egress is set to allow all domains — skip it then)* — besides any paper sites you already added during egress setup in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)"
 
 Record as `<GIT_FLUENCY>`, `<MODE>`, **two fields** `<PAPER_NAMING_ACADEMIC>` + `<PAPER_NAMING_INSTITUTIONAL>`, and any extra paper-source domains. If the user accepted both defaults, use these canonical texts when writing to `personal_info.md`:
 

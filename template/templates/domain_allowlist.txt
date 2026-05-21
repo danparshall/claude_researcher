@@ -1,14 +1,17 @@
 # claude_researcher Domain Allow List
 #
-# Paste the non-comment lines below into your claude.ai user Settings at:
-#   Settings > Capabilities > Allow Network Egress > Domain Allow List
+# NOTE: this file is only relevant if your claude.ai network-egress setting
+# uses a domain allow-list. If you enabled egress in an "allow all domains"
+# mode, no allow-list applies — there is nothing to paste; keep this file
+# only as a record of the domains the workflow expects.
 #
-# This is a user-wide setting (one-time, applies across all your claude.ai
-# chats — not configured per-Project). This file is a record of what was
-# pasted during bootstrap, useful for re-use on a different machine.
+# If your egress setting DOES use a domain allow-list (in claude.ai
+# Settings > Capabilities, under the network-egress option): paste the
+# non-comment lines below into it. This is a user-wide setting — one-time,
+# applies across all your claude.ai chats, not configured per-Project.
 #
 # One domain per line. Strip the comment lines (starting with #) before
-# pasting if claude.ai's allow-list field does not tolerate them.
+# pasting if the allow-list field does not tolerate them.
 
 # --- Workflow-required (GitHub REST API + raw content fetch) ---
 api.github.com
