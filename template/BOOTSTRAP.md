@@ -11,7 +11,7 @@ Each step tells you the next action and offers **verification affordances** — 
 **Two distinct fetch mechanisms appear in this flow:**
 
 - For **public upstream content** (this file, skill specs, scripts, reference docs at `danparshall/claude_researcher`) — use the WebFetch tool. No allow-list configuration needed. Returns content verbatim.
-- For **the user's own repos** (private, owned by the user) — use sandbox `curl` with the user's PAT in an `Authorization` header. This requires the Domain Allow List to permit `api.github.com`, configured during Step 1 below.
+- For **the user's own repos** (private, owned by the user) — use sandbox `curl` with the user's PAT in an `Authorization` header. This requires network egress to permit `api.github.com`, configured during Step 1 below.
 
 If you ever need a public file outside the user's repos, use WebFetch. If you ever need a file *inside* the user's repos, use sandbox curl with the PAT.
 
@@ -27,13 +27,13 @@ Tell the user, briefly (4–6 sentences), what's about to happen end-to-end. Use
 
 ---
 
-## Step 1 — Egress allow-list check
+## Step 1 — Network egress check
 
 The mental model the user needs: when you (the agent) run a bash command, it runs in a **virtual machine that Anthropic spins up for the chat**, not on the user's machine. That VM lives on Anthropic's servers. You can install Python packages there, write files, run scripts — but its internet access *from that VM* is what the egress setting controls. By default, the VM has no internet access at all.
 
 The user's own machine — their laptop, their work computer — isn't involved here except as the place where their browser runs. **Their corporate firewall doesn't affect this choice.** Whatever they pick in claude.ai Settings configures Anthropic's server-side VM, end of story.
 
-This step probes whether egress is already configured; if not, it walks the user through configuration and asks them to restart in a fresh chat to pick up the change. **It runs first** — before the mode check, the GitHub interview, or anything else — so that if a fresh-chat restart is needed, no time has been wasted on questions whose answers will be lost in the restart.
+This step probes whether egress is already configured; if not, it walks the user through configuration and asks them to restart in a fresh chat to pick up the change. **It runs first** — before the GitHub interview or anything else — so that if a fresh-chat restart is needed, no time has been wasted on questions whose answers will be lost in the restart.
 
 ### 1a — Probe
 
@@ -46,7 +46,7 @@ curl -sI https://api.github.com/zen
 Expected outcomes:
 
 - **`HTTP/2 200`** — egress is already configured. Announce that, and continue to Step 2.
-- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — egress isn't configured (or `api.github.com` isn't on the allow list yet). Continue to 1b below.
+- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — egress isn't configured (or `api.github.com` isn't reachable yet). Continue to 1b below.
 
 ### 1b — First-time egress configuration
 
@@ -60,39 +60,29 @@ If the probe fails, the user needs to configure egress now. Tell them what's abo
 > - It's purely about *my* VM's internet access. Your laptop / work computer / corporate firewall isn't involved — whatever your local machine restricts doesn't affect what you can configure here.
 > - **Important caveat:** changes to this setting don't propagate into already-open chats. Once you save, you'll need to restart in a fresh chat for me to actually pick up the change. I'll wait while you configure it."
 
-Walk them through:
+Walk them through. **Note for you, the agent:** the claude.ai Settings UI for this has changed before and varies by plan and account type — there is no single screenshot to match, and an earlier version of this step that scripted exact clicks went stale. Guide the user by *intent*, not by an exact label or widget, and let the 1a probe (after the restart) be the real confirmation that it worked.
 
 > "Open a new browser tab to: https://claude.ai/settings/capabilities
 >
-> Find: **Allow Network Egress**.
+> Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress' or similar. **Turn it on**, and choose the most permissive option the UI gives you:
 >
-> 1. **Pick an egress mode.** Two reasonable options:
->
->    - **`Package Managers Only`** (recommended). I can install Python and Node packages on the fly when a skill needs them (`pypdf` for `add-paper`, `requests` for any custom REST work, etc.), and I can reach domains you explicitly add to the allow list below. Anything else is blocked. This is defense-in-depth: limits the blast radius if I'm ever misled by a malformed skill or a malicious file fetch into trying to reach somewhere unexpected.
->
->    - **`All`**. Most permissive, single setting, no per-domain micromanagement. Pick this if you want maximum convenience and aren't worried about the broader access. (Reminder, since this surprises people: this is *my VM's* internet access, not yours. Picking `All` doesn't open anything up on your local machine.)
->
-> 2. **In the Domain Allow List, add these four domains, one at a time** (click the input, type the domain, click **Add**, repeat):
+> - If it's a simple on/off toggle — turn it on.
+> - If it offers a choice of modes (for example, a restricted 'package managers only' vs. a broader unrestricted setting) — pick the broadest one for now; you can tighten it later. (Reminder, since this surprises people: this controls *my* server-side VM's internet access, not your computer's. The broad setting doesn't open anything up on your local machine or behind your corporate firewall.)
+> - If it gives you a custom **domain allow-list**, the simplest path is to allow everything. If you'd rather list domains explicitly, the bootstrap needs **at minimum** these four:
 >    - `api.github.com`
 >    - `codeload.github.com`
 >    - `github.com`
 >    - `raw.githubusercontent.com`
 >
->    (Each `Add` click commits that domain immediately. There's no batch paste and no separate Save button — adding it IS saving it. The UI doesn't accept comma-separated or newline-separated bulk input; it's strictly one domain at a time.)
+>    A domain-list UI is also the moment to add paper-source sites you'll commonly use — it saves an extra restart later, the first time `add-paper` needs them: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`, `nber.org`, `ssrn.com`, `pubmed.ncbi.nlm.nih.gov`. (The `www.` prefixes are intentional — match each site's canonical hostname; don't normalize them.)
 >
-> 3. **Optional: also add paper-source domains you know you'll commonly use.** If you know you regularly download papers from specific sites, add those now too — it'll save you from having to restart in another fresh chat the first time the `add-paper` skill needs them. Common ones, by domain:
->    - General preprint servers: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`
->    - DOI redirects (covers many journal landing pages): `doi.org`
->    - Economics working papers: `nber.org`, `ssrn.com`
->    - Government / agency: `pubmed.ncbi.nlm.nih.gov`, `www.cdc.gov`, `www.fda.gov`
->
->    Add the ones you'll actually use; skip the ones you won't. You can always add more later by coming back to this Settings page — but remember, each addition requires starting a fresh chat to pick up the change. Better to over-include now than to repeatedly restart.
->
->    Note: the `www.` prefix on `www.biorxiv.org` and `www.medrxiv.org` is intentional — those sites' canonical hostnames include `www.`, while `arxiv.org` and `doi.org` don't. Match each site's canonical hostname; don't normalize them."
+> Whatever the interface looks like, the goal is the same: my VM needs to be able to reach `github.com`. Save the setting."
+
+If the user describes something that fits none of the cases above — an option you don't recognize, or no egress setting at all — **stop and surface it to the user** rather than guessing. Note what they saw; it is useful input for keeping this step current.
 
 ### 1c — Hand off to a fresh chat
 
-Once the user confirms they've added the domains:
+Once the user confirms they've enabled egress:
 
 > "Great. Now: this current chat won't see the new permissions, so we need to restart. Open a new claude.ai chat, and re-paste the same bootstrap prompt you used a few minutes ago. The new chat will see the egress configuration and we'll continue from where we left off. You don't need to redo anything you just configured in Settings — that's saved at your account level. **Stop here in this chat; we're done.**"
 
@@ -102,7 +92,7 @@ Stop. Don't try to push past the egress deny in this session.
 
 ### 1d — Returning user fast path
 
-If the probe in 1a returned `HTTP/2 200`, briefly announce that egress is already configured, mention which preset / domains you can see if any are visible, and continue immediately to Step 2. No restart needed.
+If the probe in 1a returned `HTTP/2 200`, briefly announce that egress is already configured and continue immediately to Step 2. No restart needed.
 
 ---
 
@@ -183,7 +173,7 @@ The PAT you just generated is broadly scoped (**All repositories**) because it h
 
 ## Step 3 — Check whether `basic_config` already exists
 
-The allow list and PAT are both verified at this point (Step 1 confirmed egress, Step 2 verified the token). Now query for the user's `basic_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
+Network egress and the PAT are both verified at this point (Step 1 confirmed egress, Step 2 verified the token). Now query for the user's `basic_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" \
@@ -548,7 +538,7 @@ If validation fails, the most common causes (in rough order of likelihood):
 
 1. **PAT expired or wrong scope** → re-create per Step 2b. Most common.
 2. **Project Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
-3. **Domain Allow List incomplete or hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` smoke test. If the allow-list change was made *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
+3. **Network egress not enabled, or the change hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` probe. If the egress setting was changed *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
 4. **Clone fails / `RESEARCHER.md` unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and `git clone --depth 1 https://github.com/danparshall/claude_researcher.git` succeeds in the sandbox. Agents that can't clone should fall back to `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md`. If the repo was recently flipped from private to public, the clone reflects current state immediately, but the raw-CDN fallback path can lag by 24+ hours.
 
 Help the user troubleshoot. Iterate until validation passes.
@@ -574,6 +564,6 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 - **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 2b.
 - **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: Read and write` permission. **Edit the existing PAT in place — don't recreate.** Fine-grained PATs are editable; the token value is unchanged. See Step 6 "If you skipped Administration" for the recipe.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
-- **Connection error / "could not resolve host":** Domain Allow List doesn't permit the host (or the change hasn't propagated to this chat). Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
+- **Connection error / "could not resolve host":** network egress isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
 - **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `basic_config` exists, skip it; same for the research repo (different curl, same logic).
 - **User reports their PAT can't be granted "Administration" permission:** they may have an organization restriction on their account. Have them either (a) use a personal account where they're the owner, or (b) ask their org admin to permit fine-grained PATs with Administration scope, or (c) fall back to a classic PAT with `repo` scope (deprecated but still works).
