@@ -40,12 +40,10 @@ longer needs to know the exact UI.
   independently confirmed). A doc that scripts exact clicks is inherently fragile
   against this — the same failure mode as the stale-`web_fetch` bug from the prior
   session, in a different layer.
-- **Unresolved and load-bearing:** whether enabling the free-tier single toggle
-  actually lets the sandbox reach `api.github.com`. If "allow network egress" on a
-  free account is genuinely package-managers-only and GitHub is not in that set,
-  the kit cannot onboard a free-tier user regardless of doc wording. No doc change
-  resolves this — it needs an empirical test (the 1a probe, run on a free account
-  after enabling egress).
+- **Resolved (Dan tested, 2026-05-21):** enabling the single "Allow network egress"
+  toggle on a free-plan account *does* let the sandbox reach `api.github.com`. The
+  free-tier toggle is sufficient for the bootstrap; the rewritten Step 1 works
+  end-to-end on a free account. This was the load-bearing unknown — it is closed.
 
 ## Decisions Made
 
@@ -63,6 +61,11 @@ longer needs to know the exact UI.
 - Shipped in commit
   [`c484f95`](https://github.com/danparshall/claude_researcher/commit/c484f95)
   (2 files, +19 −29). Dan reviewed the §1b wording — "LGTM".
+- **Follow-up commit
+  [`047f0f7`](https://github.com/danparshall/claude_researcher/commit/047f0f7)**
+  (per Dan's a2): added a note to the `domain_allowlist.txt` header and the Step 4
+  Batch 3 paper-source-domains question stating the allow-list is moot when egress
+  is set to allow all domains.
 
 ## Results
 
@@ -70,13 +73,13 @@ No analysis artifacts. Result is the egress-doc rewrite on `egress-docs-ui-agnos
 
 ## Open Questions
 
-- **Free-tier GitHub reachability** (above) — needs an empirical probe on a free
-  account. The single most important open item.
-- **`domain_allowlist.txt`'s role.** The bootstrap still seeds a
-  `domain_allowlist.txt` into `basic_config`, and the Step 4 interview (Batch 3)
-  still asks for paper-source domains "we'll add to your `domain_allowlist.txt`."
-  Both assume the user can actively allow-list domains. Under the new model that is
-  uncertain. The file could be reframed as exactly what Dan's instruction
-  described — *the list of domains to add if/when the UI offers a whitelist* — but
-  that is a deliberate reframe, deferred out of this branch. Not yet captured as a
-  task/issue.
+- **Free-tier GitHub reachability** — **resolved** (see Provisional Findings): Dan
+  verified the free-tier egress toggle reaches `api.github.com`.
+- **`domain_allowlist.txt`'s role** — **addressed for now.** Per Dan's a2, a note
+  was added (commit `047f0f7`) to the `domain_allowlist.txt` header and the Step 4
+  Batch 3 question stating the allow-list is moot under an allow-all egress
+  setting. A fuller reframe of the file (and of whether it should still be seeded
+  at all) was not pursued — the note is judged sufficient. Revisit only if the
+  file proves confusing in a real onboarding.
+
+No open questions block this branch.
