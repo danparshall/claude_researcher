@@ -247,3 +247,5 @@ this branch should produce an implementation plan (`docs/plans/08_<slug>.md`
 or similar) that turns these decisions into ordered tasks.
 
 ## Captured Tasks
+
+- [#11: Create public website — non-dev companion to the GitHub repo](https://github.com/danparshall/claude_researcher/issues/11) — captured 2026-06-03
