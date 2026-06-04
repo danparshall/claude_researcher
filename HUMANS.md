@@ -53,7 +53,7 @@ If you've used Claude Code, you've encountered a small ecosystem of files where 
 
 And then there's the surface this project actually leans on:
 
-- **`personal_info.md` in your `basic_config` repo** (on GitHub, private) — your name, role, git fluency tier, interaction style, paper-naming convention, anything else you want the agent to know across all your research projects.
+- **`personal_info.md` in your `basic_config` repo** (on GitHub, private) — your name, role, git fluency tier, interaction style, anything else you want the agent to know across all your research projects.
 
 The deliberate choice: `personal_info.md` is the canonical home for your preferences in this project. Three reasons. First, it works for users with no local machine access, which is the whole design center. Second, it's one place — your personal context applies to every research project you spin up, not a separate setting per Project. Third, you can ask the agent to update it during any session: *"add to my personal_info that I prefer Python over R,"* *"update my interaction style to be terser,"* *"note that I've moved fields."* The agent edits the file, commits it, and the next session reads the new version. It's a real file you can read and edit yourself on GitHub.com — not a black-box memory the agent owns.
 
