@@ -222,18 +222,12 @@ The six open questions above were closed in a follow-up triage with Dan.
 - **Screenshot location → `template/reference/screenshots/`**, referenced from
   BOOTSTRAP.md by path. Ships with the bootstrap material the agent fetches.
 - **Reminder mechanism (egress revisit) — durable file in `basic_config`.**
-  Recommendation: a `basic_config/reminders.md` (or `STATUS.md`-style
-  parking-lot section) carrying revisit-by dates per item; `RESEARCHER.md`
-  tells the agent at session start to check the file and surface anything
-  past its revisit date. **Not claude.ai memory.** The web-UI memory surface,
-  as far as I know, is static text the agent loads — it has no scheduled-task
-  / time-based recall primitive, so building on it would either drift silently
-  or require the agent to re-derive "is it time yet?" from chat date, which
-  is fragile. The durable-file approach matches the same logic that put
-  `personal_info.md` in `basic_config` (user-readable, user-editable,
-  version-controlled, cross-Project). *Pending Dan's confirmation that the
-  claude.ai-memory option is genuinely off the table — if he wants to verify
-  the web UI's reminder affordances before locking, that's the right move.*
+  Locked: `basic_config/reminders.md` carrying remind-by dates per item;
+  `RESEARCHER.md` session-start checklist gets a new step (after `date -u`)
+  that reads the file, compares each entry's date to current, and surfaces
+  overdue items. Not claude.ai memory — the web-UI memory surface is static
+  text the agent loads, no scheduled-task / time-based recall primitive.
+  Tracked at issue #13.
 - **Paper-naming relocation → option (a), filed as a separate task issue.**
   First time `add-paper` runs in a repo with no `paper_naming.*` set in
   `personal_info.md`, the skill asks how the user wants to name papers,
@@ -276,3 +270,4 @@ or similar) that turns these decisions into ordered tasks.
 
 - [#11: Create public website — non-dev companion to the GitHub repo](https://github.com/danparshall/claude_researcher/issues/11) — captured 2026-06-03
 - [#12: add-paper: ask naming convention on first save (drop from bootstrap)](https://github.com/danparshall/claude_researcher/issues/12) — captured 2026-06-03
+- [#13: Session start: check basic_config/reminders.md against current date and surface overdue items](https://github.com/danparshall/claude_researcher/issues/13) — captured 2026-06-03
