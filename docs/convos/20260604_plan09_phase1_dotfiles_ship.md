@@ -1,4 +1,4 @@
-# 20260604 — Plan 09 Phase 1 execution: task-create / task-remind / task-triage shipped to dotfiles
+# 20260604 — Plan 09 Phases 1 + 2 execution: task-skills authored in dotfiles, home_repo wired into claude_researcher
 
 **Date:** 2026-06-04
 **Branch:** task-skills
@@ -6,7 +6,7 @@
 
 ## Summary
 
-Execution session against Plan 09 ([`docs/plans/09_task_skills.md`](../plans/09_task_skills.md)), written 2026-06-04 by the prior `task-skills` design session. Phase 0 precondition (`basic_config` → `claude_research_config` rename via issue #14 / PR #17) confirmed shipped. Phase 1 (the dotfiles source-of-truth authoring) executed end-to-end: three commits in `~/code/dotfiles` shipping the renames + the new `task-remind` skill, all pushed to `origin/main`. No edits to the `claude_researcher` repo yet — Phases 2+ pick up next.
+Execution session against Plan 09 ([`docs/plans/09_task_skills.md`](../plans/09_task_skills.md)), written 2026-06-04 by the prior `task-skills` design session. Phase 0 precondition (`basic_config` → `claude_research_config` rename via issue #14 / PR #17) confirmed shipped. **Phases 1 and 2 executed end-to-end** in this session: three dotfiles commits shipping the renames + new `task-remind` skill (pushed to `origin/main`), and three `claude_researcher` commits shipping the `home_repo` config wiring + the session's convo doc (pushed to `origin/task-skills`). Phases 3-7 remain for a future session.
 
 Mid-session coordination event: another agent was actively working in `~/code/dotfiles` on the chain-hook-maintenance branch (uncommitted edits to `nori-researcher/nori.json` + `docs/active/chain-hook-maintenance/probes/`). Discovered this after staging the first `git mv` (capture-task → task-create); paused, undid the rename, asked the user, and resumed once they confirmed the other agent was done. The coordination did surface one fact worth recording: `nori-researcher/nori.json` doesn't reference any of the skill names being renamed (`capture-task`, `triage-tasks`, or the new `task-*` names), so there was no content-level collision risk — only the shared-branch push race.
 
@@ -66,6 +66,26 @@ Commit: `8b619b5`, 16 insertions / 9 deletions, detected by git as a rename (sim
 - Three commits sitting on top of the other agent's `3af3b82` (chain-hook-maintenance reconcile).
 - `git push` published all four commits (other agent's + mine) to `origin/main`. The other agent's pre-existing uncommitted leftover (`nori.json` modified, `probes/settings.json` deleted, untracked probes) was unaffected — all my staging was targeted (`git add <specific-file>`).
 
+### Phase 2.1 — Add `home_repo` to `personal_info.md.template`
+
+The template (`template/templates/personal_info.md.template`) is sparser than Plan 09's prose anticipated — no `<GH_USER>` or `<TOPIC>` placeholders (those live elsewhere; the template only carries identity + history + how-I-work + operating-preferences blocks). Port-time call: add `home_repo` under `## Operating preferences` alongside git fluency and mode, since all three are user-level identity-shaped values that fit the same shape. Added a narrative paragraph below the field explaining its role — task-create override target and task-remind second query target — matching the template's existing inline-narrative documentation style (no HTML comments, no markdown `#` comments).
+
+Commit: `165aaae`, 3 insertions.
+
+Note: this edit invalidates the SHA-pin in BOOTSTRAP.md line 383 (currently `8c732081`, pre-edit). Plan 09 Task 7.2 calls out a pre-merge `tools/repin.py` run; the commit message records the dependency for the next session.
+
+### Phase 2.2 — Extend BOOTSTRAP §4 Batch 3 to ask for `home_repo`
+
+Batch 3 grows from 3 to 4 questions. Plan called for "after GH-user capture" — Step 2a captures `<USERNAME>` long before Step 4, so any spot in Batch 3 satisfies that ordering. Slotted as Q3 between Mode (Q2) and Extra paper-source domains (Q4); keeps preference-shaped questions grouped before the situational one.
+
+Question phrasing concretized with a use-case example (the dentist reminder), since first-time users without Plan 09 context need a hook for what `home_repo` is *for*. Default substitution path documented after the question block: `<USERNAME>/claude_research_config` if Enter / silence, override accepted as `owner/repo`. LIGHT-explanation block per RESEARCHER §0 covers the "what does that mean?" case with a one-paragraph (not menu-dump) explanation. Silence-is-consent — not a hard-required question.
+
+Commit: `f5f6eea`, 5 insertions / 4 deletions.
+
+### Convo doc + push checkpoint
+
+Mid-session per user request: write the convo doc capturing Phase 1, commit it, then continue. Commit `082e1a2` (109 insertions). After Phase 2 also shipped, pushed `task-skills` to `origin/task-skills` (3 commits ahead → 0).
+
 ## Provisional Findings
 
 - **The plan's pre-baked Coupling Concerns + Decisions blocks did their job.** The "do NOT re-litigate" framing held — when I caught myself re-deriving the numbering decision in Phase 1.1, the plan's clear "insert Step 2.5" wording was the catch-and-revert trigger. Similar dynamic during Decision 12 (strip-prefix conditionality): the plan's heuristic ("only on uncertainty signal") was concrete enough to write the conditional branch around, not abstract enough to need re-thinking.
@@ -83,9 +103,19 @@ Another: the LIGHT-explanation rationale in `task-create` Step 1 and `task-remin
 
 ## Results
 
-No standalone results files (no tables, figures, or experiment output). The artifacts are:
-- 3 dotfiles commits pushed to `github.com:danparshall/dotfiles`: `baa7120`, `fe0d52d`, `8b619b5`.
-- 3 skill files in `~/code/dotfiles/nori-researcher/skills/`: `task-create/SKILL.md` (213 lines), `task-remind/SKILL.md` (155 lines new), `task-triage/SKILL.md` (132 lines, was 128).
+No standalone results files (no tables, figures, or experiment output). The artifacts are commits.
+
+**Dotfiles (`github.com:danparshall/dotfiles`, on `main`):**
+- `baa7120` task-create — rename + 'when?' step + home_repo routing (213 / 161)
+- `fe0d52d` task-remind — new skill, session-start reminder check over date-prefixed issues (155 new)
+- `8b619b5` task-triage — rename + surface date-prefix on inventory rows (16 / 9)
+
+**claude_researcher (`github.com:danparshall/claude_researcher`, on `task-skills`):**
+- `082e1a2` convo: Plan 09 Phase 1 dotfiles ship (109 new, this convo doc)
+- `165aaae` personal_info: add home_repo field for task-skills routing (3 / 0)
+- `f5f6eea` BOOTSTRAP: ask for home_repo with default in §4 Batch 3 (5 / 4)
+
+3 skill files in `~/code/dotfiles/nori-researcher/skills/`: `task-create/SKILL.md` (213 lines), `task-remind/SKILL.md` (155 lines new), `task-triage/SKILL.md` (132 lines, was 128).
 
 ## Open Questions
 
@@ -95,12 +125,15 @@ None blocking the next Phase. Two carried forward from Plan 09 that this session
 
 ## Next Steps (this branch)
 
-- **Phase 2** (next, in this session per user direction): `home_repo` field in `template/templates/personal_info.md.template` + BOOTSTRAP §4 Batch 3 interview question.
-- **Phase 3**: port the three skills to `claude_researcher/template/skills/` with provenance frontmatter + REST-adaptation banner.
-- **Phase 4**: wire task-remind into session-start (RESEARCHER.md §2 + dotfiles AGENTS.md).
-- **Phase 5**: SKILL_INDEX additions + RESEARCHER §0 LIGHT-explanation principle.
-- **Phase 6**: migration verification + CLI smoke test (web smoke test deferred).
-- **Phase 7**: verification script + STATUS.md + finish-convo + PR.
+Session ended after Phase 2. Remaining phases for the next session:
+
+- **Phase 3**: port the three skills from dotfiles to `claude_researcher/template/skills/` with provenance frontmatter (`nori_researcher_source:` pinned to dotfiles HEAD at port time — for this set, `8b619b5` or later) + REST-adaptation banner per the Wave 2/3 pattern. Three new directories: `template/skills/task-create/`, `template/skills/task-remind/`, `template/skills/task-triage/`. Banner verbs to list inline include `gh issue create`, `gh issue list`, `gh issue edit`, `gh issue close`, `gh search issues`, plus the standard `git add` / `commit` / `push` translation.
+- **Phase 4**: wire task-remind into session-start (`template/RESEARCHER.md` §2 + dotfiles `nori-researcher/AGENTS.md`).
+- **Phase 5**: SKILL_INDEX.md additions (new "Task management" section) + RESEARCHER.md §0 LIGHT-explanation principle as a fifth tier-independent trait.
+- **Phase 6**: migration verification (`~/.claude/skills/` symlinks, if any) + CLI smoke test (Plan 09 Task 6.2). Web smoke test (6.3) deferred.
+- **Phase 7**: verification script (Plan 09 Task 7.1) + `tools/repin.py` (Plan 09 Task 7.2 — required since 165aaae edited a SHA-pinned template) + STATUS.md update + `finish-convo` + PR via `finishing-a-development-branch`.
+
+**Suggested handoff sentence:** On `task-skills` at `f5f6eea` — Plan 09 Phases 0-2 shipped (Phase 1 in dotfiles at `8b619b5` on origin/main; Phase 2 home_repo wiring in claude_researcher commits `165aaae` + `f5f6eea`); next session executes Phase 3 (port 3 skills to template/skills/ with provenance frontmatter pinned to dotfiles `8b619b5` and the Wave 2/3 REST-adaptation banner), then Phases 4-7 per the plan.
 
 ## Process notes
 
