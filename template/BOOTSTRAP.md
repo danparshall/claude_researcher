@@ -21,7 +21,7 @@ If you ever need a public file outside the user's repos, use WebFetch. If you ev
 
 Tell the user, briefly (4–6 sentences), what's about to happen end-to-end. Use this script (or close paraphrase):
 
-> "Here's the plan: First, I'll check that claude.ai can talk to GitHub from this chat. If it can't, I'll walk you through a one-time network configuration; you'll then restart in a fresh chat to pick up the change (claude.ai's network changes don't propagate into already-open chats). Once network is confirmed, you'll create a GitHub Personal Access Token (PAT) and paste it back to me. I'll run a brief interview to learn how you work, then create two private repos in your GitHub account (one for your lifetime config, one for your first research project), seed them with starter files, and walk you through creating a claude.ai Project that points at the research repo. After that, every future research session is a single sentence in a new chat. Total time: ~5 minutes if network is already set up, ~15 minutes if this is a true first-time setup including the network config + restart. Sound good?"
+> "Here's the plan: First, I'll check that claude.ai can talk to GitHub from this chat. If it can't, I'll walk you through a one-time network configuration; you'll then restart in a fresh chat to pick up the change (claude.ai's network changes don't propagate into already-open chats). Once network is confirmed, you'll create a GitHub Personal Access Token (PAT) and paste it back to me. I'll run a brief interview to learn how you work, then create two private repos in your GitHub account (one for your lifetime config, one for your first research project), seed them with starter files, and walk you through creating a claude.ai Project that points at the research repo. After that, every future research session is a single sentence in a new chat. Total time: ~5 minutes if network is already set up, ~10 minutes if this is a true first-time setup including the network config + restart. Sound good?"
 
 **CONFIRMATION GATE.** Do not proceed past this step until the user explicitly says yes. If they want to back out, that's fine — they can come back anytime by re-pasting the bootstrap prompt.
 
@@ -29,11 +29,11 @@ Tell the user, briefly (4–6 sentences), what's about to happen end-to-end. Use
 
 ## Step 1 — Network egress check
 
-The mental model the user needs: when you (the agent) run a bash command, it runs in a **virtual machine that Anthropic spins up for the chat**, not on the user's machine. That VM lives on Anthropic's servers. You can install Python packages there, write files, run scripts — but its internet access *from that VM* is what the egress setting controls. By default, the VM has no internet access at all.
+The mental model the user needs: anything you (the agent) run during this chat runs in a **virtual machine that Anthropic spins up for the chat**, not on the user's machine. That virtual machine lives on Anthropic's servers, and its internet access is what the **network egress** setting controls. By default, it has no internet access at all.
 
-The user's own machine — their laptop, their work computer — isn't involved here except as the place where their browser runs. **Their corporate firewall doesn't affect this choice.** Whatever they pick in claude.ai Settings configures Anthropic's server-side VM, end of story.
+The user's own machine — their laptop, their work computer — isn't involved here except as the place where their browser runs. **Their corporate firewall doesn't affect this choice.** Whatever they pick in claude.ai Settings configures Anthropic's server-side environment, end of story.
 
-This step probes whether egress is already configured; if not, it walks the user through configuration and asks them to restart in a fresh chat to pick up the change. **It runs first** — before the GitHub interview or anything else — so that if a fresh-chat restart is needed, no time has been wasted on questions whose answers will be lost in the restart.
+This step probes whether network access is already configured; if not, it walks the user through configuration and asks them to restart in a fresh chat to pick up the change. **It runs first** — before the GitHub interview or anything else — so that if a fresh-chat restart is needed, no time has been wasted on questions whose answers will be lost in the restart.
 
 ### 1a — Probe
 
@@ -45,54 +45,61 @@ curl -sI https://api.github.com/zen
 
 Expected outcomes:
 
-- **`HTTP/2 200`** — egress is already configured. Announce that, and continue to Step 2.
-- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — egress isn't configured (or `api.github.com` isn't reachable yet). Continue to 1b below.
+- **`HTTP/2 200`** — network access is already configured. Announce that, and continue to Step 2.
+- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — network access isn't configured (or `api.github.com` isn't reachable yet). Continue to 1b below.
 
 ### 1b — First-time egress configuration
 
-If the probe fails, the user needs to configure egress now. Tell them what's about to happen, in plain language:
+If the probe fails, the user needs to configure network access now. Tell them what's about to happen, in plain language:
 
-> "Quick mental model: I have a virtual machine that Anthropic spins up for this chat — that's where I install Python packages, run shell commands, talk to APIs. It lives on Anthropic's servers, not on your machine. By default, that VM has no internet access at all. We need to turn it on in your claude.ai account Settings before I can talk to GitHub.
+> "Quick mental model: I need internet access for this — Claude runs in a sandbox on Anthropic's servers, not on your machine, and by default that sandbox has no internet access at all. We need to turn it on in your claude.ai account Settings before I can talk to GitHub.
 >
 > A few notes:
 >
 > - This is a one-time setup that applies to every claude.ai chat going forward (it's an account-level setting, not per-chat).
-> - It's purely about *my* VM's internet access. Your laptop / work computer / corporate firewall isn't involved — whatever your local machine restricts doesn't affect what you can configure here.
+> - It's purely about Claude's server-side internet access. Your laptop / work computer / corporate firewall isn't involved — whatever your local machine restricts doesn't affect what you can configure here.
 > - **Important caveat:** changes to this setting don't propagate into already-open chats. Once you save, you'll need to restart in a fresh chat for me to actually pick up the change. I'll wait while you configure it."
 
 Walk them through. **Note for you, the agent:** the claude.ai Settings UI for this has changed before and varies by plan and account type — there is no single screenshot to match, and an earlier version of this step that scripted exact clicks went stale. Guide the user by *intent*, not by an exact label or widget, and let the 1a probe (after the restart) be the real confirmation that it worked.
 
 > "Open a new browser tab to: https://claude.ai/settings/capabilities
 >
-> Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress' or similar. **Turn it on**, and choose the most permissive option the UI gives you:
+> Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress' or similar. **Turn it on.**
+>
+> The easiest setting is to allow everything — this controls Anthropic's server-side virtual machine (the one Claude uses for this chat), not your computer, so the broad setting doesn't open anything up on your local machine or behind your work firewall. After bootstrap I can set up a reminder for you to revisit this setting in a week if you want to tighten it later — for now, the easiest path is to allow everything.
+>
+> Depending on your account and plan, the UI you see varies:
 >
 > - If it's a simple on/off toggle — turn it on.
-> - If it offers a choice of modes (for example, a restricted 'package managers only' vs. a broader unrestricted setting) — pick the broadest one for now; you can tighten it later. (Reminder, since this surprises people: this controls *my* server-side VM's internet access, not your computer's. The broad setting doesn't open anything up on your local machine or behind your corporate firewall.)
-> - If it gives you a custom **domain allow-list**, the simplest path is to allow everything. If you'd rather list domains explicitly, the bootstrap needs **at minimum** these four:
+> - If it offers a choice of modes (for example, a restricted 'package managers only' vs. a broader unrestricted setting) — pick the broadest one.
+> - If it gives you a custom **domain allow-list**, check the 'allow all' box if one is present.
+>
+> If your account or your tier only offers a domain-list UI without an 'allow all' option, you'll need these four GitHub domains at minimum:
+>
 >    - `api.github.com`
 >    - `codeload.github.com`
 >    - `github.com`
 >    - `raw.githubusercontent.com`
 >
->    A domain-list UI is also the moment to add paper-source sites you'll commonly use — it saves an extra restart later, the first time `add-paper` needs them: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`, `nber.org`, `ssrn.com`, `pubmed.ncbi.nlm.nih.gov`. (The `www.` prefixes are intentional — match each site's canonical hostname; don't normalize them.)
+> A domain-list UI is also the moment to add paper-source sites you'll commonly use — it saves an extra restart later, the first time `add-paper` needs them: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`, `nber.org`, `ssrn.com`, `pubmed.ncbi.nlm.nih.gov`. (The `www.` prefixes are intentional — match each site's canonical hostname; don't normalize them.)
 >
-> Whatever the interface looks like, the goal is the same: my VM needs to be able to reach `github.com`. Save the setting."
+> Whatever the interface looks like, the goal is the same: Claude needs to be able to reach `github.com`. Save the setting."
 
 If the user describes something that fits none of the cases above — an option you don't recognize, or no egress setting at all — **stop and surface it to the user** rather than guessing. Note what they saw; it is useful input for keeping this step current.
 
 ### 1c — Hand off to a fresh chat
 
-Once the user confirms they've enabled egress:
+Once the user confirms they've enabled the setting:
 
-> "Great. Now: this current chat won't see the new permissions, so we need to restart. Open a new claude.ai chat, and re-paste the same bootstrap prompt you used a few minutes ago. The new chat will see the egress configuration and we'll continue from where we left off. You don't need to redo anything you just configured in Settings — that's saved at your account level. **Stop here in this chat; we're done.**"
+> "Great. Now: this current chat won't see the new permissions, so we need to restart. Open a new claude.ai chat, and re-paste the same bootstrap prompt you used a few minutes ago. The new chat will see the network configuration and we'll continue from where we left off. You don't need to redo anything you just configured in Settings — that's saved at your account level. **Stop here in this chat; we're done.**"
 
-Stop. Don't try to push past the egress deny in this session.
+Stop. Don't try to push past the network-access deny in this session.
 
 (If you want to confirm before stopping that the user understands the restart, ask them to read back what they're about to do. Optional.)
 
 ### 1d — Returning user fast path
 
-If the probe in 1a returned `HTTP/2 200`, briefly announce that egress is already configured and continue immediately to Step 2. No restart needed.
+If the probe in 1a returned `HTTP/2 200`, briefly announce that network access is already configured and continue immediately to Step 2. No restart needed.
 
 ---
 
@@ -100,14 +107,24 @@ If the probe in 1a returned `HTTP/2 200`, briefly announce that egress is alread
 
 ### 2a — GitHub account
 
-Ask: *"Do you have a GitHub account?"*
+Present this opening to the user — it introduces the GitHub piece and folds in the account question:
+
+> "Quick glossary for the GitHub piece, in case any of these terms are new to you:
+>
+> - **git** is a program that tracks every change to a project — every edit, every file added or deleted, by whom and when. You won't use git yourself; I'll handle it on your behalf.
+> - **GitHub** is a website where git-tracked projects live online. Your work gets stored there, in private spaces you control.
+> - A **repo** (short for *repository*) is one of those GitHub storage spaces. We'll create two for you in a minute: one for your personal config (`basic_config`), and one for your first research project.
+>
+> If any of these come up later and feel fuzzy, just ask me to unpack them. Do you already have a GitHub account?"
 
 - **Yes** → ask for their username, record as `<USERNAME>`. Continue to 2b.
 - **No** → walk them through signup at `https://github.com/signup`. Free tier is fine for everything in this workflow (private repos, unlimited collaborators, fine-grained PATs, branch protection — all on Free since 2019/2024). Wait until they confirm an account exists with a username they'll remember. Record the username.
 
 ### 2b — Personal Access Token
 
-Ask: *"Do you have a fine-grained Personal Access Token (PAT) ready to use, or do we need to make one?"*
+Tell the user: *"The PAT is the password Claude uses to talk to GitHub on your behalf. You don't need to understand the details — happy to explain any of this if you want; just ask."*
+
+Then ask: *"Do you have a fine-grained Personal Access Token (PAT) ready to use, or do we need to make one?"*
 
 If they have one, skip to "collect the PAT" below.
 
@@ -115,18 +132,13 @@ If they need to create one, walk them through:
 
 > "Open a new browser tab to: https://github.com/settings/personal-access-tokens/new
 >
-> Settings:
-> - **Token name:** `claude_researcher` (or any name you'll recognize)
-> - **Expiration:** 90 days is reasonable; pick longer if you're confident in your memory
-> - **Repository access:** **All repositories**. (Granting access to all your repos is broader than ideal, but fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
-> - **Repository permissions** — set the following to **Read and write** (default is 'No access' for everything; you have to actively change each one):
->   - ⚠️ **Administration** — **Read and write**. **THIS IS THE MOST-SKIPPED PERMISSION** — without it, repo creation in Step 6 will fail with 403 Forbidden and we'll have to come back here to fix it. Don't skip. Don't leave it on 'No access'.
->   - **Contents** — Read and write. Needed so I can read and write files inside your repos.
->   - **Metadata** — read-only is auto-set; that's fine.
->
-> Click **Generate token** at the bottom. Copy the token immediately — GitHub won't show it to you again. It will start with `github_pat_`."
+> - **Token name:** `claude_researcher` (or any name you'll recognize).
+> - **Expiration:** 90 days is reasonable; pick longer if you're confident in your memory.
+> - **Repository access:** **All repositories**. (Fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
+> - **Permissions:** click **Add permissions**, then use these values — **Administration**: Read and write; **Contents**: Read and write; **Metadata**: Read-only (default).
+> - Click **Generate token** at the bottom. Copy the value immediately — GitHub won't show it to you again. It will start with `github_pat_`."
 
-**Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below).
+**Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below). Administration is load-bearing: without it, repo creation in Step 6 will fail with 403 Forbidden.
 
 **Collect the PAT.** Once they have it, ask them to paste it directly into the chat. Once you have it, set it as a shell variable:
 
@@ -135,7 +147,7 @@ TOKEN="<the-pasted-token>"
 USERNAME="<their-username-from-2a>"
 ```
 
-Then run a smoke test against the GitHub API to verify the token works (egress is already on at this point — we confirmed it in Step 1):
+Then run a smoke test against the GitHub API to verify the token works (network access is already on at this point — we confirmed it in Step 1):
 
 ```bash
 curl -sI -H "Authorization: token $TOKEN" \
@@ -144,7 +156,7 @@ curl -sI -H "Authorization: token $TOKEN" \
   "https://api.github.com/user"
 ```
 
-Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error or `host_not_allowed`, something changed about egress between Step 1 and now — go back and re-probe.
+Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error or `host_not_allowed`, network access has changed between Step 1 and now — go back and re-probe.
 
 ### Token handling
 
@@ -167,13 +179,21 @@ Pick whichever feels cleaner. If you go with the scratch file, mention to the us
 
 ### About PAT scope
 
-The PAT you just generated is broadly scoped (**All repositories**) because it has to be able to create repos that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Project Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
+The PAT you just generated is scoped to all your GitHub repos because it has to be able to create new ones that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Project Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
+
+### Why each permission (ask if you want details)
+
+Don't volunteer this section. Only read it out if the user asks something like "what do those permissions actually do?" Then walk them through:
+
+- **Administration: Read and write** — lets Claude create new repos on your behalf. This is the most-skipped one; without it, Step 6 fails with a 403 Forbidden error. It's the reason we double-check it just above.
+- **Contents: Read and write** — lets Claude read and write the files inside your repos. Every research session reads things like `STATUS.md` and writes things like the convo summary at the end; both run through this permission.
+- **Metadata: Read-only** — basic info about your repos (when they were created, default branch, that kind of thing). GitHub auto-enables this when you grant any other permission; you don't need to touch it.
 
 ---
 
 ## Step 3 — Check whether `basic_config` already exists
 
-Network egress and the PAT are both verified at this point (Step 1 confirmed egress, Step 2 verified the token). Now query for the user's `basic_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
+Network access and the PAT are both verified at this point (Step 1 confirmed access, Step 2 verified the token). Now query for the user's `basic_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" \
@@ -208,7 +228,9 @@ This interview captures persistent **user-level** prefs that get written to `<US
 >
 > 1. What's your name (the one you want me to call you)?
 > 2. Your current role or research domain — one sentence.
-> 3. A few sentences on your academic + work history at a glance."
+> 3. A few sentences on your academic + work history at a glance.
+>
+> It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
 Record as `<NAME>`, `<ROLE>`, `<ACADEMIC_HISTORY>` + `<WORK_HISTORY>` (split the third answer if natural; otherwise keep combined under both fields).
 
@@ -218,32 +240,25 @@ Record as `<NAME>`, `<ROLE>`, `<ACADEMIC_HISTORY>` + `<WORK_HISTORY>` (split the
 >
 > 1. Programming languages and tools you're comfortable with (or 'none' — that's fine).
 > 2. General research areas / topics you tend to think about beyond this specific project.
-> 3. Any interaction style notes — things you want me to know about how you like to work (pace, push-back, terminology preferences, etc.)."
+> 3. Any interaction style notes — things you want me to know about how you like to work (pace, push-back, terminology preferences, etc.).
+>
+> It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
 Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION_STYLE_NOTES>`.
 
-### Batch 3 — Operating preferences (4 fields)
+### Batch 3 — Operating preferences (3 fields)
 
-> "Four preference questions:
+> "Three preference questions:
 >
-> 1. **Git fluency** — pick one: **novice** ('I've only used GitHub.com via the web UI'), **occasional** ('I clone and push from the command line sometimes'), or **fluent** ('I use git daily, including merge / rebase / cherry-pick'). This calibrates how chatty I am about git operations.
-> 2. **Mode** — pick one: **claude.ai-only** (you'll work on this only through the web UI; no Claude Code locally), or **also-local** (you have Claude Code installed somewhere and might `git clone` and work locally too). Repos get created identically either way; this just calibrates how chatty I'll be later about claude.ai-specific quirks.
-> 3. **Paper naming conventions** — when I save papers to your repo, the filename format depends on whether the paper is academic-style (research with hypothesis + data) or institutional-style (synthesis/policy report). Two defaults:
+> 1. **Git** — the program used to track all changes in your project is called *git*. Are you familiar with it? (If yes, briefly — daily user? occasional? web-UI only? If no, no problem — I'll explain things as we go.)
+> 2. **Mode** — pick one: **claude.ai-only** (you'll work on this only through the web UI; no Claude Code locally), or **also-local** (you have Claude Code installed somewhere and might clone the project and work locally too). Repos get created identically either way; this just calibrates how chatty I'll be later about claude.ai-specific quirks.
+> 3. **Extra paper-source domains** — *(this will not be relevant if your network setting is allow-all — skip it then)* — besides any paper sites you already added back in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)
 >
->    - **Academic default:** `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Common-surname disambiguation: `SurnameF` (surname + first-name initial, no separator) when collisions are likely — Anglo (Smith, Jones, Patel, Singh) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato — use judgment). Solo papers: single surname only (drop the duplicate). Slug is two-or-three descriptive words in kebab-case. Examples: `Vaswani_Polosukhin__2017--attention-is-all-you-need.pdf`, `SmithJ_2024--stress-sleep.pdf`.
->    - **Institutional default:** `{Institution}_{ShortTitle}_{Year}.pdf`. Institution = short acronym, lowercase (`imf`, `oecd`, `un`); for governments, country + agency in camelCase (`brazilRfb`, `mexicoSat`). ShortTitle = two descriptive words in camelCase. Examples: `imf_g20RevenueAdmin_2025.pdf`, `oecd_taxAdmin30_2023.pdf`.
->    - **Punctuation (academic only):** `__` (double underscore) separates the author block from the year; `--` (double dash) separates year from slug; `_` (single underscore) separates within blocks.
->
->    Press Enter to accept both defaults, or specify your own format(s) — you can override one and keep the default for the other.
-> 4. **Extra paper-source domains** — *(this will not be relevant if your egress is set to allow all domains — skip it then)* — besides any paper sites you already added during egress setup in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)"
+> It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
-Record as `<GIT_FLUENCY>`, `<MODE>`, **two fields** `<PAPER_NAMING_ACADEMIC>` + `<PAPER_NAMING_INSTITUTIONAL>`, and any extra paper-source domains. If the user accepted both defaults, use these canonical texts when writing to `personal_info.md`:
+Classify the user's git answer internally into one of three tiers and record it as `<GIT_FLUENCY>`: **novice** (web UI only, or no familiarity yet), **occasional** (uses `git clone` / `git push` from the command line sometimes), or **fluent** (uses git daily, including merge / rebase / cherry-pick). The downstream tier dial in `RESEARCHER.md` §1 reads this field; the elicitation above is concept-checking rather than menu-pick on purpose, but the recorded value stays in the existing schema.
 
-> **Academic:** `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Use `SurnameF` (surname plus first-name initial, no separator) when the surname is common enough that collisions are likely — Anglo (Smith, Jones, Patel, Singh, etc.) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato, etc.); use judgment. Solo-authored papers: single surname only (drop the duplicate). Slug in kebab-case.
-
-> **Institutional:** `{Institution}_{ShortTitle}_{Year}.pdf`. Institution lowercase acronym for multilaterals (`imf`, `oecd`, `un`, `worldBank`, `idb`); country + agency in camelCase for governments (`brazilRfb`, `mexicoSat`). ShortTitle in camelCase, two descriptive words.
-
-If the user provided their own format(s) for either field, capture exactly what they typed; don't try to merge their format with the default rule. If they accepted one default and overrode the other, record their override only for the field they touched and use the canonical default text for the other.
+Also record `<MODE>` and any extra paper-source domains.
 
 After all three batches, summarize the full interview to the user in one paragraph. Get explicit confirmation before proceeding.
 
@@ -365,11 +380,11 @@ If the file already exists (e.g., `auto_init:true` created a `README.md`), the P
 
 #### `personal_info.md`
 
-Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/87f84eac49f57ccdb24450addab2058332244f5d/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
+Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
 
 #### `domain_allowlist.txt`
 
-Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/87f84eac49f57ccdb24450addab2058332244f5d/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
+Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
 
 #### `README.md`
 
@@ -486,7 +501,7 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 
 The canonical Project Instructions text lives at:
 
-> `https://raw.githubusercontent.com/danparshall/claude_researcher/87f84eac49f57ccdb24450addab2058332244f5d/template/_PROJECT_INSTRUCTIONS.md.template`
+> `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/_PROJECT_INSTRUCTIONS.md.template`
 
 **WebFetch it.** Substitute the placeholders before showing the result to the user:
 
@@ -538,7 +553,7 @@ If validation fails, the most common causes (in rough order of likelihood):
 
 1. **PAT expired or wrong scope** → re-create per Step 2b. Most common.
 2. **Project Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
-3. **Network egress not enabled, or the change hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` probe. If the egress setting was changed *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
+3. **Network access not enabled, or the change hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` probe. If the **network egress** setting was changed *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
 4. **Clone fails / `RESEARCHER.md` unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and `git clone --depth 1 https://github.com/danparshall/claude_researcher.git` succeeds in the sandbox. Agents that can't clone should fall back to `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md`. If the repo was recently flipped from private to public, the clone reflects current state immediately, but the raw-CDN fallback path can lag by 24+ hours.
 
 Help the user troubleshoot. Iterate until validation passes.
@@ -564,6 +579,6 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 - **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 2b.
 - **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: Read and write` permission. **Edit the existing PAT in place — don't recreate.** Fine-grained PATs are editable; the token value is unchanged. See Step 6 "If you skipped Administration" for the recipe.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
-- **Connection error / "could not resolve host":** network egress isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
+- **Connection error / "could not resolve host":** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
 - **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `basic_config` exists, skip it; same for the research repo (different curl, same logic).
 - **User reports their PAT can't be granted "Administration" permission:** they may have an organization restriction on their account. Have them either (a) use a personal account where they're the owner, or (b) ask their org admin to permit fine-grained PATs with Administration scope, or (c) fall back to a classic PAT with `repo` scope (deprecated but still works).

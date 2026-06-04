@@ -26,9 +26,13 @@ Anthropic ships a CLI tool called Claude Code for developers. It introduced a co
 
 Around this pattern, ecosystems grew. **Nori** is an open-source bundle of skills built by [tilework-tech](https://github.com/tilework-tech/nori-skillsets), oriented primarily toward software engineering — test-driven development, debugging, code review, plan-writing, large-task handling. A Claude Code user installs Nori and instantly has a curated set of opinionated working styles backed by the agent. It's been formative for how a lot of people think about agent-assisted work.
 
-Nori has a sub-skillset called **Researcher**, aimed at researchers using Claude Code locally for paper triage, multi-session reasoning, and writing. That's where the design DNA of this project comes from. We took Researcher's patterns — `STATUS.md`, `RESEARCH_LOG.md`, on-demand skills, the convention of capturing conversations and plans as durable artifacts — and rebuilt them for an environment where the user doesn't have a terminal. The Project Instructions field on a Claude.ai Project plays the role of the Code `CLAUDE.md` convention; a public GitHub repo (this one) plays the role of `~/.claude/skills/`; the sandbox's network access plays the role of local filesystem reads.
+Nori has a sub-skillset called **Researcher** — maintained by Dan Parshall, including many academic-specific skills — aimed at researchers using Claude Code locally for paper triage, multi-session reasoning, and writing. That's where the design DNA of this project comes from; **`claude_researcher` is basically as close as we could get to that skillset in a web-only format.** We took Researcher's patterns — `STATUS.md`, `RESEARCH_LOG.md`, on-demand skills, the convention of capturing conversations and plans as durable artifacts — and rebuilt them for an environment where the user doesn't have a terminal. The Project Instructions field on a Claude.ai Project plays the role of the Code `CLAUDE.md` convention; a public GitHub repo (this one) plays the role of `~/.claude/skills/`; the sandbox's network access plays the role of local filesystem reads.
 
 The result is the same working pattern, ported to the browser. The web is the immediately-available surface — no install, no terminal, just a claude.ai Project — and it's enough on its own for research workflows. Claude Code is an option that opens up later if you install it locally: full Nori SWE skillset, offline access, code-friendly tools. This project's conventions carry across both surfaces (skill names match, file conventions are the same, mental model carries over), so Code adds to what you have rather than replacing it.
+
+## Don't worry about the machinery
+
+You don't need to care about prompts and config files day-to-day; the bootstrap sets things up so you don't have to. But it's all yours, and you can update any of it whenever you decide you're ready. Every change is recorded and version-controlled in your GitHub repository, so it's almost impossible to break anything permanently — if a change doesn't work out, the old version is one click away.
 
 ## What it isn't
 
@@ -49,7 +53,7 @@ If you've used Claude Code, you've encountered a small ecosystem of files where 
 
 And then there's the surface this project actually leans on:
 
-- **`personal_info.md` in your `basic_config` repo** (on GitHub, private) — your name, role, git fluency tier, interaction style, paper-naming convention, anything else you want the agent to know across all your research projects.
+- **`personal_info.md` in your `basic_config` repo** (on GitHub, private) — your name, role, git fluency tier, interaction style, anything else you want the agent to know across all your research projects.
 
 The deliberate choice: `personal_info.md` is the canonical home for your preferences in this project. Three reasons. First, it works for users with no local machine access, which is the whole design center. Second, it's one place — your personal context applies to every research project you spin up, not a separate setting per Project. Third, you can ask the agent to update it during any session: *"add to my personal_info that I prefer Python over R,"* *"update my interaction style to be terser,"* *"note that I've moved fields."* The agent edits the file, commits it, and the next session reads the new version. It's a real file you can read and edit yourself on GitHub.com — not a black-box memory the agent owns.
 

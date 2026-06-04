@@ -1,0 +1,24 @@
+# Screenshot capture log
+
+One row per screenshot in this directory. Update the date + variant when re-capturing.
+
+| File | Captured | UI variant |
+|------|----------|------------|
+| `claude_egress_settings.png` | 2026-06-04 | claude.ai Pro account, Capabilities pane — "Allow network egress" toggle on, "Domain allowlist: All domains" with confirmation banner *"Claude can access all domains on the internet."* |
+| `github_pat_read_write_flip.png` | 2026-06-04 | github.com fine-grained PAT page with Administration (Read and write), Contents (Read and write), Metadata (Read-only, Required) — the desired final configuration |
+
+## Why this file
+
+The claude.ai egress UI and the GitHub PAT UI have both changed multiple times in recent months (claude.ai per PR [#8](https://github.com/danparshall/claude_researcher/pull/8) history, GitHub historically). Screenshots inevitably go stale. This log records what was captured and when, so the next person updating them knows what to re-capture and against which UI variant.
+
+## Where these are used
+
+Both screenshots are referenced from `README.md` (`## Quick start` → "Setup at a glance") — they're user-facing visual aids shown before the user pastes the bootstrap prompt. They are **not** referenced from `template/BOOTSTRAP.md` (the agent fetches BOOTSTRAP via `web_fetch`, which returns markdown source rather than rendered images; the agent can't show the images to the user even if BOOTSTRAP linked them).
+
+## When to re-capture
+
+- The Step the screenshot illustrates no longer matches the UI a fresh user sees.
+- A user reports the screenshot looks different from what they're seeing.
+- A major redesign of either surface (claude.ai Settings, GitHub Settings) is publicly announced.
+
+After re-capturing, update the row's `Captured` date and `UI variant` note above. Keep the filename stable so `README.md`'s image references don't have to change.

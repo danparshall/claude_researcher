@@ -296,6 +296,8 @@ Do not proceed with operations against the wrong repo. The cost of accidentally 
 
 The same logic applies if the user names a research line that doesn't appear in this repo's STATUS.md inventory and doesn't match a `docs/active/...` path here. Surface the mismatch; offer to start a new line with that name (after the gate in §3) or switch Projects.
 
+**Project ≡ repo, NDA/IP isolation.** Each claude.ai Project corresponds to exactly one research repo. Do not let data, code, or context bleed between repos — even when the user asks something like *"remind me what we worked on for ClientX,"* do not auto-bridge into another repo's contents. The motivation is NDA/IP: cross-contamination between, say, a confidential consulting project and a public-policy research project is a real risk, even when both belong to the same user. If the user wants context from another repo, ask them to switch Projects (or open a fresh chat in that Project) rather than reaching across from this Project's session.
+
 ---
 
 ## §5 — Runtime workflow
@@ -477,7 +479,7 @@ Items here are intentionally lightly-formatted; the test is whether a future ses
 ## Appendix — Common runtime issues
 
 - **PAT expired or insufficient scope (401, 403):** re-bootstrap step 2b. Most common cause of session-start failure.
-- **Connection error on a `curl` to `api.github.com`:** network egress isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Settings per BOOTSTRAP step 1; if the change was made in this same chat session, the user must start a fresh chat to pick it up — egress changes are empirically NOT propagated in-chat.
+- **Connection error on a `curl` to `api.github.com`:** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Settings per BOOTSTRAP step 1; if the change was made in this same chat session, the user must start a fresh chat to pick it up — network-access changes are empirically NOT propagated in-chat.
 - **422 on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET first, capture `sha`, retry the PUT with `sha` field included.
 - **STATUS.md missing `workflow_mode` field:** assume `branches` (the v1 default). Don't error.
 - **SKILL_INDEX.md unreachable (DNS failure, 404):** operate without skills. Surface to user. The workflow degrades to "you have my judgment but no shared toolkit"; the user may want to wait for upstream to recover.
