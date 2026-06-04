@@ -107,7 +107,15 @@ If the probe in 1a returned `HTTP/2 200`, briefly announce that network access i
 
 ### 2a — GitHub account
 
-Ask: *"Do you have a GitHub account?"*
+Present this opening to the user — it introduces the GitHub piece and folds in the account question:
+
+> "Quick glossary for the GitHub piece, in case any of these terms are new to you:
+>
+> - **git** is a program that tracks every change to a project — every edit, every file added or deleted, by whom and when. You won't use git yourself; I'll handle it on your behalf.
+> - **GitHub** is a website where git-tracked projects live online. Your work gets stored there, in private spaces you control.
+> - A **repo** (short for *repository*) is one of those GitHub storage spaces. We'll create two for you in a minute: one for your personal config (`basic_config`), and one for your first research project.
+>
+> If any of these come up later and feel fuzzy, just ask me to unpack them. Do you already have a GitHub account?"
 
 - **Yes** → ask for their username, record as `<USERNAME>`. Continue to 2b.
 - **No** → walk them through signup at `https://github.com/signup`. Free tier is fine for everything in this workflow (private repos, unlimited collaborators, fine-grained PATs, branch protection — all on Free since 2019/2024). Wait until they confirm an account exists with a username they'll remember. Record the username.
