@@ -29,11 +29,11 @@ Tell the user, briefly (4–6 sentences), what's about to happen end-to-end. Use
 
 ## Step 1 — Network egress check
 
-The mental model the user needs: when you (the agent) run a bash command, it runs in a **virtual machine that Anthropic spins up for the chat**, not on the user's machine. That VM lives on Anthropic's servers. You can install Python packages there, write files, run scripts — but its internet access *from that VM* is what the egress setting controls. By default, the VM has no internet access at all.
+The mental model the user needs: anything you (the agent) run during this chat runs in a **virtual machine that Anthropic spins up for the chat**, not on the user's machine. That virtual machine lives on Anthropic's servers, and its internet access is what the **network egress** setting controls. By default, it has no internet access at all.
 
-The user's own machine — their laptop, their work computer — isn't involved here except as the place where their browser runs. **Their corporate firewall doesn't affect this choice.** Whatever they pick in claude.ai Settings configures Anthropic's server-side VM, end of story.
+The user's own machine — their laptop, their work computer — isn't involved here except as the place where their browser runs. **Their corporate firewall doesn't affect this choice.** Whatever they pick in claude.ai Settings configures Anthropic's server-side environment, end of story.
 
-This step probes whether egress is already configured; if not, it walks the user through configuration and asks them to restart in a fresh chat to pick up the change. **It runs first** — before the GitHub interview or anything else — so that if a fresh-chat restart is needed, no time has been wasted on questions whose answers will be lost in the restart.
+This step probes whether network access is already configured; if not, it walks the user through configuration and asks them to restart in a fresh chat to pick up the change. **It runs first** — before the GitHub interview or anything else — so that if a fresh-chat restart is needed, no time has been wasted on questions whose answers will be lost in the restart.
 
 ### 1a — Probe
 
@@ -45,19 +45,19 @@ curl -sI https://api.github.com/zen
 
 Expected outcomes:
 
-- **`HTTP/2 200`** — egress is already configured. Announce that, and continue to Step 2.
-- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — egress isn't configured (or `api.github.com` isn't reachable yet). Continue to 1b below.
+- **`HTTP/2 200`** — network access is already configured. Announce that, and continue to Step 2.
+- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — network access isn't configured (or `api.github.com` isn't reachable yet). Continue to 1b below.
 
 ### 1b — First-time egress configuration
 
-If the probe fails, the user needs to configure egress now. Tell them what's about to happen, in plain language:
+If the probe fails, the user needs to configure network access now. Tell them what's about to happen, in plain language:
 
-> "Quick mental model: I have a virtual machine that Anthropic spins up for this chat — that's where I install Python packages, run shell commands, talk to APIs. It lives on Anthropic's servers, not on your machine. By default, that VM has no internet access at all. We need to turn it on in your claude.ai account Settings before I can talk to GitHub.
+> "Quick mental model: I need internet access for this — Claude runs in a sandbox on Anthropic's servers, not on your machine, and by default that sandbox has no internet access at all. We need to turn it on in your claude.ai account Settings before I can talk to GitHub.
 >
 > A few notes:
 >
 > - This is a one-time setup that applies to every claude.ai chat going forward (it's an account-level setting, not per-chat).
-> - It's purely about *my* VM's internet access. Your laptop / work computer / corporate firewall isn't involved — whatever your local machine restricts doesn't affect what you can configure here.
+> - It's purely about Claude's server-side internet access. Your laptop / work computer / corporate firewall isn't involved — whatever your local machine restricts doesn't affect what you can configure here.
 > - **Important caveat:** changes to this setting don't propagate into already-open chats. Once you save, you'll need to restart in a fresh chat for me to actually pick up the change. I'll wait while you configure it."
 
 Walk them through. **Note for you, the agent:** the claude.ai Settings UI for this has changed before and varies by plan and account type — there is no single screenshot to match, and an earlier version of this step that scripted exact clicks went stale. Guide the user by *intent*, not by an exact label or widget, and let the 1a probe (after the restart) be the real confirmation that it worked.
@@ -89,17 +89,17 @@ If the user describes something that fits none of the cases above — an option 
 
 ### 1c — Hand off to a fresh chat
 
-Once the user confirms they've enabled egress:
+Once the user confirms they've enabled the setting:
 
-> "Great. Now: this current chat won't see the new permissions, so we need to restart. Open a new claude.ai chat, and re-paste the same bootstrap prompt you used a few minutes ago. The new chat will see the egress configuration and we'll continue from where we left off. You don't need to redo anything you just configured in Settings — that's saved at your account level. **Stop here in this chat; we're done.**"
+> "Great. Now: this current chat won't see the new permissions, so we need to restart. Open a new claude.ai chat, and re-paste the same bootstrap prompt you used a few minutes ago. The new chat will see the network configuration and we'll continue from where we left off. You don't need to redo anything you just configured in Settings — that's saved at your account level. **Stop here in this chat; we're done.**"
 
-Stop. Don't try to push past the egress deny in this session.
+Stop. Don't try to push past the network-access deny in this session.
 
 (If you want to confirm before stopping that the user understands the restart, ask them to read back what they're about to do. Optional.)
 
 ### 1d — Returning user fast path
 
-If the probe in 1a returned `HTTP/2 200`, briefly announce that egress is already configured and continue immediately to Step 2. No restart needed.
+If the probe in 1a returned `HTTP/2 200`, briefly announce that network access is already configured and continue immediately to Step 2. No restart needed.
 
 ---
 
@@ -139,7 +139,7 @@ TOKEN="<the-pasted-token>"
 USERNAME="<their-username-from-2a>"
 ```
 
-Then run a smoke test against the GitHub API to verify the token works (egress is already on at this point — we confirmed it in Step 1):
+Then run a smoke test against the GitHub API to verify the token works (network access is already on at this point — we confirmed it in Step 1):
 
 ```bash
 curl -sI -H "Authorization: token $TOKEN" \
@@ -148,7 +148,7 @@ curl -sI -H "Authorization: token $TOKEN" \
   "https://api.github.com/user"
 ```
 
-Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error or `host_not_allowed`, something changed about egress between Step 1 and now — go back and re-probe.
+Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error or `host_not_allowed`, network access has changed between Step 1 and now — go back and re-probe.
 
 ### Token handling
 
@@ -185,7 +185,7 @@ Don't volunteer this section. Only read it out if the user asks something like "
 
 ## Step 3 — Check whether `basic_config` already exists
 
-Network egress and the PAT are both verified at this point (Step 1 confirmed egress, Step 2 verified the token). Now query for the user's `basic_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
+Network access and the PAT are both verified at this point (Step 1 confirmed access, Step 2 verified the token). Now query for the user's `basic_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" \
@@ -244,7 +244,7 @@ Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION
 >
 > 1. **Git** — the program used to track all changes in your project is called *git*. Are you familiar with it? (If yes, briefly — daily user? occasional? web-UI only? If no, no problem — I'll explain things as we go.)
 > 2. **Mode** — pick one: **claude.ai-only** (you'll work on this only through the web UI; no Claude Code locally), or **also-local** (you have Claude Code installed somewhere and might clone the project and work locally too). Repos get created identically either way; this just calibrates how chatty I'll be later about claude.ai-specific quirks.
-> 3. **Extra paper-source domains** — *(this will not be relevant if your egress is set to allow all domains — skip it then)* — besides any paper sites you already added during egress setup in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)
+> 3. **Extra paper-source domains** — *(this will not be relevant if your network setting is allow-all — skip it then)* — besides any paper sites you already added back in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)
 >
 > It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
@@ -545,7 +545,7 @@ If validation fails, the most common causes (in rough order of likelihood):
 
 1. **PAT expired or wrong scope** → re-create per Step 2b. Most common.
 2. **Project Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
-3. **Network egress not enabled, or the change hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` probe. If the egress setting was changed *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
+3. **Network access not enabled, or the change hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` probe. If the **network egress** setting was changed *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
 4. **Clone fails / `RESEARCHER.md` unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and `git clone --depth 1 https://github.com/danparshall/claude_researcher.git` succeeds in the sandbox. Agents that can't clone should fall back to `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md`. If the repo was recently flipped from private to public, the clone reflects current state immediately, but the raw-CDN fallback path can lag by 24+ hours.
 
 Help the user troubleshoot. Iterate until validation passes.
@@ -571,6 +571,6 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 - **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 2b.
 - **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: Read and write` permission. **Edit the existing PAT in place — don't recreate.** Fine-grained PATs are editable; the token value is unchanged. See Step 6 "If you skipped Administration" for the recipe.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
-- **Connection error / "could not resolve host":** network egress isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
+- **Connection error / "could not resolve host":** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
 - **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `basic_config` exists, skip it; same for the research repo (different curl, same logic).
 - **User reports their PAT can't be granted "Administration" permission:** they may have an organization restriction on their account. Have them either (a) use a personal account where they're the owner, or (b) ask their org admin to permit fine-grained PATs with Administration scope, or (c) fall back to a classic PAT with `repo` scope (deprecated but still works).
