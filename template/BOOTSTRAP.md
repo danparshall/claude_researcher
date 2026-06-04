@@ -21,7 +21,7 @@ If you ever need a public file outside the user's repos, use WebFetch. If you ev
 
 Tell the user, briefly (4–6 sentences), what's about to happen end-to-end. Use this script (or close paraphrase):
 
-> "Here's the plan: First, I'll check that claude.ai can talk to GitHub from this chat. If it can't, I'll walk you through a one-time network configuration; you'll then restart in a fresh chat to pick up the change (claude.ai's network changes don't propagate into already-open chats). Once network is confirmed, you'll create a GitHub Personal Access Token (PAT) and paste it back to me. I'll run a brief interview to learn how you work, then create two private repos in your GitHub account (one for your lifetime config, one for your first research project), seed them with starter files, and walk you through creating a claude.ai Project that points at the research repo. After that, every future research session is a single sentence in a new chat. Total time: ~5 minutes if network is already set up, ~15 minutes if this is a true first-time setup including the network config + restart. Sound good?"
+> "Here's the plan: First, I'll check that claude.ai can talk to GitHub from this chat. If it can't, I'll walk you through a one-time network configuration; you'll then restart in a fresh chat to pick up the change (claude.ai's network changes don't propagate into already-open chats). Once network is confirmed, you'll create a GitHub Personal Access Token (PAT) and paste it back to me. I'll run a brief interview to learn how you work, then create two private repos in your GitHub account (one for your lifetime config, one for your first research project), seed them with starter files, and walk you through creating a claude.ai Project that points at the research repo. After that, every future research session is a single sentence in a new chat. Total time: ~5 minutes if network is already set up, ~10 minutes if this is a true first-time setup including the network config + restart. Sound good?"
 
 **CONFIRMATION GATE.** Do not proceed past this step until the user explicitly says yes. If they want to back out, that's fine — they can come back anytime by re-pasting the bootstrap prompt.
 
@@ -64,19 +64,26 @@ Walk them through. **Note for you, the agent:** the claude.ai Settings UI for th
 
 > "Open a new browser tab to: https://claude.ai/settings/capabilities
 >
-> Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress' or similar. **Turn it on**, and choose the most permissive option the UI gives you:
+> Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress' or similar. **Turn it on.**
+>
+> The easiest setting is to allow everything — this controls Anthropic's server-side virtual machine (the one Claude uses for this chat), not your computer, so the broad setting doesn't open anything up on your local machine or behind your work firewall. After bootstrap I can set up a reminder for you to revisit this setting in a week if you want to tighten it later — for now, the easiest path is to allow everything.
+>
+> Depending on your account and plan, the UI you see varies:
 >
 > - If it's a simple on/off toggle — turn it on.
-> - If it offers a choice of modes (for example, a restricted 'package managers only' vs. a broader unrestricted setting) — pick the broadest one for now; you can tighten it later. (Reminder, since this surprises people: this controls *my* server-side VM's internet access, not your computer's. The broad setting doesn't open anything up on your local machine or behind your corporate firewall.)
-> - If it gives you a custom **domain allow-list**, the simplest path is to allow everything. If you'd rather list domains explicitly, the bootstrap needs **at minimum** these four:
+> - If it offers a choice of modes (for example, a restricted 'package managers only' vs. a broader unrestricted setting) — pick the broadest one.
+> - If it gives you a custom **domain allow-list**, check the 'allow all' box if one is present.
+>
+> If your account or your tier only offers a domain-list UI without an 'allow all' option, you'll need these four GitHub domains at minimum:
+>
 >    - `api.github.com`
 >    - `codeload.github.com`
 >    - `github.com`
 >    - `raw.githubusercontent.com`
 >
->    A domain-list UI is also the moment to add paper-source sites you'll commonly use — it saves an extra restart later, the first time `add-paper` needs them: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`, `nber.org`, `ssrn.com`, `pubmed.ncbi.nlm.nih.gov`. (The `www.` prefixes are intentional — match each site's canonical hostname; don't normalize them.)
+> A domain-list UI is also the moment to add paper-source sites you'll commonly use — it saves an extra restart later, the first time `add-paper` needs them: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`, `nber.org`, `ssrn.com`, `pubmed.ncbi.nlm.nih.gov`. (The `www.` prefixes are intentional — match each site's canonical hostname; don't normalize them.)
 >
-> Whatever the interface looks like, the goal is the same: my VM needs to be able to reach `github.com`. Save the setting."
+> Whatever the interface looks like, the goal is the same: Claude needs to be able to reach `github.com`. Save the setting."
 
 If the user describes something that fits none of the cases above — an option you don't recognize, or no egress setting at all — **stop and surface it to the user** rather than guessing. Note what they saw; it is useful input for keeping this step current.
 
@@ -107,7 +114,9 @@ Ask: *"Do you have a GitHub account?"*
 
 ### 2b — Personal Access Token
 
-Ask: *"Do you have a fine-grained Personal Access Token (PAT) ready to use, or do we need to make one?"*
+Tell the user: *"The PAT is the password Claude uses to talk to GitHub on your behalf. You don't need to understand the details — happy to explain any of this if you want; just ask."*
+
+Then ask: *"Do you have a fine-grained Personal Access Token (PAT) ready to use, or do we need to make one?"*
 
 If they have one, skip to "collect the PAT" below.
 
@@ -115,18 +124,13 @@ If they need to create one, walk them through:
 
 > "Open a new browser tab to: https://github.com/settings/personal-access-tokens/new
 >
-> Settings:
-> - **Token name:** `claude_researcher` (or any name you'll recognize)
-> - **Expiration:** 90 days is reasonable; pick longer if you're confident in your memory
-> - **Repository access:** **All repositories**. (Granting access to all your repos is broader than ideal, but fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
-> - **Repository permissions** — set the following to **Read and write** (default is 'No access' for everything; you have to actively change each one):
->   - ⚠️ **Administration** — **Read and write**. **THIS IS THE MOST-SKIPPED PERMISSION** — without it, repo creation in Step 6 will fail with 403 Forbidden and we'll have to come back here to fix it. Don't skip. Don't leave it on 'No access'.
->   - **Contents** — Read and write. Needed so I can read and write files inside your repos.
->   - **Metadata** — read-only is auto-set; that's fine.
->
-> Click **Generate token** at the bottom. Copy the token immediately — GitHub won't show it to you again. It will start with `github_pat_`."
+> - **Token name:** `claude_researcher` (or any name you'll recognize).
+> - **Expiration:** 90 days is reasonable; pick longer if you're confident in your memory.
+> - **Repository access:** **All repositories**. (Fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
+> - **Permissions:** click **Add permissions**, then use these values — **Administration**: Read and write; **Contents**: Read and write; **Metadata**: Read-only (default).
+> - Click **Generate token** at the bottom. Copy the value immediately — GitHub won't show it to you again. It will start with `github_pat_`."
 
-**Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below).
+**Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below). Administration is load-bearing: without it, repo creation in Step 6 will fail with 403 Forbidden.
 
 **Collect the PAT.** Once they have it, ask them to paste it directly into the chat. Once you have it, set it as a shell variable:
 
@@ -167,7 +171,15 @@ Pick whichever feels cleaner. If you go with the scratch file, mention to the us
 
 ### About PAT scope
 
-The PAT you just generated is broadly scoped (**All repositories**) because it has to be able to create repos that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Project Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
+The PAT you just generated is scoped to all your GitHub repos because it has to be able to create new ones that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Project Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
+
+### Why each permission (ask if you want details)
+
+Don't volunteer this section. Only read it out if the user asks something like "what do those permissions actually do?" Then walk them through:
+
+- **Administration: Read and write** — lets Claude create new repos on your behalf. This is the most-skipped one; without it, Step 6 fails with a 403 Forbidden error. It's the reason we double-check it just above.
+- **Contents: Read and write** — lets Claude read and write the files inside your repos. Every research session reads things like `STATUS.md` and writes things like the convo summary at the end; both run through this permission.
+- **Metadata: Read-only** — basic info about your repos (when they were created, default branch, that kind of thing). GitHub auto-enables this when you grant any other permission; you don't need to touch it.
 
 ---
 
