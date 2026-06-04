@@ -220,7 +220,9 @@ This interview captures persistent **user-level** prefs that get written to `<US
 >
 > 1. What's your name (the one you want me to call you)?
 > 2. Your current role or research domain — one sentence.
-> 3. A few sentences on your academic + work history at a glance."
+> 3. A few sentences on your academic + work history at a glance.
+>
+> It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
 Record as `<NAME>`, `<ROLE>`, `<ACADEMIC_HISTORY>` + `<WORK_HISTORY>` (split the third answer if natural; otherwise keep combined under both fields).
 
@@ -230,32 +232,25 @@ Record as `<NAME>`, `<ROLE>`, `<ACADEMIC_HISTORY>` + `<WORK_HISTORY>` (split the
 >
 > 1. Programming languages and tools you're comfortable with (or 'none' — that's fine).
 > 2. General research areas / topics you tend to think about beyond this specific project.
-> 3. Any interaction style notes — things you want me to know about how you like to work (pace, push-back, terminology preferences, etc.)."
+> 3. Any interaction style notes — things you want me to know about how you like to work (pace, push-back, terminology preferences, etc.).
+>
+> It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
 Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION_STYLE_NOTES>`.
 
-### Batch 3 — Operating preferences (4 fields)
+### Batch 3 — Operating preferences (3 fields)
 
-> "Four preference questions:
+> "Three preference questions:
 >
-> 1. **Git fluency** — pick one: **novice** ('I've only used GitHub.com via the web UI'), **occasional** ('I clone and push from the command line sometimes'), or **fluent** ('I use git daily, including merge / rebase / cherry-pick'). This calibrates how chatty I am about git operations.
-> 2. **Mode** — pick one: **claude.ai-only** (you'll work on this only through the web UI; no Claude Code locally), or **also-local** (you have Claude Code installed somewhere and might `git clone` and work locally too). Repos get created identically either way; this just calibrates how chatty I'll be later about claude.ai-specific quirks.
-> 3. **Paper naming conventions** — when I save papers to your repo, the filename format depends on whether the paper is academic-style (research with hypothesis + data) or institutional-style (synthesis/policy report). Two defaults:
+> 1. **Git** — the program used to track all changes in your project is called *git*. Are you familiar with it? (If yes, briefly — daily user? occasional? web-UI only? If no, no problem — I'll explain things as we go.)
+> 2. **Mode** — pick one: **claude.ai-only** (you'll work on this only through the web UI; no Claude Code locally), or **also-local** (you have Claude Code installed somewhere and might clone the project and work locally too). Repos get created identically either way; this just calibrates how chatty I'll be later about claude.ai-specific quirks.
+> 3. **Extra paper-source domains** — *(this will not be relevant if your egress is set to allow all domains — skip it then)* — besides any paper sites you already added during egress setup in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)
 >
->    - **Academic default:** `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Common-surname disambiguation: `SurnameF` (surname + first-name initial, no separator) when collisions are likely — Anglo (Smith, Jones, Patel, Singh) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato — use judgment). Solo papers: single surname only (drop the duplicate). Slug is two-or-three descriptive words in kebab-case. Examples: `Vaswani_Polosukhin__2017--attention-is-all-you-need.pdf`, `SmithJ_2024--stress-sleep.pdf`.
->    - **Institutional default:** `{Institution}_{ShortTitle}_{Year}.pdf`. Institution = short acronym, lowercase (`imf`, `oecd`, `un`); for governments, country + agency in camelCase (`brazilRfb`, `mexicoSat`). ShortTitle = two descriptive words in camelCase. Examples: `imf_g20RevenueAdmin_2025.pdf`, `oecd_taxAdmin30_2023.pdf`.
->    - **Punctuation (academic only):** `__` (double underscore) separates the author block from the year; `--` (double dash) separates year from slug; `_` (single underscore) separates within blocks.
->
->    Press Enter to accept both defaults, or specify your own format(s) — you can override one and keep the default for the other.
-> 4. **Extra paper-source domains** — *(this will not be relevant if your egress is set to allow all domains — skip it then)* — besides any paper sites you already added during egress setup in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)"
+> It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
-Record as `<GIT_FLUENCY>`, `<MODE>`, **two fields** `<PAPER_NAMING_ACADEMIC>` + `<PAPER_NAMING_INSTITUTIONAL>`, and any extra paper-source domains. If the user accepted both defaults, use these canonical texts when writing to `personal_info.md`:
+Classify the user's git answer internally into one of three tiers and record it as `<GIT_FLUENCY>`: **novice** (web UI only, or no familiarity yet), **occasional** (uses `git clone` / `git push` from the command line sometimes), or **fluent** (uses git daily, including merge / rebase / cherry-pick). The downstream tier dial in `RESEARCHER.md` §1 reads this field; the elicitation above is concept-checking rather than menu-pick on purpose, but the recorded value stays in the existing schema.
 
-> **Academic:** `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Use `SurnameF` (surname plus first-name initial, no separator) when the surname is common enough that collisions are likely — Anglo (Smith, Jones, Patel, Singh, etc.) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato, etc.); use judgment. Solo-authored papers: single surname only (drop the duplicate). Slug in kebab-case.
-
-> **Institutional:** `{Institution}_{ShortTitle}_{Year}.pdf`. Institution lowercase acronym for multilaterals (`imf`, `oecd`, `un`, `worldBank`, `idb`); country + agency in camelCase for governments (`brazilRfb`, `mexicoSat`). ShortTitle in camelCase, two descriptive words.
-
-If the user provided their own format(s) for either field, capture exactly what they typed; don't try to merge their format with the default rule. If they accepted one default and overrode the other, record their override only for the field they touched and use the canonical default text for the other.
+Also record `<MODE>` and any extra paper-source domains.
 
 After all three batches, summarize the full interview to the user in one paragraph. Get explicit confirmation before proceeding.
 
