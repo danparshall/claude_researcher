@@ -113,7 +113,7 @@ Present this opening to the user — it introduces the GitHub piece and folds in
 >
 > - **git** is a program that tracks every change to a project — every edit, every file added or deleted, by whom and when. You won't use git yourself; I'll handle it on your behalf.
 > - **GitHub** is a website where git-tracked projects live online. Your work gets stored there, in private spaces you control.
-> - A **repo** (short for *repository*) is one of those GitHub storage spaces. We'll create two for you in a minute: one for your personal config (`basic_config`), and one for your first research project.
+> - A **repo** (short for *repository*) is one of those GitHub storage spaces. We'll create two for you in a minute: one for your personal config (`claude_research_config`), and one for your first research project.
 >
 > If any of these come up later and feel fuzzy, just ask me to unpack them. Do you already have a GitHub account?"
 
@@ -191,26 +191,26 @@ Don't volunteer this section. Only read it out if the user asks something like "
 
 ---
 
-## Step 3 — Check whether `basic_config` already exists
+## Step 3 — Check whether `claude_research_config` already exists
 
-Network access and the PAT are both verified at this point (Step 1 confirmed access, Step 2 verified the token). Now query for the user's `basic_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
+Network access and the PAT are both verified at this point (Step 1 confirmed access, Step 2 verified the token). Now query for the user's `claude_research_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}" \
   -H "Authorization: token $TOKEN" \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/basic_config"
+  "https://api.github.com/repos/$USERNAME/claude_research_config"
 ```
 
 This is a read-only call against the user's own namespace. The response is just the HTTP status code (200 or 404).
 
-**Verification affordance.** The URL hits exactly one path — the user's `basic_config` repo. Run the same call without `-o /dev/null -w "%{http_code}"` to see the full response body if you want context.
+**Verification affordance.** The URL hits exactly one path — the user's `claude_research_config` repo. Run the same call without `-o /dev/null -w "%{http_code}"` to see the full response body if you want context.
 
 Branch on result:
 
 - **404 (does not exist) — first-time user.** Tell them: *"Looks like you haven't set up your user prefs yet — let's do those first, then we can make a repo for your project."* Continue to Step 4 (interview).
-- **200 (exists) — returning user.** Tell them: *"I can see your `basic_config` from a previous setup, so we'll skip the interview and just create the new research repo."* Skip Step 4 entirely. Continue to Step 5.
+- **200 (exists) — returning user.** Tell them: *"I can see your `claude_research_config` from a previous setup, so we'll skip the interview and just create the new research repo."* Skip Step 4 entirely. Continue to Step 5.
 
 ---
 
@@ -218,7 +218,7 @@ Branch on result:
 
 Run the interview in **three thematic batches** rather than ten sequential questions. After each batch, briefly summarize back what you heard before moving on.
 
-This interview captures persistent **user-level** prefs that get written to `<USERNAME>/basic_config/personal_info.md` and read by every future research session. It's about the user, not any specific project — the project comes next, in Step 5.
+This interview captures persistent **user-level** prefs that get written to `<USERNAME>/claude_research_config/personal_info.md` and read by every future research session. It's about the user, not any specific project — the project comes next, in Step 5.
 
 **Pre-fill from claude.ai memory if available.** If the user has filled out claude.ai's user-level memory ("Things to know about you" / customizations / similar), those are already loaded into your context at chat start — no separate fetch needed. If you can see things like name, role, or research domain there, frame the relevant interview questions as *"From your claude.ai profile I see X — want to use that, or different?"* rather than asking from scratch. If no memory is visible (incognito chats and fresh accounts won't have any), the interview is fully fresh.
 
@@ -305,7 +305,7 @@ You'll create two repos via the GitHub API. The exact API call is below; the ope
 
 **CONFIRMATION GATE.** Tell the user exactly what's about to happen:
 
-> "I'm about to create the following private repos in your GitHub account: `<USERNAME>/basic_config` (skip if it already exists) and `<USERNAME>/<RESEARCH_REPO>`. Both are initialized empty; I'll add starter files in the next step. Confirm to proceed."
+> "I'm about to create the following private repos in your GitHub account: `<USERNAME>/claude_research_config` (skip if it already exists) and `<USERNAME>/<RESEARCH_REPO>`. Both are initialized empty; I'll add starter files in the next step. Confirm to proceed."
 
 Wait for explicit yes.
 
@@ -320,7 +320,7 @@ curl -sX POST \
   -d '{"name":"<REPO_NAME>","private":true,"auto_init":true,"description":"<DESC>"}'
 ```
 
-Use `<DESC>` = `"Lifetime config for claude_researcher workflow."` for `basic_config`.
+Use `<DESC>` = `"Lifetime config for claude_researcher workflow."` for `claude_research_config`.
 Use `<DESC>` = `"<TOPIC>"` (the user's one-sentence topic from Step 5) for the research repo.
 
 `auto_init:true` causes GitHub to create an initial commit with an auto-generated `README.md`. We'll overwrite it in Step 7.
@@ -335,7 +335,7 @@ curl -sI -H "Authorization: token $TOKEN" \
 
 Expect `HTTP/2 200`. The `private` field in the JSON body should be `true`. If anything else, stop and surface to the user.
 
-If `basic_config` already existed (Step 3 returned 200), skip its creation; just create the research repo.
+If `claude_research_config` already existed (Step 3 returned 200), skip its creation; just create the research repo.
 
 ### If you skipped Administration (403 on create)
 
@@ -376,20 +376,20 @@ curl -sX PUT \
 
 If the file already exists (e.g., `auto_init:true` created a `README.md`), the PUT will fail with a 422 because no `sha` was provided. Either delete the existing file first or include the existing `sha` in the body. The cleanest approach: GET the existing file (capture the `sha`), then PUT with `sha` field included.
 
-### Files to seed in `basic_config` (skip if it already existed)
+### Files to seed in `claude_research_config` (skip if it already existed)
 
 #### `personal_info.md`
 
-Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
+Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
 
 #### `domain_allowlist.txt`
 
-Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
+Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
 
 #### `README.md`
 
 ```markdown
-# basic_config
+# claude_research_config
 
 Lifetime config for the claude_researcher workflow. Holds files that every research project of mine reads at session start.
 
@@ -459,7 +459,7 @@ Per-project configuration the skills read at runtime. Update only when the proje
 
 This repo is configured for the [claude_researcher](https://github.com/danparshall/claude_researcher) workflow. Research sessions happen in a corresponding claude.ai Project that reads this repo via the GitHub REST API.
 
-For agent-facing instructions, see the upstream [`RESEARCHER.md`](https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md). Personal context (name, preferences, etc.) is in [`<USERNAME>/basic_config`](https://github.com/<USERNAME>/basic_config).
+For agent-facing instructions, see the upstream [`RESEARCHER.md`](https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md). Personal context (name, preferences, etc.) is in [`<USERNAME>/claude_research_config`](https://github.com/<USERNAME>/claude_research_config).
 ```
 
 #### `.gitignore`
@@ -481,7 +481,7 @@ curl -s -H "Authorization: token $TOKEN" \
   | python3 -c "import sys,json; print('\n'.join(e['path'] for e in json.load(sys.stdin)))"
 ```
 
-For `basic_config` you should see exactly: `.gitignore`, `README.md`, `domain_allowlist.txt`, `personal_info.md`. For the research repo: `.gitignore`, `README.md`, `RESEARCH_LOG.md`, `STATUS.md`, plus the four `.gitkeep`-bearing directories. If anything's missing or extra, surface to the user.
+For `claude_research_config` you should see exactly: `.gitignore`, `README.md`, `domain_allowlist.txt`, `personal_info.md`. For the research repo: `.gitignore`, `README.md`, `RESEARCH_LOG.md`, `STATUS.md`, plus the four `.gitkeep`-bearing directories. If anything's missing or extra, surface to the user.
 
 ---
 
@@ -501,7 +501,7 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 
 The canonical Project Instructions text lives at:
 
-> `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/_PROJECT_INSTRUCTIONS.md.template`
+> `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/_PROJECT_INSTRUCTIONS.md.template`
 
 **WebFetch it.** Substitute the placeholders before showing the result to the user:
 
@@ -525,7 +525,7 @@ After confirming the paste, briefly explain the user's options for ongoing PAT u
 >
 > - **Keep using this PAT.** Simplest. The same PAT can create future research projects via re-running the bootstrap; you paste the same value into each new Project's Project Instructions. One PAT to rotate when it expires. Trade-off: every Project chat that uses it has access to all your repos.
 >
-> - **Rotate down to a per-project PAT.** Now that this research repo exists, you can generate a NEW fine-grained PAT scoped to just `basic_config` + this one research repo — much narrower. Replace the broad PAT in this Project's Project Instructions with the narrow one, then revoke the broad PAT (or hold it as a 'bootstrap-only PAT' you spin up briefly when starting new projects). Tightest scope per Project; more PATs to manage.
+> - **Rotate down to a per-project PAT.** Now that this research repo exists, you can generate a NEW fine-grained PAT scoped to just `claude_research_config` + this one research repo — much narrower. Replace the broad PAT in this Project's Project Instructions with the narrow one, then revoke the broad PAT (or hold it as a 'bootstrap-only PAT' you spin up briefly when starting new projects). Tightest scope per Project; more PATs to manage.
 >
 > - **Per-project PATs going forward.** Generate a new fine-grained PAT for each future research project at bootstrap time, scoped just to that project's repo. Revoke after that project's lifetime ends.
 >
@@ -547,7 +547,7 @@ Tell the user:
 
 > "Open a new chat in your `<RESEARCH_REPO>` Project. Just say 'hi' or 'let's begin' — see what happens."
 
-Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Project Instructions, reads `RESEARCHER.md` from the local clone, fetches `personal_info.md` from `basic_config` via the Contents API, and greets the user by name with a reference to their topic.
+Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Project Instructions, reads `RESEARCHER.md` from the local clone, fetches `personal_info.md` from `claude_research_config` via the Contents API, and greets the user by name with a reference to their topic.
 
 If validation fails, the most common causes (in rough order of likelihood):
 
@@ -567,7 +567,7 @@ Tell the user:
 > "Bootstrap complete. From now on:
 >
 > - **To work on this research project:** open a new chat in the `<RESEARCH_REPO>` Project. Tell the agent what you're working on; it'll handle the rest.
-> - **To start a new research project:** paste the bootstrap prompt again into a fresh chat. Your `basic_config` will be re-used; only the new research repo gets created. Skip-to-Step-8 path.
+> - **To start a new research project:** paste the bootstrap prompt again into a fresh chat. Your `claude_research_config` will be re-used; only the new research repo gets created. Skip-to-Step-8 path.
 > - **To file an issue or request a feature:** ask the agent in any session — they'll generate a pre-filled URL pointing at the upstream issue tracker."
 
 Stop. Do not continue with any further actions. The bootstrap is complete.
@@ -580,5 +580,5 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 - **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: Read and write` permission. **Edit the existing PAT in place — don't recreate.** Fine-grained PATs are editable; the token value is unchanged. See Step 6 "If you skipped Administration" for the recipe.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
 - **Connection error / "could not resolve host":** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
-- **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `basic_config` exists, skip it; same for the research repo (different curl, same logic).
+- **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `claude_research_config` exists, skip it; same for the research repo (different curl, same logic).
 - **User reports their PAT can't be granted "Administration" permission:** they may have an organization restriction on their account. Have them either (a) use a personal account where they're the owner, or (b) ask their org admin to permit fine-grained PATs with Administration scope, or (c) fall back to a classic PAT with `repo` scope (deprecated but still works).

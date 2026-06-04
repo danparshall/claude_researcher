@@ -22,7 +22,7 @@ This file is laid out so a single read-through gives you everything you need. Re
 
 - For **public upstream content** (this file, skills under `template/skills/`, scripts, the SKILL_INDEX manifest) → read from the **local clone** at `/home/claude/.claude_researcher_template/` using `view` or `grep`. Established at session start by §2.0. Files are accessible by path; no network round-trip per read.
 - **Fallback for upstream content if the clone failed**: WebFetch from `raw.githubusercontent.com/danparshall/claude_researcher/main/...`. No allow-list configuration needed. Note that this path can serve stale content for 24+ hours after an upstream write (see Appendix); the clone bypasses this.
-- For **the user's own repos** (`<USERNAME>/basic_config` and `<USERNAME>/<REPO>`) → use sandbox `curl` with the user's PAT against `api.github.com`. The PAT, the curl recipes, and the `<USERNAME>` / `<REPO>` values live in this Project's **Project Instructions** text — already in your context. (No separate `_PROJECT_INSTRUCTIONS.md` file is uploaded; everything is in Project Instructions.)
+- For **the user's own repos** (`<USERNAME>/claude_research_config` and `<USERNAME>/<REPO>`) → use sandbox `curl` with the user's PAT against `api.github.com`. The PAT, the curl recipes, and the `<USERNAME>` / `<REPO>` values live in this Project's **Project Instructions** text — already in your context. (No separate `_PROJECT_INSTRUCTIONS.md` file is uploaded; everything is in Project Instructions.)
 
 **Confirmation gates** at sensitive boundaries (creating a research line, deleting files, archiving a research line, merging a PR, force operations) are **scripted** in this file. You can also add your own gates anywhere a step gives you pause; the user has been told to expect them.
 
@@ -165,21 +165,21 @@ REPO="<the-research-repo-name>"
 
 (In v1, the acting user owns the research repo, so OWNER == USERNAME. Collaborator mode — where a grad student works on a professor's repo — is a known v1 gap; see Appendix.)
 
-### 2b — Fetch `personal_info.md` from `<USERNAME>/basic_config`
+### 2b — Fetch `personal_info.md` from `<USERNAME>/claude_research_config`
 
-`basic_config` is a private repo, so use the sandbox-curl recipe (not WebFetch):
+`claude_research_config` is a private repo, so use the sandbox-curl recipe (not WebFetch):
 
 ```bash
 curl -s -H "Authorization: token $TOKEN" \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/basic_config/contents/personal_info.md" \
+  "https://api.github.com/repos/$USERNAME/claude_research_config/contents/personal_info.md" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
 Read fields: `Name`, `Current role`, history (academic + work), `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks (chattier for `claude.ai-only`; terser for `also-local` since the user has Claude Code locally and knows the platform).
 
-If the fetch returns 404, the user's `basic_config` doesn't exist or the PAT lacks access. **Surface to the user** — they may need to re-bootstrap. Don't proceed without `personal_info.md`; operating without identity context is a degradation.
+If the fetch returns 404, the user's `claude_research_config` doesn't exist or the PAT lacks access. **Surface to the user** — they may need to re-bootstrap. Don't proceed without `personal_info.md`; operating without identity context is a degradation.
 
 ### 2c — Fetch the research repo's `STATUS.md` and `README.md`
 

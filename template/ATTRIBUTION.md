@@ -6,7 +6,7 @@ Copyright 2026 Dan Parshall, downstream of Nori (`tilework-tech/nori-skillsets`)
 
 1. **Upstream:** [Nori Skillsets](https://github.com/tilework-tech/nori-skillsets) — the original `researcher` Skillset for Claude Code on a developer's local machine.
 2. **This work:** `claude_researcher` — a port of the researcher workflow to claude.ai's web UI, so collaborators on locked-down machines can use the research-first workflow with browser-only setup.
-3. **Downstream:** Each collaborator's `<USERNAME>/basic_config` (their lifetime config) and `<USERNAME>/research-<topic>` repos (their research artifacts). Those are their work; this project neither claims nor licenses their content.
+3. **Downstream:** Each collaborator's `<USERNAME>/claude_research_config` (their lifetime config) and `<USERNAME>/research-<topic>` repos (their research artifacts). Those are their work; this project neither claims nor licenses their content.
 
 ## License terms
 

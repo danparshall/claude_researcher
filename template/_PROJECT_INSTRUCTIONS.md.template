@@ -10,7 +10,7 @@ USERNAME="<USERNAME>"
 REPO="<REPO>"
 ```
 
-`<TOKEN>` is your fine-grained GitHub PAT, scoped to read `<USERNAME>/basic_config` and read/write `<USERNAME>/<REPO>`. `<REPO>` is just the repo name (not `owner/repo`). Do not commit these values anywhere.
+`<TOKEN>` is your fine-grained GitHub PAT, scoped to read `<USERNAME>/claude_research_config` and read/write `<USERNAME>/<REPO>`. `<REPO>` is just the repo name (not `owner/repo`). Do not commit these values anywhere.
 
 ## Session start
 

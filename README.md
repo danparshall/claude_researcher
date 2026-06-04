@@ -30,13 +30,13 @@ The project's source files are public and readable ahead of time at:
 
 You can inspect any file there at any point during the bootstrap to verify what you're being asked to do. Nothing is hidden.
 
-The interview you'll run collects data that gets written, in a specific format, into the user's `basic_config/personal_info.md` and a few related files (`STATUS.md`, `domain_allowlist.txt`). Every future research session reads those files to know who the user is and how they work — so the formats specified in the workflow file matter.
+The interview you'll run collects data that gets written, in a specific format, into the user's `claude_research_config/personal_info.md` and a few related files (`STATUS.md`, `domain_allowlist.txt`). Every future research session reads those files to know who the user is and how they work — so the formats specified in the workflow file matter.
 
 Sensitive operations (repo creation, PAT handling, file writes, claude.ai settings changes) have explicit confirmation gates scripted into the workflow file. Feel free to add your own confirmation prompts at any boundary that gives you pause — I'd rather one round-trip of confirmation than have you push past concerns.
 
 Now fetch and follow:
 
-  https://raw.githubusercontent.com/danparshall/claude_researcher/2e9c11dd1ac6aebd48ffd507d8136c8b0f0d21ec/template/BOOTSTRAP.md
+  https://raw.githubusercontent.com/danparshall/claude_researcher/27d6c1bee982c1875742918be6812b766ad378c2/template/BOOTSTRAP.md
 ```
 
 ## About
