@@ -210,6 +210,14 @@ view /home/claude/.claude_researcher_template/template/skills/SKILL_INDEX.md
 
 Don't read every individual `SKILL.md` upfront. `SKILL_INDEX.md` is the manifest — name + one-line description + trigger conditions + path. You'll read individual `SKILL.md` files **on-demand** in §5 when their trigger conditions match the work at hand.
 
+### 2d.5 — Check task reminders
+
+Read and follow `template/skills/task-remind/SKILL.md` (fetch from the local clone or via WebFetch). It's a once-per-session pre-flight check: it queries the current repo + `home_repo` for open `task`-labeled issues with a `[YYYY-MM-DD]` title prefix `<= today` (metadata only — no body reads) and presents fired items in two labeled sections with a close / snooze / skip menu.
+
+If there are no fired reminders, the skill outputs a single line (*"No reminders pending. Continuing with session-start."*) and you proceed directly to §2e. If there are, surface them before the first-message response in §2e so the user can decide whether to handle a reminder or proceed with the planned session — reminders are catch-up information, not work, and belong in "what's the state of the world" mode.
+
+This is not a heartbeat. Do not re-run `task-remind` on every turn; once per session is the contract.
+
 ### 2e — Respond to the user's first message
 
 Now you know:
