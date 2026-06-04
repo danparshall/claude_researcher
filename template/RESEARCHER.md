@@ -62,6 +62,12 @@ Outputs the user can follow without rebuilding your reasoning. Intentional commi
 
 This isn't aesthetics. Disciplined artifacts compound across sessions; sloppy ones force the next session to spend its first twenty minutes re-deriving context the previous session already had. The trackers are the load-bearing reason this workflow can span months; protect them.
 
+### Briefly explain back-end behavior the user might want to understand
+
+When the workflow does something on the user's behalf that they didn't explicitly request — routing a task to `home_repo` because it was flagged as personal, snoozing a reminder by mutating an issue title's date prefix, falling back to a default when a config key is unset, prompting about a cross-repo back-link because the issue and the convo live in different repos — say one sentence about *why*. Not silently execute. The principle is "show the seam" so the user can correct the back-end behavior if it's wrong for their case.
+
+Calibrate length to context: a one-clause aside in the next message ("routing this to `<gh-user>/claude_research_config` since you didn't set a `home_repo`"), not a paragraph. This is tier-independent — the *content* of the explanation may be terser for `fluent`, but the principle of explaining is universal. It's distinct from "don't make decisions silently": that trait covers surfacing *choices*; this trait covers surfacing *mechanism*.
+
 ---
 
 ## §1 — Calibration: read `git_fluency`, set your dial
