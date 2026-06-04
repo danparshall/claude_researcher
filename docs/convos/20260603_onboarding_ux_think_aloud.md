@@ -215,30 +215,56 @@ These were locked in during the triage conversation following the dump:
   alongside this convo (see "Captured Tasks" below) to track the work — the
   hoi-polloi audience reads a website, not GitHub.
 
-## Open Questions
+## Resolutions (2026-06-03 follow-up)
 
-- **Screenshot location.** Need to pick a home before any screenshot work
-  starts. Recommendation: `template/reference/screenshots/` referenced from
-  BOOTSTRAP.md by path, so they ship with the bootstrap material the agent
-  fetches. But this is a real call.
-- **Reminder mechanism (egress revisit).** Claude memory? `basic_config`?
-  Both?
-- **Paper-naming relocation.** If we drop it from the interview, does it (a)
-  become a use-time `add-paper` prompt the first time a paper is added, (b)
-  default to one of the existing canonical formats with no prompt, (c) live
-  in `personal_info.md` as a deferred-edit field with a clear default?
-- **PAT-section affordance "ask me to explain."** The doc can suggest the
-  affordance, but for it to actually fire, the agent needs to be primed to
-  offer the expansion. Lands in RESEARCHER.md? In a per-step note in
-  BOOTSTRAP.md? Both?
-- **Calibrate-to-`<GIT_FLUENCY>` rule.** Where does the meta-instruction
-  live? RESEARCHER.md is the obvious home, but the existing §0 Persona block
-  doesn't speak this language yet.
-- **Sequencing the work.** Plan needs to decide what ships in which order.
-  Screenshots are the most labor-intensive; the prose edits are cheap. A
-  natural first cut: prose pass + RESEARCHER.md rules first (text-only, fast,
-  reviewable); screenshots second; website third (separate scope, tracked
-  issue).
+The six open questions above were closed in a follow-up triage with Dan.
+
+- **Screenshot location → `template/reference/screenshots/`**, referenced from
+  BOOTSTRAP.md by path. Ships with the bootstrap material the agent fetches.
+- **Reminder mechanism (egress revisit) — durable file in `basic_config`.**
+  Recommendation: a `basic_config/reminders.md` (or `STATUS.md`-style
+  parking-lot section) carrying revisit-by dates per item; `RESEARCHER.md`
+  tells the agent at session start to check the file and surface anything
+  past its revisit date. **Not claude.ai memory.** The web-UI memory surface,
+  as far as I know, is static text the agent loads — it has no scheduled-task
+  / time-based recall primitive, so building on it would either drift silently
+  or require the agent to re-derive "is it time yet?" from chat date, which
+  is fragile. The durable-file approach matches the same logic that put
+  `personal_info.md` in `basic_config` (user-readable, user-editable,
+  version-controlled, cross-Project). *Pending Dan's confirmation that the
+  claude.ai-memory option is genuinely off the table — if he wants to verify
+  the web UI's reminder affordances before locking, that's the right move.*
+- **Paper-naming relocation → option (a), filed as a separate task issue.**
+  First time `add-paper` runs in a repo with no `paper_naming.*` set in
+  `personal_info.md`, the skill asks how the user wants to name papers,
+  explains the default if they don't care, and persists the answer. Drop the
+  question from the bootstrap interview entirely.
+- **PAT-section affordance — bootstrap-only, not RESEARCHER.md.** The
+  "happy to explain in detail if you want" line lives in BOOTSTRAP.md
+  Step 2b. Setup is the only context where it fires; subsequent sessions
+  don't touch PATs.
+- **Git-fluency elicitation — replace tier-dial question with concept-check.**
+  Instead of "Git fluency — pick one: novice / occasional / fluent," ask:
+  *"the program used to track all changes in the project is called 'git' —
+  are you familiar with it?"* This drops the loaded word "fluency" (which
+  pre-supposes a scale the user may not know), introduces the concept first,
+  and probes laterally. The tier classification probably still happens
+  internally so downstream skills can read it, but the elicitation is
+  natural-language rather than menu-driven.
+- **Sequencing locked.** Prose pass + RESEARCHER.md rules first (text-only,
+  cheap, reviewable); screenshots second; website third (separate scope,
+  tracked at issue #11).
+
+### Across-the-board addition to the interview
+
+Each batch of interview questions ends with:
+
+> "It's okay if you don't want to answer right now, and remember you can
+> always ask me for explanations."
+
+Lowers the cost of "I don't know" responses, signals the calibration
+affordance up front, and reinforces the "ask me to explain" framing that
+the PAT section uses too.
 
 ## Results
 
