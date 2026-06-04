@@ -275,3 +275,4 @@ or similar) that turns these decisions into ordered tasks.
 ## Captured Tasks
 
 - [#11: Create public website — non-dev companion to the GitHub repo](https://github.com/danparshall/claude_researcher/issues/11) — captured 2026-06-03
+- [#12: add-paper: ask naming convention on first save (drop from bootstrap)](https://github.com/danparshall/claude_researcher/issues/12) — captured 2026-06-03
