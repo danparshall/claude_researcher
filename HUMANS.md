@@ -30,6 +30,10 @@ Nori has a sub-skillset called **Researcher**, aimed at researchers using Claude
 
 The result is the same working pattern, ported to the browser. The web is the immediately-available surface — no install, no terminal, just a claude.ai Project — and it's enough on its own for research workflows. Claude Code is an option that opens up later if you install it locally: full Nori SWE skillset, offline access, code-friendly tools. This project's conventions carry across both surfaces (skill names match, file conventions are the same, mental model carries over), so Code adds to what you have rather than replacing it.
 
+## Don't worry about the machinery
+
+You don't need to care about prompts and config files day-to-day; the bootstrap sets things up so you don't have to. But it's all yours, and you can update any of it whenever you decide you're ready. Every change is recorded and version-controlled in your GitHub repository, so it's almost impossible to break anything permanently — if a change doesn't work out, the old version is one click away.
+
 ## What it isn't
 
 This project is scoped on purpose. It's trying to be very good at *one thing*: making Claude a useful research collaborator for someone who works entirely in a browser. A few things it deliberately doesn't try to be:
