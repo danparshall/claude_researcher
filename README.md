@@ -10,6 +10,16 @@ For background on the workflow, what a session feels like, and tips from experie
 
 Paste the prompt below into a fresh chat in [claude.ai](https://claude.ai). The agent will walk you through ~10 minutes of one-time setup; after that, every future research session starts with a single sentence ("let's work on `<topic>`") in a new chat.
 
+**Setup at a glance** — the bootstrap walks you through two configuration clicks; Claude handles the rest.
+
+*1. Allow network access in claude.ai* (Settings → Capabilities):
+
+![claude.ai Settings — Allow network egress toggle on, Domain allowlist set to All domains](template/reference/screenshots/claude_egress_settings.png)
+
+*2. Create a GitHub fine-grained Personal Access Token* with these permissions:
+
+![GitHub fine-grained PAT — Administration (Read and write), Contents (Read and write), Metadata (Read-only, Required)](template/reference/screenshots/github_pat_read_write_flip.png)
+
 **The prompt:** *(this tells Claude how to set up the workflow so you can get back to thinking. You don't need to read it — but you can.)*
 
 ```

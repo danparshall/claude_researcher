@@ -85,10 +85,6 @@ Walk them through. **Note for you, the agent:** the claude.ai Settings UI for th
 >
 > Whatever the interface looks like, the goal is the same: Claude needs to be able to reach `github.com`. Save the setting."
 
-**Reference screenshot** (for if the user is having trouble locating the setting — share the link with them, but note the exact widgets they see may differ from this capture):
-
-![claude.ai Settings → Capabilities pane, with the Allow network egress toggle on and Domain allowlist set to All domains](reference/screenshots/claude_egress_settings.png)
-
 If the user describes something that fits none of the cases above — an option you don't recognize, or no egress setting at all — **stop and surface it to the user** rather than guessing. Note what they saw; it is useful input for keeping this step current.
 
 ### 1c — Hand off to a fresh chat
@@ -141,14 +137,6 @@ If they need to create one, walk them through:
 > - **Repository access:** **All repositories**. (Fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
 > - **Permissions:** click **Add permissions**, then use these values — **Administration**: Read and write; **Contents**: Read and write; **Metadata**: Read-only (default).
 > - Click **Generate token** at the bottom. Copy the value immediately — GitHub won't show it to you again. It will start with `github_pat_`."
-
-**Reference screenshots** (PAT setup, in order — share the relevant one if the user gets stuck on a step):
-
-![GitHub fine-grained PAT — top of New token form: token name, resource owner, expiration, Repository access](reference/screenshots/github_pat_create_form.png)
-
-![GitHub fine-grained PAT — Permissions section with the Add permissions picker open, filtering to "Contents"; Administration permission already added](reference/screenshots/github_pat_add_permissions.png)
-
-![GitHub fine-grained PAT — Permissions in final state: Administration and Contents both Read-and-write, Metadata Read-only (Required)](reference/screenshots/github_pat_read_write_flip.png)
 
 **Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below). Administration is load-bearing: without it, repo creation in Step 6 will fail with 403 Forbidden.
 
