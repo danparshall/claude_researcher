@@ -32,6 +32,9 @@ The format below is the v1 schema. Agents reading this file should be able to fi
 
 - **Git fluency:** <novice | occasional | fluent>
 - **Mode:** <claude.ai-only | also-local>
+- **Home repo:** <HOME_REPO>
+
+`Home repo` is the catch-all GitHub repo for personal / non-research-project tasks. Used by the `task-create` skill (override target when the user says "my personal list" or similar) and `task-remind` (second query target at session-start). Default at bootstrap: `<USERNAME>/claude_research_config` — the same config repo created during setup. Users with a dedicated tasks repo can override.
 
 ## Last updated
 
