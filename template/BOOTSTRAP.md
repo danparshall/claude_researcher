@@ -380,11 +380,11 @@ If the file already exists (e.g., `auto_init:true` created a `README.md`), the P
 
 #### `personal_info.md`
 
-Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
+Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
 
 #### `domain_allowlist.txt`
 
-Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
+Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
 
 #### `README.md`
 
@@ -501,7 +501,7 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 
 The canonical Project Instructions text lives at:
 
-> `https://raw.githubusercontent.com/danparshall/claude_researcher/62e79d4da6779da6aa0601438528349737d5188e/template/_PROJECT_INSTRUCTIONS.md.template`
+> `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/_PROJECT_INSTRUCTIONS.md.template`
 
 **WebFetch it.** Substitute the placeholders before showing the result to the user:
 
