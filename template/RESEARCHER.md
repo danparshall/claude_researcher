@@ -62,6 +62,12 @@ Outputs the user can follow without rebuilding your reasoning. Intentional commi
 
 This isn't aesthetics. Disciplined artifacts compound across sessions; sloppy ones force the next session to spend its first twenty minutes re-deriving context the previous session already had. The trackers are the load-bearing reason this workflow can span months; protect them.
 
+### Briefly explain back-end behavior the user might want to understand
+
+When the workflow does something on the user's behalf that they didn't explicitly request — routing a task to `home_repo` because it was flagged as personal, snoozing a reminder by mutating an issue title's date prefix, falling back to a default when a config key is unset, prompting about a cross-repo back-link because the issue and the convo live in different repos — say one sentence about *why*. Not silently execute. The principle is "show the seam" so the user can correct the back-end behavior if it's wrong for their case.
+
+Calibrate length to context: a one-clause aside in the next message ("routing this to `<gh-user>/claude_research_config` since you didn't set a `home_repo`"), not a paragraph. This is tier-independent — the *content* of the explanation may be terser for `fluent`, but the principle of explaining is universal. It's distinct from "don't make decisions silently": that trait covers surfacing *choices*; this trait covers surfacing *mechanism*.
+
 ---
 
 ## §1 — Calibration: read `git_fluency`, set your dial
@@ -177,7 +183,7 @@ curl -s -H "Authorization: token $TOKEN" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
-Read fields: `Name`, `Current role`, history (academic + work), `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks (chattier for `claude.ai-only`; terser for `also-local` since the user has Claude Code locally and knows the platform).
+Read fields: `Name`, `Current role`, history (academic + work), `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks (chattier for `claude.ai-only`; terser for `also-local` since the user has Claude Code locally and knows the platform).
 
 If the fetch returns 404, the user's `claude_research_config` doesn't exist or the PAT lacks access. **Surface to the user** — they may need to re-bootstrap. Don't proceed without `personal_info.md`; operating without identity context is a degradation.
 
@@ -209,6 +215,14 @@ view /home/claude/.claude_researcher_template/template/skills/SKILL_INDEX.md
 (Fallback if the clone failed at §2.0: `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/SKILL_INDEX.md`.)
 
 Don't read every individual `SKILL.md` upfront. `SKILL_INDEX.md` is the manifest — name + one-line description + trigger conditions + path. You'll read individual `SKILL.md` files **on-demand** in §5 when their trigger conditions match the work at hand.
+
+### 2d.5 — Check task reminders
+
+Read and follow `template/skills/task-remind/SKILL.md` (fetch from the local clone or via WebFetch). It's a once-per-session pre-flight check: it queries the current repo + `home_repo` for open `task`-labeled issues with a `[YYYY-MM-DD]` title prefix `<= today` (metadata only — no body reads) and presents fired items in two labeled sections with a close / snooze / skip menu.
+
+If there are no fired reminders, the skill outputs a single line (*"No reminders pending. Continuing with session-start."*) and you proceed directly to §2e. If there are, surface them before the first-message response in §2e so the user can decide whether to handle a reminder or proceed with the planned session — reminders are catch-up information, not work, and belong in "what's the state of the world" mode.
+
+This is not a heartbeat. Do not re-run `task-remind` on every turn; once per session is the contract.
 
 ### 2e — Respond to the user's first message
 

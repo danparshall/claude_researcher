@@ -246,19 +246,20 @@ Record as `<NAME>`, `<ROLE>`, `<ACADEMIC_HISTORY>` + `<WORK_HISTORY>` (split the
 
 Record as `<PROGRAMMING_LANGUAGES_AND_TOOLS>`, `<RESEARCH_AREAS>`, `<INTERACTION_STYLE_NOTES>`.
 
-### Batch 3 — Operating preferences (3 fields)
+### Batch 3 — Operating preferences (4 fields)
 
-> "Three preference questions:
+> "Four preference questions:
 >
 > 1. **Git** — the program used to track all changes in your project is called *git*. Are you familiar with it? (If yes, briefly — daily user? occasional? web-UI only? If no, no problem — I'll explain things as we go.)
 > 2. **Mode** — pick one: **claude.ai-only** (you'll work on this only through the web UI; no Claude Code locally), or **also-local** (you have Claude Code installed somewhere and might clone the project and work locally too). Repos get created identically either way; this just calibrates how chatty I'll be later about claude.ai-specific quirks.
-> 3. **Extra paper-source domains** — *(this will not be relevant if your network setting is allow-all — skip it then)* — besides any paper sites you already added back in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)
+> 3. **Home repo for personal tasks** — want me to default your *personal tasks* (the ones not tied to a research project, like "remind me about the dentist") to a separate repo? I'll use `<USERNAME>/claude_research_config` (the config repo we're setting up) if you don't specify. Hit Enter to accept that default, or name a different repo as `owner/repo`.
+> 4. **Extra paper-source domains** — *(this will not be relevant if your network setting is allow-all — skip it then)* — besides any paper sites you already added back in Step 1, any other domains you'll routinely download papers from? If yes, name them; we'll add them to your `domain_allowlist.txt`. (Reminder: if you're using a domain allow-list, each new domain you add later requires a fresh chat to pick up — better to mention them now than to repeatedly restart.)
 >
 > It's okay if you don't want to answer right now, and remember you can always ask me for explanations."
 
 Classify the user's git answer internally into one of three tiers and record it as `<GIT_FLUENCY>`: **novice** (web UI only, or no familiarity yet), **occasional** (uses `git clone` / `git push` from the command line sometimes), or **fluent** (uses git daily, including merge / rebase / cherry-pick). The downstream tier dial in `RESEARCHER.md` §1 reads this field; the elicitation above is concept-checking rather than menu-pick on purpose, but the recorded value stays in the existing schema.
 
-Also record `<MODE>` and any extra paper-source domains.
+Record `<MODE>`, `<HOME_REPO>`, and any extra paper-source domains. For `<HOME_REPO>`, the default (substitute `<USERNAME>` into `<USERNAME>/claude_research_config`) applies if the user hits Enter or doesn't address Q3 explicitly. If they push back with *"what does that mean?"* or similar, give the LIGHT explanation (per `RESEARCHER.md` §0): *"The `task-create` and `task-remind` skills will route stuff like 'remind me about the dentist next month' to this repo, so it doesn't clutter your research project's issue list. Default is the same config repo we're setting up; you can override if you have a dedicated tasks repo."* Don't make this a hard-required question — silence is consent for the default.
 
 After all three batches, summarize the full interview to the user in one paragraph. Get explicit confirmation before proceeding.
 
@@ -380,11 +381,11 @@ If the file already exists (e.g., `auto_init:true` created a `README.md`), the P
 
 #### `personal_info.md`
 
-Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
+Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/e8e3f226e86422bdc9acf32c097ebd705c148f42/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
 
 #### `domain_allowlist.txt`
 
-Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
+Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/e8e3f226e86422bdc9acf32c097ebd705c148f42/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
 
 #### `README.md`
 
@@ -501,7 +502,7 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 
 The canonical Project Instructions text lives at:
 
-> `https://raw.githubusercontent.com/danparshall/claude_researcher/8c7320818e173d6ff0325336a592ec803a9907d8/template/_PROJECT_INSTRUCTIONS.md.template`
+> `https://raw.githubusercontent.com/danparshall/claude_researcher/e8e3f226e86422bdc9acf32c097ebd705c148f42/template/_PROJECT_INSTRUCTIONS.md.template`
 
 **WebFetch it.** Substitute the placeholders before showing the result to the user:
 

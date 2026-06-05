@@ -2,7 +2,7 @@
 
 This is the manifest of skills available in `claude_researcher`. The runtime agent fetches this file at session start (per `RESEARCHER.md` §2d) to know what skills exist and when to use them. Individual `SKILL.md` files are **fetched on-demand** when their trigger conditions match — don't load all of them upfront.
 
-**Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle** and **Knowledge-management** skills are Researcher-authored, shipped with a `## Runtime detection` header that probes both environments affirmatively: `$IS_SANDBOX` / `/mnt/skills/public` for claude.ai, `$CLAUDECODE=1` for Claude Code, with an `unknown` branch that surfaces misconfiguration instead of silently guessing. In claude.ai mode the agent translates Claude-Code idioms — `git add` / `git commit` / `git push`, and local paths like `/Users/<user>/.claude/skills/...` — into claude.ai-equivalents (REST `write_update` / `write_new` recipes from Project Instructions, and `raw.githubusercontent.com` URLs fetched via WebFetch). Proper REST adaptation — embedding the recipes inline rather than relying on translation — lands in [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md) Waves 2-3. The **Writing & document workflow** skills are AITaxBID-sourced (from Andrea Lopez-Luzuriaga's kit): `iterative-writing-workflow` is pure methodology with no git/CLI operations, and `branch-document-review` carries REST recipes (the GitHub refs/merges/compare endpoints) inline where they're needed — so neither needs the runtime-detection banner.
+**Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle**, **Knowledge-management**, and **Task management** skills are Researcher-authored, shipped with a `## Runtime detection` header that probes both environments affirmatively: `$IS_SANDBOX` / `/mnt/skills/public` for claude.ai, `$CLAUDECODE=1` for Claude Code, with an `unknown` branch that surfaces misconfiguration instead of silently guessing. In claude.ai mode the agent translates Claude-Code idioms — `git add` / `git commit` / `git push`, the `gh` issues/search/label/repo/api verbs the task-skills use, and local paths like `/Users/<user>/.claude/skills/...` — into claude.ai-equivalents (REST `write_update` / `write_new` recipes from Project Instructions, the `POST/PATCH/GET /repos/{owner}/{repo}/issues` and `GET /search/issues` endpoints, and `raw.githubusercontent.com` URLs fetched via WebFetch). Proper REST adaptation — embedding the recipes inline rather than relying on translation — lands in [`docs/plans/02_skill_ports.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/02_skill_ports.md) Waves 2-3. The **Writing & document workflow** skills are AITaxBID-sourced (from Andrea Lopez-Luzuriaga's kit): `iterative-writing-workflow` is pure methodology with no git/CLI operations, and `branch-document-review` carries REST recipes (the GitHub refs/merges/compare endpoints) inline where they're needed — so neither needs the runtime-detection banner. The **Task management** triplet (`task-create`, `task-remind`, `task-triage`) is the newest addition (Plan 09, 2026-06-04), pinned to dotfiles `8b619b5`.
 
 ---
 
@@ -63,6 +63,27 @@ Skills are grouped by lifecycle role.
 
 - **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-papers/SKILL.md`
+
+---
+
+## Task management skills
+
+These three skills share a single GitHub-Issues backend (issues with the `task` label, `[YYYY-MM-DD]` date prefix in the title encoding fire-date for reminder-style items). `home_repo` from `personal_info.md` routes "personal" tasks away from the current research repo; default is `<gh-user>/claude_research_config`.
+
+### task-create
+
+- **Trigger:** user says "add a task," "capture this," "track this for later," "remind me later," "add a reminder," "track this with a date," or similar. Converts the TODO into a tracked GH issue with optional `[YYYY-MM-DD]` fire-date prefix. Replaces the older `capture-task`.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/task-create/SKILL.md`
+
+### task-remind
+
+- **Trigger:** session-start auto-load (wired into `RESEARCHER.md` §2d.5). Queries current repo + `home_repo` for open issues with a `[YYYY-MM-DD]` title prefix `<= today`. Reads metadata only — no body fetches. Also responds to "check reminders," "what's pending," "/task-remind."
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/task-remind/SKILL.md`
+
+### task-triage
+
+- **Trigger:** user says "task-triage," "triage," "what should I work on," "/task-triage," or wants a cross-repo view of pending work. Cross-repo open-task inventory + conversational priority discussion. Read-only (does not modify issues). Renamed from `triage-tasks`.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/task-triage/SKILL.md`
 
 ---
 
