@@ -56,7 +56,7 @@ gh api user --jq .login                                # current GH user
 gh repo view --json nameWithOwner -q .nameWithOwner    # current repo (or fails if no remote)
 ```
 
-Read `home_repo` from `personal_info.md` (typically `~/code/claude_research_config/personal_info.md` or wherever the user's config repo is cloned). Look for a line shaped `home_repo: <owner>/<repo>`. If the file is missing or the key is absent, default to `<gh-user>/claude_research_config` derived from the GH user.
+Read `home_repo` from `personal_info.md` (typically `~/code/claude_research_config/personal_info.md` or wherever the user's config repo is cloned). Look for the `Home repo:` field under `## Operating preferences` — formatted as `- **Home repo:** <owner>/<repo>`, matching sibling fields like `Git fluency` and `Mode`. If the file is missing or the field is absent, default to `<gh-user>/claude_research_config` derived from the GH user.
 
 If the current repo and `home_repo` are the same (the user is *in* their config repo), query once and present one section instead of two. Don't double-fetch the same repo.
 

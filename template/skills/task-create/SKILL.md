@@ -71,7 +71,7 @@ ls -t "docs/active/$BRANCH/convos/"*.md 2>/dev/null | head -1
 | User says "my personal list" / "personal task" / "real-world task"   | Same: `home_repo` or fallback                                                               |
 | User overrides with a specific repo                                  | What they said                                                                              |
 
-**Reading `home_repo`:** look in `personal_info.md` (typically `~/code/claude_research_config/personal_info.md` or wherever the user's config repo is cloned) for a line shaped `home_repo: <owner>/<repo>`. If the file is missing or the key is absent, derive `<gh-user>` from `gh api user --jq .login` and use `<gh-user>/claude_research_config` as the default. A missing `personal_info.md` is not a hard failure — just fall through to the default.
+**Reading `home_repo`:** look in `personal_info.md` (typically `~/code/claude_research_config/personal_info.md` or wherever the user's config repo is cloned) for the `Home repo:` field under `## Operating preferences` — formatted as `- **Home repo:** <owner>/<repo>`, matching sibling fields like `Git fluency` and `Mode`. If the file is missing or the field is absent, derive `<gh-user>` from `gh api user --jq .login` and use `<gh-user>/claude_research_config` as the default. A missing `personal_info.md` is not a hard failure — just fall through to the default.
 
 When falling through to a default, briefly say so to the user (one clause, not a paragraph) — e.g., *"Routing this to `<gh-user>/claude_research_config` since you didn't set a `home_repo`."* That way they know where it landed without you stopping to confirm. (See `RESEARCHER.md` §0 — LIGHT explanation of back-end behavior.)
 

@@ -183,7 +183,7 @@ curl -s -H "Authorization: token $TOKEN" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
-Read fields: `Name`, `Current role`, history (academic + work), `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks (chattier for `claude.ai-only`; terser for `also-local` since the user has Claude Code locally and knows the platform).
+Read fields: `Name`, `Current role`, history (academic + work), `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks (chattier for `claude.ai-only`; terser for `also-local` since the user has Claude Code locally and knows the platform).
 
 If the fetch returns 404, the user's `claude_research_config` doesn't exist or the PAT lacks access. **Surface to the user** — they may need to re-bootstrap. Don't proceed without `personal_info.md`; operating without identity context is a degradation.
 

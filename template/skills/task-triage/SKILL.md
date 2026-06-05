@@ -81,7 +81,7 @@ Group by repository, sorted with most recently updated first within each group. 
 
 Compute `<age>` as days since `createdAt`, `<ago>` as days since `updatedAt`. If they're the same day, show just one.
 
-**Render the `[YYYY-MM-DD]` prefix as part of the title** when the issue is date-prefixed — don't strip it (that's what `task-remind` does for its surface), and don't filter date-prefixed items out (Plan 09 Decision 6: they're tasks too; the user wants the full view in `task-triage`). The prefix carries useful triage signal — "this one's already overdue," "this one fires next week" — without needing a separate column.
+**Render the `[YYYY-MM-DD]` prefix as part of the title** when the issue is date-prefixed — don't strip it (that's what `task-remind` does for its surface), and don't filter date-prefixed items out: they're tasks too, and the user wants the full view here. The prefix carries useful triage signal — "this one's already overdue," "this one fires next week" — without needing a separate column.
 
 Parse each issue body and capture the `Convo:` and `Branch:` references into your working memory — but do **not** auto-fetch the convo docs. They get fetched only when the user wants to discuss a specific issue in depth (Step 5).
 
@@ -154,4 +154,4 @@ Do **not** mutate any issues. Do **not** create a "today" or "this week" issue. 
 
 **Filtering out date-prefixed items**
 - Problem: The agent treats `[YYYY-MM-DD]`-prefixed issues as "reminders, not tasks" and excludes them from the triage inventory. The user then can't see snoozed reminders or upcoming fires when deciding what to work on.
-- Fix: Date-prefixed items stay in the inventory inline with non-dated tasks (Plan 09 Decision 6). Render the prefix as part of the title so the date is visible; don't filter, don't separate into a dedicated section. The fired-vs-pending split is `task-remind`'s job at session-start; `task-triage` is the full view.
+- Fix: Date-prefixed items stay in the inventory inline with non-dated tasks. Render the prefix as part of the title so the date is visible; don't filter, don't separate into a dedicated section. The fired-vs-pending split is `task-remind`'s job at session-start; `task-triage` is the full view.
