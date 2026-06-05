@@ -66,7 +66,7 @@ Walk them through. **Note for you, the agent:** the claude.ai Settings UI for th
 >
 > Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress' or similar. **Turn it on.**
 >
-> The easiest setting is to allow everything — this controls Anthropic's server-side virtual machine (the one Claude uses for this chat), not your computer, so the broad setting doesn't open anything up on your local machine or behind your work firewall. After bootstrap I can set up a reminder for you to revisit this setting in a week if you want to tighten it later — for now, the easiest path is to allow everything.
+> The easiest setting is to allow everything — this controls Anthropic's server-side virtual machine (the one Claude uses for this chat), not your computer, so the broad setting doesn't open anything up on your local machine or behind your work firewall. If you go with allow-all, after bootstrap I'll file a reminder issue for you to revisit this setting in a week — the `task-remind` skill will surface it automatically at the start of your next sessions, so you can decide whether to tighten things up once you've gotten a feel for the workflow.
 >
 > Depending on your account and plan, the UI you see varies:
 >
@@ -562,6 +562,103 @@ Help the user troubleshoot. Iterate until validation passes.
 ---
 
 ## Step 10 — Done
+
+### Egress-revisit reminder (first-time bootstrap only)
+
+If this is a first-time bootstrap (Step 3 returned 404 and Step 4 ran), file a one-week reminder so the user revisits their egress setting via the `task-remind` skill — operationalizes the promise made in §1b.
+
+If the egress was configured inline in *this* chat, you know what the user picked. If the egress was configured in a prior chat (§1c hand-off), the choice didn't persist across the restart; ask:
+
+> "Quick check: back when you turned on network egress, did you go with 'allow everything', set a restrictive domain allow-list, or you're not sure? I'll file a one-week revisit reminder if you went with allow-all."
+
+**File the reminder only on confirmed allow-all.** If the user picked a domain allow-list, or isn't sure, skip the rest of this sub-step — and if they're unsure, tell them they can file the reminder themselves anytime by saying *"remind me to revisit my egress setting in a week"* (the `task-create` skill handles it). This matches §1b's promise, which was specifically conditional on the allow-all choice.
+
+On confirmed allow-all:
+
+```bash
+TODAY=$(date -u +%Y-%m-%d)
+FIRE_DATE=$(date -u -d '+7 days' +%Y-%m-%d)
+# <HOME_REPO> from Step 4 Batch 3 (defaults to "$USERNAME/claude_research_config" if user accepted the default)
+HOME_REPO="<HOME_REPO>"
+
+# 1. Verify <HOME_REPO> exists. If the user customized HOME_REPO to a not-yet-existing repo in Step 4 Batch 3,
+# the label + issue POSTs below would 404 silently; better to detect and surface up front.
+REPO_HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
+  -H "Authorization: token $TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$HOME_REPO")
+
+if [ "$REPO_HTTP" != "200" ]; then
+  # Tell the user: "Skipping the egress-revisit reminder — `$HOME_REPO` returned HTTP $REPO_HTTP, so I can't file there. You can file it yourself anytime by saying 'remind me to revisit my egress setting in a week.'"
+  # Then skip the rest of this sub-step.
+  echo "skip-reminder: HOME_REPO check returned $REPO_HTTP"
+else
+  # 2. Dedupe — if an open egress-revisit reminder already exists in <HOME_REPO>, don't file a second one.
+  # (Returning-user paths shouldn't reach this sub-step at all, but the gate is verbal; this is the programmatic backstop.)
+  EXISTING=$(curl -s \
+    -H "Authorization: token $TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    "https://api.github.com/repos/$HOME_REPO/issues?state=open&labels=task&per_page=100" \
+    | python3 -c "
+import json, sys
+try:
+    issues = json.load(sys.stdin)
+    print(any('Revisit claude.ai network egress' in (i.get('title') or '') for i in issues))
+except Exception:
+    print(False)
+")
+
+  if [ "$EXISTING" = "True" ]; then
+    # Tell the user: "An open egress-revisit reminder already exists in `$HOME_REPO`; not filing a duplicate."
+    echo "skip-reminder: existing open reminder found"
+  else
+    # 3. Ensure the `task` label exists in <HOME_REPO> (idempotent — 422 if it already does, which is fine; the issue create still works).
+    curl -sX POST \
+      -H "Authorization: token $TOKEN" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/$HOME_REPO/labels" \
+      -d '{"name":"task","color":"0052CC","description":"Tracked todo (task-create skill)"}'
+
+    # 4. File the reminder issue. Body built via heredoc + python3 json.dumps to avoid shell-escaping the prose.
+    export TODAY FIRE_DATE
+    BODY=$(cat <<EOF
+Filed by claude_researcher bootstrap on ${TODAY}. You chose the broad "allow all" option for claude.ai network egress during bootstrap.
+
+Now that you have used the workflow for a bit, you may want to tighten this to a domain allow-list. The minimum domains for the claude_researcher workflow are: \`api.github.com\`, \`codeload.github.com\`, \`github.com\`, \`raw.githubusercontent.com\`, plus any paper sources you regularly download from.
+
+The \`task-remind\` skill will surface this reminder automatically at the start of your next session on or after ${FIRE_DATE}.
+EOF
+)
+    export BODY
+
+    RESPONSE=$(python3 -c "import json, os; print(json.dumps({'title': f'[{os.environ[\"FIRE_DATE\"]}] Revisit claude.ai network egress setting', 'body': os.environ['BODY'], 'labels': ['task']}))" \
+      | curl -sX POST \
+        -H "Authorization: token $TOKEN" \
+        -H "Accept: application/vnd.github+json" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "https://api.github.com/repos/$HOME_REPO/issues" \
+        -d @-)
+
+    # 5. Extract issue URL. Wrap in try/except so a non-JSON response (transient 5xx, HTML error page from an edge proxy, empty body) falls back gracefully instead of crashing the bash recipe.
+    ISSUE_URL=$(printf '%s' "$RESPONSE" | python3 -c "
+import json, sys
+fallback = '(URL parse failed; check $HOME_REPO Issues tab)'
+try:
+    print(json.load(sys.stdin).get('html_url', fallback))
+except Exception:
+    print(fallback)
+")
+    unset BODY TODAY FIRE_DATE
+  fi
+fi
+```
+
+Tell the user the reminder landed (or surface the skip reason from the bash block, if any):
+
+> "Filed the egress-revisit reminder as `<ISSUE_URL>`. It'll surface automatically at the start of your next research session on or after `<FIRE_DATE>` — close it then or whenever you've decided whether to tighten the setting."
+
+### Closing message
 
 Tell the user:
 
