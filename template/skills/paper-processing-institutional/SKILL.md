@@ -21,7 +21,7 @@ fi
 
 Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
 
-**If `claude.ai sandbox`:** translate every `git add` / `git commit` / `git push` in this skill into the REST `write_update` / `write_new` recipes from your Project Instructions. Translate local paths like `/Users/<user>/.claude/skills/...` into `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/...` URLs (fetched via WebFetch).
+**If `claude.ai sandbox`:** translate every `git add` / `git commit` / `git push` and any other file write in this skill into the REST `write_update` / `write_new` recipes from your Project Instructions. Translate local paths like `/Users/<user>/.claude/skills/...` into `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/...` URLs (fetched via WebFetch).
 
 **If `Claude Code`:** follow the skill body as-is.
 
@@ -54,7 +54,7 @@ This skill handles the Protocol B workflow for institutional-style reports. Tria
 
 **Filename convention.** Read `paper_naming.institutional_format` from `personal_info.md`, default `{Institution}_{ShortTitle}_{Year}.pdf`. Institution = short acronym, lowercase (`imf`, `oecd`, `un`, `idb`, `caf`, `pct`, `g20`, `g7`); for governments, country + agency in camelCase (`brazilRfb`, `mexicoSat`, `chileSii`, `peruSunat`). ShortTitle = two descriptive words in camelCase. Examples: `imf_g20RevenueAdmin_2025.pdf`, `oecd_taxAdmin30_2023.pdf`, `worldBank_taxCapacity_2024.pdf`.
 
-If `paper_naming.institutional_format` is unset, fall back to the default above.
+**First-use prompt.** If `paper_naming.institutional_format` is unset (no `- **Paper naming (institutional):**` line in `personal_info.md`'s "Operating preferences" section), treat this as a first-use case. Show the default plus one example (`imf_g20RevenueAdmin_2025.pdf`) and ask: "Use this format, or give me a different one? (Enter to accept the default.)" Persist the chosen value as `- **Paper naming (institutional):** <value>` appended after the last existing `- **...:**` line in "Operating preferences"; if the line already exists (race with a concurrent edit), leave it as-is. `personal_info.md` lives in the user's config repo (`claude_research_config` by default). The same format is reused for every subsequent institutional report; ask once, never again.
 
 **Multi-institution co-publication.** Lead with the principal author institution (the one whose staff produced the document — usually named on the cover). If the document is co-branded by a working group whose members include several institutions, use the working group's acronym (e.g., `pct_capacityDev_2025` rather than naming all four PCT members). When unsure, ask the user.
 

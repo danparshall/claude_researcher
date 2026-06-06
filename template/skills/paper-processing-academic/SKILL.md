@@ -21,7 +21,7 @@ fi
 
 Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
 
-**If `claude.ai sandbox`:** translate every `git add` / `git commit` / `git push` in this skill into the REST `write_update` / `write_new` recipes from your Project Instructions. Translate local paths like `/Users/<user>/.claude/skills/...` into `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/...` URLs (fetched via WebFetch).
+**If `claude.ai sandbox`:** translate every `git add` / `git commit` / `git push` and any other file write in this skill into the REST `write_update` / `write_new` recipes from your Project Instructions. Translate local paths like `/Users/<user>/.claude/skills/...` into `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/...` URLs (fetched via WebFetch).
 
 **If `Claude Code`:** follow the skill body as-is.
 
@@ -54,7 +54,7 @@ This skill handles the Protocol A workflow for academic-style papers. Triage to 
 
 **Filename convention.** Read `paper_naming.academic_format` from `personal_info.md`, default `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Common-surname disambiguation: render `{Surname}F` (surname + first-name initial, no separator) when collisions are likely — Anglo surnames (Smith, Jones, Patel, Singh) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato; use judgment). For solo authors, single surname only (drop the duplicate). `{Slug}` is two-or-three descriptive words in kebab-case. Examples: `Acemoglu_Restrepo__2026--ai-jobs.pdf`, `SmithJ_2024--stress-sleep.pdf`, `Vaswani_Polosukhin__2017--attention-is-all-you-need.pdf`.
 
-If `paper_naming.academic_format` is unset, fall back to the default above.
+**First-use prompt.** If `paper_naming.academic_format` is unset (no `- **Paper naming (academic):**` line in `personal_info.md`'s "Operating preferences" section), treat this as a first-use case. Show the default plus one example (`Acemoglu_Restrepo__2026--ai-jobs.pdf`) and ask: "Use this format, or give me a different one? (Enter to accept the default.)" Persist the chosen value as `- **Paper naming (academic):** <value>` appended after the last existing `- **...:**` line in "Operating preferences"; if the line already exists (race with a concurrent edit), leave it as-is. `personal_info.md` lives in the user's config repo (`claude_research_config` by default). The same format is reused for every subsequent academic paper; ask once, never again.
 
 **Naming ambiguity.** If the naming is ambiguous (e.g., no clear publication year, multiple equally-eligible first-author orderings), ask the user before proceeding.
 
