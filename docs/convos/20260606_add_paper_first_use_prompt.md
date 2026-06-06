@@ -50,3 +50,34 @@ No data/figures produced this session; the deliverable is the two-file SKILL.md 
 - Convo-name handshake (§2e) was missed at session start; convo named at finish-convo time as `add_paper_first_use_prompt` to match the branch.
 - Dan's three pieces of misrecall about the dotfiles/template relationship were all defensible — each described a mechanism that *does* exist somewhere in the system, just not the one in play for `add-paper`. The investigation produced clean answers because the actual mechanisms are documented (provenance pins in frontmatter, install.sh source paths, STATUS Phase 6.1 note); future sessions wanting to navigate this should grep for `nori_researcher_source:` and read `install.sh`'s symlink blocks directly.
 - TaskCreate harness reminder fired four times this session; ignored every time. Each piece of work (lookup, investigation, two-file edit, commit/push) was self-contained and well-tracked by the conversation itself; harness tasks would have added overhead without surfacing.
+
+## Post-finish-convo: reviewer pass + PR
+
+After `finish-convo` (commits `b92d12e` skill change + `5ac4b02` convo/STATUS), ran `finishing-a-development-branch` with the docs-branch heuristic from STATUS 2026-06-05: skipped `/simplify`, `/code-simplifier`, tests / lint / format / typecheck, webapp demo, and the `pr-review-guide` skill spawn (drafted PR body inline given small scope); ran `nori-code-reviewer` as the load-bearing step.
+
+### Reviewer findings addressed (commit `9f9d006`)
+
+- **M1 — runtime-detection block too narrow.** The block at lines 8-28 of each per-protocol skill enumerated only git verbs for sandbox REST translation, not arbitrary file writes — but the new persist call needs REST translation in sandbox too. Fix: generalize line 24 from "translate every `git add` / `git commit` / `git push` in this skill" to "translate every `git add` / `git commit` / `git push` and any other file write in this skill". Reviewer offered two options: (a) generalize the block, (b) narrow parenthetical at the persist site. Picked (a) on aging grounds — any future skill-body addition with a file write inherits the translation. Applied only to the two files in this PR's diff; other skills carrying the same block don't currently have non-git file writes to translate. If they get one, that's their PR.
+- **M2 — persist mechanic under-specified.** Original wording "Persist as `- **Paper naming (X):** <value>` under 'Operating preferences'" left append-vs-update semantics and field ordering ambiguous. Fix: "appended after the last existing `- **...:**` line in 'Operating preferences'; if the line already exists (race with a concurrent edit), leave it as-is." Race-safe, explicit ordering. Two agents in two runtimes can't invent different conventions.
+- **L1 — "first paper" over-claims user intent.** Operationally harmless (the prompt still fires correctly) but a downstream agent reasoning about user intent might over-trust the inference. Fix: "this is the user's first academic paper" → "treat this as a first-use case." Operationally identical, doesn't claim what's behind the absent field (counter-examples: deleted line, fresh checkout).
+
+### Reviewer findings dismissed
+
+- **LOW — em-dash + "(Enter to accept the default.)" parenthetical.** Reviewer noted "press Enter" might not literally apply in all sandbox harnesses. Agents reading skills generalize "press Enter" as "answer affirmatively" — not worth changing.
+- **LOW — STATUS entry duplicates convo prose.** Reviewer noted some repos lean toward tight STATUS summaries; the bullet here is ~1100 words. **Kept dense intentionally** — this repo's existing 2026-06-04 / 2026-06-05 entries follow the same pattern (full file paths, commit SHAs, process findings inline). The STATUS "Recent sessions" section is the primary fresh-session lookup surface; density is a feature, not a bug.
+
+### PR description additions per reviewer INFO
+
+- **Dotfiles asymmetry** flagged in PR #22's Risk Highlights — "If the documented 'pull from dotfiles by SHA' pattern were ever invoked here, the synthesis would be lost — that's a known asymmetry, not introduced by this PR."
+- **Sandbox-runtime resolution mechanism** flagged in PR #22's Risk Highlights — explicit call-out that commit `9f9d006`'s M1 fix is what makes the new persist call REST-translatable.
+
+### PR state + procedural decisions
+
+- **PR #22** created OPEN, MERGEABLE, mergeStateStatus CLEAN. No CI configured for this repo (matches PR #19 / #20 pattern). https://github.com/danparshall/claude_researcher/pull/22
+- **Skipped step 14 of `finishing-a-development-branch`** (auto-`/loop` polling every 5 min for unresolved review threads). Dan's call: small docs PR he's about to review himself; the loop would auto-respond to his review comments as they land, which isn't the workflow here. The /loop pattern is designed for SWE PRs with reviewer back-and-forth, not single-author docs touch-ups.
+- **Skipped `pr-review-guide` skill spawn** (step 9 of `finishing-a-development-branch`). For a 3-commit, two-file, markdown-only docs PR, the guide would have been brief and the inline draft covered the same ground (summary / risk highlights / suggested review path / test plan / reviewer notes).
+
+### Process findings (additions)
+
+- The `chain-hook-maintenance` block-on-`\n#`-in-heredoc fired during PR creation: the initial `gh pr create --body "$(cat <<'EOF' ... EOF)"` form contained `\n## Summary` headers which tripped the matcher. Routed around via Write-then-run (body to `/tmp/pr_body_add_paper_first_use.md`, then `gh pr create --body-file <path>`). This is the documented pattern; worked first try. Worth noting as another concrete instance for the chain-matcher curator's corpus.
+- The docs-branch heuristic ("skip TLP/SWE steps, run `nori-code-reviewer`") held up well a second time. PR #19, PR #20, now PR #22 — three consecutive applications. Codified-enough to deserve promotion from the 2026-06-05 STATUS process-finding to either RESEARCHER.md or `finishing-a-development-branch`'s own SKILL.md as an explicit docs-branch sub-flow. Not done in this PR (scope), but worth filing.
