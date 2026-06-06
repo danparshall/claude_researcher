@@ -54,7 +54,7 @@ This skill handles the Protocol A workflow for academic-style papers. Triage to 
 
 **Filename convention.** Read `paper_naming.academic_format` from `personal_info.md`, default `{FirstAuthor}_{LastAuthor}__{Year}--{Slug}.pdf`. Common-surname disambiguation: render `{Surname}F` (surname + first-name initial, no separator) when collisions are likely — Anglo surnames (Smith, Jones, Patel, Singh) and East Asian (Wang, Li, Chen, Zhang, Liu, Kim, Park, Choi, Tanaka, Suzuki, Sato; use judgment). For solo authors, single surname only (drop the duplicate). `{Slug}` is two-or-three descriptive words in kebab-case. Examples: `Acemoglu_Restrepo__2026--ai-jobs.pdf`, `SmithJ_2024--stress-sleep.pdf`, `Vaswani_Polosukhin__2017--attention-is-all-you-need.pdf`.
 
-If `paper_naming.academic_format` is unset, fall back to the default above.
+**First-use prompt.** If `paper_naming.academic_format` is unset (no `- **Paper naming (academic):**` line in `personal_info.md`'s "Operating preferences" section), this is the user's first academic paper. Show the default plus one example (`Acemoglu_Restrepo__2026--ai-jobs.pdf`) and ask: "Use this format, or give me a different one? (Enter to accept the default.)" Persist the chosen value as `- **Paper naming (academic):** <value>` under "Operating preferences" in `personal_info.md` (located in the user's config repo — `claude_research_config` by default). The same format is reused for every subsequent academic paper; ask once, never again.
 
 **Naming ambiguity.** If the naming is ambiguous (e.g., no clear publication year, multiple equally-eligible first-author orderings), ask the user before proceeding.
 
