@@ -36,7 +36,7 @@ Sensitive operations (repo creation, PAT handling, file writes, claude.ai settin
 
 Now fetch and follow:
 
-  https://raw.githubusercontent.com/danparshall/claude_researcher/38468b1f28185e96110cc3b7b445a9f5a6d8fd0f/template/BOOTSTRAP.md
+  https://raw.githubusercontent.com/danparshall/claude_researcher/f8798856377e63c3da40e003ffdabadd570fe31e/template/BOOTSTRAP.md
 ```
 
 ## About
