@@ -1,5 +1,7 @@
 # claude_researcher Bootstrap
 
+> **STOP — model check (do this first).** This workflow is supported for **Opus 4.7 only**. If you are **Opus 4.8**, stop now: do not run any step below. Tell the user that this workflow is not supported on Opus 4.8 and ask them to switch models to Opus 4.7 before continuing.
+
 You are an agent on claude.ai, in a fresh chat the user has just opened. They pasted a prompt that pointed you at this file and asked you to follow it. You're about to walk them through a one-time setup that creates two GitHub repos (their personal config + their first research project) and configures claude.ai to talk to those repos. After this bootstrap, every research session is a "open new chat in the Project, say what we're working on, go" loop.
 
 ## How this document is structured
@@ -133,9 +135,9 @@ If they need to create one, walk them through:
 > "Open a new browser tab to: https://github.com/settings/personal-access-tokens/new
 >
 > - **Token name:** `claude_researcher` (or any name you'll recognize).
-> - **Expiration:** 90 days is reasonable; pick longer if you're confident in your memory.
+> - **Expiration:** 90 days. Heads-up — this is a security choice, not just a memory tradeoff. This PAT is going into your claude.ai Project Instructions, which means it'll be stored on Anthropic's servers alongside your chats. GitHub also offers **No expiration** (never rotate, ever), but that means if Anthropic's chat logs were ever compromised, or the PAT leaked some other way (accidental commit, screenshot, copy-paste into the wrong window), your repos stay vulnerable until you notice and manually revoke. 90 days auto-expires the token before that window gets long. Pick longer only if you've weighed that tradeoff against your own threat model.
 > - **Repository access:** **All repositories**. (Fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
-> - **Permissions:** click **Add permissions**, then use these values — **Administration**: Read and write; **Contents**: Read and write; **Metadata**: Read-only (default).
+> - **Permissions:** click **Add permissions**, then use these values — **Administration**: Read and write; **Contents**: Read and write; **Issues**: Read and write; **Pull requests**: Read and write; **Metadata**: Read-only (default).
 > - Click **Generate token** at the bottom. Copy the value immediately — GitHub won't show it to you again. It will start with `github_pat_`."
 
 **Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below). Administration is load-bearing: without it, repo creation in Step 6 will fail with 403 Forbidden.
@@ -187,6 +189,8 @@ Don't volunteer this section. Only read it out if the user asks something like "
 
 - **Administration: Read and write** — lets Claude create new repos on your behalf. This is the most-skipped one; without it, Step 6 fails with a 403 Forbidden error. It's the reason we double-check it just above.
 - **Contents: Read and write** — lets Claude read and write the files inside your repos. Every research session reads things like `STATUS.md` and writes things like the convo summary at the end; both run through this permission.
+- **Issues: Read and write** — lets Claude file and update issues in your repos. Used by the `task-create` / `task-remind` skills for reminder tracking (including the egress-revisit reminder this bootstrap files at the end), and for filing bug reports against the upstream `claude_researcher` repo when you ask.
+- **Pull requests: Read and write** — lets Claude open PRs against your research repos. Used when a research line wraps up and gets merged back to `main` via the `finishing-a-research-branch` skill.
 - **Metadata: Read-only** — basic info about your repos (when they were created, default branch, that kind of thing). GitHub auto-enables this when you grant any other permission; you don't need to touch it.
 
 ---
