@@ -1,5 +1,7 @@
 # claude_researcher Bootstrap
 
+> **STOP — model check (do this first).** This workflow is supported for **Opus 4.7 only**. If you are **Opus 4.8**, stop now: do not run any step below. Tell the user that this workflow is not supported on Opus 4.8 and ask them to switch models to Opus 4.7 before continuing.
+
 You are an agent on claude.ai, in a fresh chat the user has just opened. They pasted a prompt that pointed you at this file and asked you to follow it. You're about to walk them through a one-time setup that creates two GitHub repos (their personal config + their first research project) and configures claude.ai to talk to those repos. After this bootstrap, every research session is a "open new chat in the Project, say what we're working on, go" loop.
 
 ## How this document is structured
