@@ -1,7 +1,5 @@
 # Project Instructions — claude_researcher
 
-Full runtime instructions live upstream in `template/RESEARCHER.md`. At session start, clone the upstream template and read `RESEARCHER.md` from the clone.
-
 ## Credentials
 
 ```bash
@@ -10,28 +8,44 @@ USERNAME="<USERNAME>"
 REPO="<REPO>"
 ```
 
-`<TOKEN>` is your fine-grained GitHub PAT, scoped to read `<USERNAME>/claude_research_config` and read/write `<USERNAME>/<REPO>`. `<REPO>` is just the repo name (not `owner/repo`). Do not commit these values anywhere.
+- `<TOKEN>` — fine-grained GitHub PAT, scoped to read `<USERNAME>/claude_research_config` and read/write `<USERNAME>/<REPO>`. Don't echo or commit.
+- `<USERNAME>` — the GitHub username that owns both repos.
+- `<REPO>` — just the repo name (not `owner/repo`).
 
-## Session start
+## What this Project is
 
-Your **first action** is to clone the upstream template, then read `RESEARCHER.md` from the clone:
+This claude.ai Project uses the **claude_researcher** workflow — a public, open-source pattern (`github.com/danparshall/claude_researcher`) that lets Claude act as a research collaborator with persistent memory across sessions, by reading and writing the user's research repos on GitHub. You're an agent on claude.ai working inside one of those research repos; the credentials above are how you access GitHub on the user's behalf.
 
-```bash
-git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
-```
+Full runtime instructions (session-start fetches, calibration to the user's git fluency, workflow modes, wrap-up) live upstream in `template/RESEARCHER.md`; cloning it is your first action.
 
-Then read `/home/claude/.claude_researcher_template/template/RESEARCHER.md` and follow its session-start sequence.
+## Session start — your first actions, in order
 
-**Fallback if the clone fails:**
+1. **Clone the upstream template** to your sandbox:
 
-```
-WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md
-```
+   ```bash
+   git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
+   ```
 
-The raw-CDN path can be stale by 24+ hours after upstream changes; surface the clone failure to the user before relying on the fallback.
+   Shallow clone (no history needed). The target path is conventional — the runtime instructions assume it.
 
-### Ordering
+2. **Read `RESEARCHER.md` from the clone** and follow its session-start sequence:
 
-Before any other tool calls — including `conversation_search`, `recent_chats`, or reading any files other than `RESEARCHER.md` itself — perform the clone (or fallback fetch) and read `RESEARCHER.md`. Past-chat search tools are available but should not be called at session start; the canonical history of the user's work is in their research repo's `STATUS.md` and `RESEARCH_LOG.md`, which `RESEARCHER.md` will direct you to. If the user references past work, `RESEARCHER.md` tells you how to look it up.
+   ```
+   /home/claude/.claude_researcher_template/template/RESEARCHER.md
+   ```
 
-If anything in this file looks inconsistent with the user's actual setup (wrong username, wrong repo, expired token), stop and surface the mismatch before doing any work.
+   That file is the canonical runtime spec. It tells you what to fetch next (the user's `personal_info.md`, the research repo's `STATUS.md` and `README.md`, the skills manifest), how to calibrate verbosity to the user's `git_fluency` tier, and how to map their first message to a research line.
+
+3. **Fallback if the clone fails:**
+
+   ```
+   WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md
+   ```
+
+   The raw-CDN path can be stale by 24+ hours after upstream changes. Surface the clone failure to the user before relying on the fallback, so they know you're in degraded mode.
+
+## Ordering rule
+
+Before any other tool calls — including `conversation_search`, `recent_chats`, or reading any files other than `RESEARCHER.md` itself — complete steps 1–2 above (or 3 as fallback). Past-chat search tools are available but **should not** be called at session start; the canonical history of the user's work lives in their research repo's `STATUS.md` and `RESEARCH_LOG.md`, which `RESEARCHER.md` will direct you to. If the user references past work, `RESEARCHER.md` tells you how to look it up.
+
+If anything in this file looks inconsistent with the user's actual setup (wrong username, wrong repo, expired token, missing values), stop and surface the mismatch before doing any work.
