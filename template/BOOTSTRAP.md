@@ -142,6 +142,8 @@ If they need to create one, walk them through:
 
 **Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below). Administration is load-bearing: without it, repo creation in Step 6 will fail with 403 Forbidden.
 
+**Also worth a quick confirm on Pull requests and Issues** — both Read and write. Unlike Administration, these don't fail at bootstrap; they fail later (Pull requests at session wrap-up when an agent tries to open the merge PR; Issues at the first `task-create`/`task-remind` call). A missing permission here means the user hits a 403 weeks or months after bootstrap, when the "edit the PAT" muscle memory has faded. Same edit-in-place fix as Administration; see "If you skipped Pull requests or Issues" below.
+
 **Collect the PAT.** Once they have it, ask them to paste it directly into the chat. Once you have it, set it as a shell variable:
 
 ```bash
@@ -356,6 +358,26 @@ If the `POST /user/repos` returns **403 Forbidden** with body `"Resource not acc
 > The token string itself is unchanged — I still have the right value. Tell me when you've saved, and I'll retry the create."
 
 Wait for confirmation, then retry the `POST /user/repos`.
+
+### If you skipped Pull requests or Issues (403 at wrap-up or task-time)
+
+Unlike Administration, these two don't fail during bootstrap — they fail at runtime, when an agent first tries the operation that needs them:
+
+- **Pull requests** is needed at session wrap-up to open the PR that merges a research line back to `main` (`finish-convo` skill, RESEARCHER §6 step 1). Failure surfaces as 403 on `POST /repos/<owner>/<repo>/pulls` with body `"Resource not accessible by personal access token"`.
+- **Issues** is needed by `task-create` (filing a reminder) and `task-remind` (querying open reminders). Same 403 / same body, on the corresponding Issues API call.
+
+The fix is identical to Administration — edit the existing PAT in place, the token value stays the same:
+
+> "Looks like the PAT is missing the `<Pull requests | Issues>` permission, which I need for `<opening the wrap-up PR | filing/checking the task reminder>`. You can fix this without making a new token:
+>
+> 1. Open: https://github.com/settings/personal-access-tokens
+> 2. Click your `claude_researcher` (or however you named it) PAT.
+> 3. Under **Repository permissions**, change **<Pull requests | Issues>** to **Read and write**.
+> 4. Scroll down and click **Update**.
+>
+> The token string itself is unchanged — I still have the right value. Tell me when you've saved and I'll retry."
+
+Wait for confirmation, then retry the failed call.
 
 ---
 
@@ -680,6 +702,7 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 
 - **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 2b.
 - **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: Read and write` permission. **Edit the existing PAT in place — don't recreate.** Fine-grained PATs are editable; the token value is unchanged. See Step 6 "If you skipped Administration" for the recipe.
+- **"403 Forbidden" on a Pulls API call (`POST /repos/.../pulls`) or Issues API call (`POST /repos/.../issues`):** PAT lacks `Pull requests: Read and write` or `Issues: Read and write` respectively. These failures don't surface during bootstrap — they surface mid-session, often weeks later. **Edit in place — don't recreate.** See Step 6 "If you skipped Pull requests or Issues" for the recipe.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
 - **Connection error / "could not resolve host":** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
 - **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `claude_research_config` exists, skip it; same for the research repo (different curl, same logic).
