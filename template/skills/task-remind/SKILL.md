@@ -20,11 +20,11 @@ fi
 
 Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
 
-**If `claude.ai sandbox`:** translate every `gh issue list` / `gh issue edit` / `gh issue close` / `gh repo view` / `gh api user` and every `git add` / `git commit` / `git push` in this skill into the GitHub REST API recipes from your Project Instructions (the `write_update` / `write_new` recipes for files; the `GET /repos/{owner}/{repo}/issues`, `PATCH /repos/{owner}/{repo}/issues/{number}`, and `GET /user` endpoints for issues). Translate local paths like `/Users/<user>/.claude/skills/...` into `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/...` URLs (fetched via WebFetch).
+**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the `git add` / `git commit` / `git push` commands in this skill directly from that working tree. Translate local skill paths like `/Users/<user>/.claude/skills/...` to the template clone at `/home/claude/.claude_researcher_template/template/skills/...`. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you translate `git add` / `git commit` / `git push` into the Contents API recipes from your Project Instructions. The `gh` verbs in this skill (`gh issue list` / `gh issue edit` / `gh issue close` / `gh repo view` / `gh api user`) still translate to the GitHub REST endpoints from your Project Instructions (`GET /repos/{owner}/{repo}/issues`, `PATCH /repos/{owner}/{repo}/issues/{number}`, `GET /user`) — Issues and Pulls remain REST surfaces per `RESEARCHER.md` §2.0b. (gh-CLI adoption is tracked separately in upstream issue #27.)
 
 **If `Claude Code`:** follow the skill body as-is.
 
-**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (running `git push` in a sandbox with no git, or writing REST calls against a local working tree) is higher than the cost of one round-trip clarification.
+**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (operating against the wrong working tree, or using the wrong write path for the environment) is higher than the cost of one round-trip clarification.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:

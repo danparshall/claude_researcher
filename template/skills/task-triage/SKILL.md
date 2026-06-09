@@ -20,11 +20,11 @@ fi
 
 Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
 
-**If `claude.ai sandbox`:** translate every `gh search issues` / `gh api user` in this skill into the GitHub REST API recipes from your Project Instructions (the `GET /search/issues` and `GET /user` endpoints). The deep-dive step uses `cat` / `git show` to read convo docs from local clones; in the sandbox, fetch the corresponding `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/active/<branch>/convos/<file>.md` via WebFetch instead. This skill is read-only — no `gh issue create` / `edit` / `close` and no `git add` / `commit` / `push`.
+**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — the deep-dive step's `cat` / `git show` reads run directly against that working tree for current-repo convo docs; for docs in other repos (e.g. `home_repo`), fetch the corresponding `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/active/<branch>/convos/<file>.md` via WebFetch as before. The `gh` verbs in this skill (`gh search issues` / `gh api user`) still translate to the GitHub REST endpoints from your Project Instructions (`GET /search/issues`, `GET /user`) — Issues and Pulls remain REST surfaces per `RESEARCHER.md` §2.0b. (gh-CLI adoption is tracked separately in upstream issue #27.) This skill is read-only — no `gh issue create` / `edit` / `close` and no `git add` / `commit` / `push`.
 
 **If `Claude Code`:** follow the skill body as-is.
 
-**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (running `git push` in a sandbox with no git, or writing REST calls against a local working tree) is higher than the cost of one round-trip clarification.
+**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (operating against the wrong working tree, or using the wrong write path for the environment) is higher than the cost of one round-trip clarification.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
