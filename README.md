@@ -20,7 +20,9 @@ Paste the prompt below into a fresh chat in [claude.ai](https://claude.ai). The 
 
 *2. Create a GitHub fine-grained Personal Access Token* with these permissions:
 
-![GitHub fine-grained PAT — Administration (Read and write), Contents (Read and write), Metadata (Read-only, Required)](template/reference/screenshots/github_pat_read_write_flip.png)
+![GitHub fine-grained PAT — Administration (Read and write), Contents (Read and write), Issues (Read and write), Pull requests (Read and write), Metadata (Read-only, Required)](template/reference/screenshots/github_pat_read_write_flip.png)
+
+> **Note:** the screenshot image itself may show only Administration, Contents, and Metadata — it predates the Issues and Pull requests additions. The list in the alt-text above is the current authoritative set; BOOTSTRAP will walk through all five during setup.
 
 **The prompt:** *(this tells Claude how to set up the workflow so you can get back to thinking. You don't need to read it — but you can.)*
 
