@@ -1,6 +1,6 @@
 # claude_researcher Runtime Instructions (RESEARCHER.md)
 
-You are an agent on claude.ai, working in a research session in the user's research repo. You read this file from a local clone of the upstream template at `/home/claude/.claude_researcher_template/template/RESEARCHER.md`. The Project Instructions text in this Project told you to clone the template at session start, then read this file from the clone. If the clone failed, you fell back to WebFetch from `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md` — that path is the fallback, not the primary. See §2.0 for the freshness model.
+You are an agent on claude.ai, working in a research session in the user's research repo. You read this file from a local clone of the upstream template at `/home/claude/.claude_researcher_template/template/RESEARCHER.md`. The Project Instructions text in this Project told you to clone the template at session start, then read this file from the clone. If the clone failed, you fell back to WebFetch from `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md` — that path is the fallback, not the primary. See §2.0a for the template-clone freshness model and §2.0b for the project-repo clone introduced by the clone-first runtime architecture.
 
 ## How this document is structured
 
@@ -20,9 +20,9 @@ This file is laid out so a single read-through gives you everything you need. Re
 
 **Three fetch mechanisms appear throughout this flow:**
 
-- For **public upstream content** (this file, skills under `template/skills/`, scripts, the SKILL_INDEX manifest) → read from the **local clone** at `/home/claude/.claude_researcher_template/` using `view` or `grep`. Established at session start by §2.0. Files are accessible by path; no network round-trip per read.
-- **Fallback for upstream content if the clone failed**: WebFetch from `raw.githubusercontent.com/danparshall/claude_researcher/main/...`. No allow-list configuration needed. Note that this path can serve stale content for 24+ hours after an upstream write (see Appendix); the clone bypasses this.
-- For **the user's own repos** (`<USERNAME>/claude_research_config` and `<USERNAME>/<REPO>`) → use sandbox `curl` with the user's PAT against `api.github.com`. The PAT, the curl recipes, and the `<USERNAME>` / `<REPO>` values live in this Project's **Project Instructions** text — already in your context. (No separate `_PROJECT_INSTRUCTIONS.md` file is uploaded; everything is in Project Instructions.)
+- For **public upstream content** (this file, skills under `template/skills/`, scripts, the SKILL_INDEX manifest) → read from the **local clone** at `/home/claude/.claude_researcher_template/` using `view` or `grep`. Established at session start by §2.0a. Files are accessible by path; no network round-trip per read. Fallback if the clone failed: WebFetch from `raw.githubusercontent.com/danparshall/claude_researcher/main/...` (degraded; raw CDN can serve stale content for 24+ hours after an upstream write — see Appendix).
+- For **the user's project repo** (`<USERNAME>/<REPO>`) → clone it to the sandbox at session start (§2.0b) using the PAT, then operate via **native git** (`git checkout`, `git mv`, `git add`, `git commit`, `git push`) for the rest of the session. Reads are local; writes are real commits pushed back to GitHub. This is the **preferred path** for everything except PR creation/merge, which still uses the Pulls API (no plain-git way to open or merge a PR), and `task-remind`'s issue queries, which use the Issues API. Fallback if the clone failed: the per-file Contents API recipes that previously formed the primary path (still documented inline below as fallbacks) — degraded because each PUT is its own commit, but functional.
+- For **the user's config repo** (`<USERNAME>/claude_research_config`) and **other REST surfaces** (Pulls, Issues) → use sandbox `curl` with the user's PAT against `api.github.com`. `personal_info.md` is one file in a separate repo; cloning a whole repo for it would be overkill, so the one-shot Contents API GET stays. The PAT, the curl recipes, and the `<USERNAME>` / `<REPO>` values live in this Project's **Project Instructions** text — already in your context. (No separate `_PROJECT_INSTRUCTIONS.md` file is uploaded; everything is in Project Instructions.)
 
 **Confirmation gates** at sensitive boundaries (creating a research line, deleting files, archiving a research line, merging a PR, force operations) are **scripted** in this file. You can also add your own gates anywhere a step gives you pause; the user has been told to expect them.
 
@@ -134,9 +134,9 @@ This rule is claude.ai-specific: past chats are tempting because they're a tool-
 
 Run these fetches **before** responding to the user's first message. Order matters — earlier fetches inform later behavior.
 
-### 2.0 — Clone the upstream template (primary) or fall back to WebFetch
+### 2.0a — Clone the upstream template (primary) or fall back to WebFetch
 
-Before any other fetch, get a local copy of the upstream template repo. The Project Instructions in this Project told you to do this on turn one; you may already have completed the clone before reading this file. If you did, skip to §2a. If for any reason the clone is not yet present (e.g., you reached this file via the WebFetch fallback), run:
+Before any other fetch, get a local copy of the upstream template repo. The Project Instructions in this Project told you to do this on turn one; you may already have completed the clone before reading this file. If you did, skip to §2.0b. If for any reason the clone is not yet present (e.g., you reached this file via the WebFetch fallback), run:
 
 ```bash
 git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
@@ -154,6 +154,28 @@ After the clone, the upstream template tree is locally accessible:
 **Freshness model.** The clone is a session-start snapshot of upstream `main`. It does NOT auto-refresh. If the user signals that upstream has changed mid-session and they want the new content (e.g., "I just pushed a fix to a skill"), run `cd /home/claude/.claude_researcher_template && git pull --ff-only` to refresh. Otherwise, the snapshot is what you operate against for the whole session — consistent with how the prior WebFetch architecture worked.
 
 **Fallback if the clone fails.** If the clone command errors (network failure, github.com unreachable, sandbox restriction), surface to the user and fall back to WebFetch against `raw.githubusercontent.com/danparshall/claude_researcher/main/...` for each upstream file you need. The fallback is degraded — slower per file, and exposed to raw-CDN staleness (see Appendix) — but functional. Don't silently retry the clone; tell the user it failed and that you're operating in fallback mode.
+
+### 2.0b — Clone the user's project repo
+
+After the template clone (and before reading `personal_info.md` or `STATUS.md`), clone the user's project repo to the sandbox. This is the **preferred runtime architecture**: reads happen against the local working tree, and writes are real `git commit`s pushed back, instead of one-PUT-per-file against the Contents API.
+
+```bash
+git clone https://x-access-token:${TOKEN}@github.com/${USERNAME}/${REPO}.git /home/claude/${REPO}
+cd /home/claude/${REPO}
+git config user.email "claude@anthropic.com"
+git config user.name "Claude (claude_researcher)"
+```
+
+A few load-bearing notes:
+
+- **Not shallow.** Unlike the template clone, the project repo clone is full-history. The agent does `git log` / `git diff` lookups during a session (resumption, audit-docs, finish-convo), and a shallow clone breaks those.
+- **PAT hygiene.** The PAT is embedded in the remote URL and lands in `.git/config` (`/home/claude/${REPO}/.git/config`). It's sandbox-local and the sandbox resets per session, so this is not a new exposure beyond the PAT already being in env vars — **but do not echo URLs that include the token, do not paste `.git/config` contents back to the user, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** The token-in-URL pattern is the standard tradeoff for a sandboxed runtime; if you're ever uncertain, ask the user before any operation that would print the remote URL.
+- **`user.email` / `user.name`.** Set them so commits don't end up authored as `root@sandbox`. The values above are conventional; the user may override in `personal_info.md` (`Git commit identity:` field, optional).
+- **Conventional path.** `/home/claude/${REPO}/` is the conventional working directory for the project repo; everything below assumes this path. Don't `cd` out of it for project work; `cd` back if a sub-command leaves you elsewhere.
+
+**Fallback if the clone fails.** If the clone errors (network failure, PAT expired, repo doesn't exist), surface to the user — most likely cause is PAT expiry, second most likely is a `<REPO>` mismatch in Project Instructions. Don't silently retry. As a degraded fallback you can operate against the Contents API per-file (the recipes below in §2c, §3, §6 still work as fallbacks), but tell the user you're in degraded mode: each write becomes its own commit, the v1 noisy-log problem returns, and `git diff` / `git log` introspection isn't available.
+
+**Single-file refresh during a session.** If the user says they've pushed changes from elsewhere (their laptop, another session) and you need the new content, `git pull --ff-only` from inside `/home/claude/${REPO}/`. If the pull is rejected (divergent branches), surface to the user — don't auto-rebase or auto-merge.
 
 ### 2a — Read your Project Instructions (already in context)
 
@@ -187,17 +209,18 @@ Read fields: `Name`, `Current role`, history (academic + work), `Tools and langu
 
 If the fetch returns 404, the user's `claude_research_config` doesn't exist or the PAT lacks access. **Surface to the user** — they may need to re-bootstrap. Don't proceed without `personal_info.md`; operating without identity context is a degradation.
 
-### 2c — Fetch the research repo's `STATUS.md` and `README.md`
+### 2c — Read the research repo's `STATUS.md` and `README.md` from the local clone
 
-```bash
-curl -s -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/contents/STATUS.md" \
-  | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
+Both files are at the root of the project repo cloned in §2.0b:
+
+```
+view /home/claude/<REPO>/STATUS.md
+view /home/claude/<REPO>/README.md
 ```
 
-Same call for `README.md`. STATUS.md tells you what's currently active, recent sessions, the archived-research-lines table, and may contain a top-of-file `workflow_mode` field:
+(Fallback if the §2.0b clone failed: `curl` with the PAT against the Contents API — same recipe shape as §2b, paths `/repos/$USERNAME/$REPO/contents/STATUS.md` and `.../README.md`. Surface to the user that you're in degraded mode.)
+
+STATUS.md tells you what's currently active, recent sessions, the archived-research-lines table, and may contain a top-of-file `workflow_mode` field:
 
 - `workflow_mode: branches` (default) — each research line is a git branch + a `docs/active/<branch>/` directory. Wrap-up opens a PR and merges. **Use this if the field is absent.**
 - `workflow_mode: main_only` — solo repo, no branches. Each research line is just a `docs/active/<branch>/` directory on `main`. Wrap-up is a directory move + STATUS update; no PR.
@@ -212,7 +235,7 @@ README.md tells you what the repo is about (the user's framing of their own work
 view /home/claude/.claude_researcher_template/template/skills/SKILL_INDEX.md
 ```
 
-(Fallback if the clone failed at §2.0: `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/SKILL_INDEX.md`.)
+(Fallback if the template clone failed at §2.0a: `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/SKILL_INDEX.md`.)
 
 Don't read every individual `SKILL.md` upfront. `SKILL_INDEX.md` is the manifest — name + one-line description + trigger conditions + path. You'll read individual `SKILL.md` files **on-demand** in §5 when their trigger conditions match the work at hand.
 
@@ -248,16 +271,18 @@ The user's first message will usually fall into one of three patterns:
 
 ### a) Direct match against STATUS.md's research-line inventory
 
-If the user says "let's continue stress-sleep" and STATUS.md shows `stress-sleep` as an active line, that's your match. Read `docs/active/stress-sleep/RESEARCH_LOG.md` to catch up:
+If the user says "let's continue stress-sleep" and STATUS.md shows `stress-sleep` as an active line, that's your match. Check out the branch in the local clone and read `RESEARCH_LOG.md` to catch up:
 
 ```bash
-curl -s -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/$USERNAME/$REPO/contents/docs/active/stress-sleep/RESEARCH_LOG.md?ref=stress-sleep" \
-  | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
+cd /home/claude/${REPO}
+git fetch origin stress-sleep         # ensure the ref is local
+git checkout stress-sleep             # switch the working tree
+view /home/claude/${REPO}/docs/active/stress-sleep/RESEARCH_LOG.md
 ```
 
-Note the `?ref=stress-sleep` query param — in `branches` mode, you read from the line's branch, not `main`. In `main_only` mode, omit `?ref=` (or use `?ref=main`).
+In `main_only` mode, skip the `git fetch` / `git checkout`; you're already on `main` from the §2.0b clone.
+
+(Fallback if the §2.0b clone failed: `curl` against `/repos/$USERNAME/$REPO/contents/docs/active/stress-sleep/RESEARCH_LOG.md?ref=stress-sleep` per the legacy Contents API pattern. The `?ref=` query param selects the branch — in `branches` mode, you read from the line's branch, not `main`. Surface degraded mode.)
 
 ### b) Indirect match via path
 
@@ -275,26 +300,21 @@ If the user wants to start a new line:
 
 > **(novice:** explain that "branches are like separate parallel workspaces in your repo. We can experiment in this branch without touching anything in main. When the work is done, we'll merge it into main as the permanent record." **(fluent:** just do it.)
 
-In `branches` mode, create the branch via the Git Refs API:
+In `branches` mode, create the branch with native git from the local clone:
 
 ```bash
-# Get main's current sha
-MAIN_SHA=$(curl -s -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/$USERNAME/$REPO/git/ref/heads/main" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['object']['sha'])")
-
-# Create new branch off main
-curl -sX POST -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/git/refs" \
-  -d "{\"ref\":\"refs/heads/<branch-name>\",\"sha\":\"$MAIN_SHA\"}"
+cd /home/claude/${REPO}
+git checkout main
+git pull --ff-only origin main        # make sure we're current
+git checkout -b <branch-name>
+git push -u origin <branch-name>      # publish and set upstream
 ```
+
+(Fallback if the §2.0b clone failed: the legacy Refs API recipe — `GET /repos/$USERNAME/$REPO/git/ref/heads/main` to capture `main`'s sha, then `POST /repos/$USERNAME/$REPO/git/refs` with `{"ref":"refs/heads/<branch-name>","sha":"$MAIN_SHA"}`. Surface degraded mode.)
 
 In `main_only` mode, skip the branch creation; everything happens on `main`.
 
-Then create the directory by writing `docs/active/<branch-name>/RESEARCH_LOG.md` with a brief stub (date, one-line description). All subsequent writes during the session use `?ref=<branch-name>` (in `branches` mode) and the `branch` field in the PUT body.
+Then create the directory by writing `docs/active/<branch-name>/RESEARCH_LOG.md` with a brief stub (date, one-line description), `git add` it, `git commit -m "Open <branch-name>: research-log stub"`, `git push`. All subsequent writes during the session happen on this branch — `git status` will show your current branch; if you need to switch lines mid-session, `git checkout <other-branch>` first.
 
 Branch-name validation: lowercase, alphanumeric and hyphens, ≤39 characters. Suggest one based on the topic (suggest-with-Enter pattern); user can override.
 
@@ -352,7 +372,7 @@ If you discover that no convo name was established (older runtime version, the �
 
 For each skill you need, read its `SKILL.md` from the local clone (`view /home/claude/.claude_researcher_template/template/skills/<skill-name>/SKILL.md`). Don't try to load all skills upfront. After reading, **announce you're using it** ("I've read the X skill and I'm using it to Y"), then follow it. The announcement keeps the user oriented and confirms you actually read it.
 
-(Fallback if the clone failed at §2.0: WebFetch from the URL listed in `SKILL_INDEX.md`. The fallback is degraded — exposed to raw-CDN staleness, see Appendix — but functional.)
+(Fallback if the template clone failed at §2.0a: WebFetch from the URL listed in `SKILL_INDEX.md`. The fallback is degraded — exposed to raw-CDN staleness, see Appendix — but functional.)
 
 ### Confirmation gates scripted in this file
 
@@ -361,10 +381,10 @@ The "show before committing" rule above applies to *every* write. The gates list
 You will hit these gates during normal session flow:
 
 - **Creating a new research line / branch** (§3 above)
-- **Deleting an existing file** — write_new with delete-then-write is two operations; confirm before destructive deletes. Inline reminder: *(novice: explain "this removes the file from the active state of the repo; we can recover it from git history later if needed"; fluent: just do it.)*
+- **Deleting an existing file** — `git rm` + commit is destructive on the working tree at HEAD; confirm before running it. The file is recoverable from history via `git log --diff-filter=D --follow -- <path>` + `git checkout <sha>~1 -- <path>`, but the recovery is rough enough that you should still confirm first. Inline reminder: *(novice: explain "this removes the file from the active state of the repo; we can recover it from git history later if needed"; fluent: just do it.)*
 - **Archiving a research line** (`docs/active/<X>/` → `docs/historical/<X>/` move at wrap-up — §6)
 - **Merging a PR** (§6)
-- **Force operations** (overwriting an existing file without reading its `sha` first; pushing to a protected branch; rewriting history)
+- **Force operations** (`git push --force`, `git push --force-with-lease`, history rewrites via `git rebase -i` or `git reset --hard` followed by push, any operation against a protected branch)
 
 Add your own gates anywhere a step gives you pause. The cost of one round-trip confirmation is much lower than the cost of an unwanted irreversible operation.
 
@@ -372,12 +392,14 @@ Add your own gates anywhere a step gives you pause. The cost of one round-trip c
 
 After sensitive writes, you can:
 
-- GET the file you just wrote, decode its content, confirm it matches what you sent
-- List the parent directory and confirm the file appears with the expected name
-- For STATUS.md updates, re-read and confirm your section is intact and other sections are unchanged
-- For branch creations, GET `git/ref/heads/<branch-name>` and confirm a `sha` is returned
+- `git diff HEAD~1 HEAD -- <path>` — confirm the last commit's change to a specific file matches what you intended
+- `git log -1 --stat` — confirm the commit lands with the expected message and file list
+- `git status` — confirm there's no leftover unstaged or untracked work after a push
+- `git ls-tree -r HEAD --name-only docs/active/<branch>/` — confirm the expected files exist in the active directory
+- `git branch -a` — confirm a newly-created branch appears in the local + remote branch list
+- For STATUS.md updates, re-`view` the file and confirm your section is intact and other sections are unchanged
 
-These are offered, not required.
+These are offered, not required. The shift from REST-API verification (`GET` the file you just wrote, decode, compare) to git-native verification is one of the concrete wins of the §2.0b clone-based architecture: introspection is local and fast.
 
 ---
 
@@ -395,7 +417,7 @@ For lighter session-end (the more common case — "we're at a good stopping poin
 
 #### Steps
 
-1. **Open the PR.**
+1. **Open the PR via the Pulls API.** No native-git equivalent — `git push` publishes commits but does not open a pull request.
 
    ```bash
    curl -sX POST -H "Authorization: token $TOKEN" \
@@ -407,7 +429,7 @@ For lighter session-end (the more common case — "we're at a good stopping poin
 
    The response includes `number` (PR number) and `html_url` (link the user can visit if they want to look). Capture both.
 
-2. **Try to merge the PR.**
+2. **Try to merge the PR via the Pulls API.** Also no native-git equivalent for this side of the merge — `git merge` locally + `git push` would bypass GitHub's PR machinery and lose the PR record.
 
    ```bash
    curl -sX PUT -H "Authorization: token $TOKEN" \
@@ -423,21 +445,34 @@ For lighter session-end (the more common case — "we're at a good stopping poin
    - **405 Method Not Allowed** or **422 Unprocessable Entity** → the merge is blocked. Most common cause: branch protection requires review before merge. This is the **collaborator-mode case** (see Appendix: Known v1 limitations). **Stop here.** Surface the PR URL to the user; tell them the owner needs to review and merge in the GitHub web UI. The directory move (steps 3–4) waits for a future session — typically the owner will do it after merging.
    - Other 4xx/5xx → surface the response body to the user; don't retry blindly.
 
-3. **On `main`, move the directory.** For each file under `docs/active/<branch-name>/` (read recursively from the merged `main`):
+3. **On `main` in the local clone, move the directory in a single commit.** This is the concrete win from the §2.0b clone-based architecture — the old "many commits, one per file" pattern (an explicit v1 limitation) becomes one atomic commit:
 
-   - Write the file at `docs/historical/<branch-name>/...` (write_new with the same content; commit message: `Archive <branch-name>: <path>`)
-   - Delete the file at `docs/active/<branch-name>/...` (delete_file; commit message: `Archive <branch-name>: remove from active`)
+   ```bash
+   cd /home/claude/${REPO}
+   git checkout main
+   git pull --ff-only origin main     # pull in the just-merged PR
+   git mv docs/active/<branch-name> docs/historical/<branch-name>
+   git commit -m "Archive <branch-name>: <one-line summary>"
+   git push origin main
+   ```
 
-   This is many commits. v1 accepts the noisy log; v2 will batch via the Git Data API tree+commit pattern.
+   `git mv` preserves history (`git log --follow` will trace files across the move). If you need to inspect what's about to move first: `git ls-tree -r HEAD docs/active/<branch-name>/`.
 
-4. **Update STATUS.md's "Archived Research Lines" table** on `main`. Read STATUS.md → append a row with `<branch-name>` + date archived (today, YYYY-MM-DD) + one-line summary of what was learned → write_update with the captured `sha`.
+4. **Update STATUS.md's "Archived Research Lines" table** on `main`. Edit STATUS.md in place (append a row with `<branch-name>` + date archived (today, YYYY-MM-DD) + one-line summary of what was learned), then:
+
+   ```bash
+   git add STATUS.md
+   git commit -m "Archive <branch-name>: STATUS update"
+   git push origin main
+   ```
+
+   This is a separate commit from step 3 on purpose — the directory move and the index update are different concerns; keeping them separate makes the history readable.
 
 5. **(Optional) delete the merged branch:**
 
    ```bash
-   curl -sX DELETE -H "Authorization: token $TOKEN" \
-     -H "Accept: application/vnd.github+json" \
-     "https://api.github.com/repos/$USERNAME/$REPO/git/refs/heads/<branch-name>"
+   git push origin --delete <branch-name>
+   git branch -D <branch-name>          # also clean up the local ref
    ```
 
    GitHub also exposes a "Delete branch" button in the merged-PR UI. Either works. Default to deleting to keep the branch list tidy; ask if the user has a reason to keep it.
@@ -485,29 +520,33 @@ Items here are intentionally lightly-formatted; the test is whether a future ses
 
 ### Open items
 
-- **2026-05-11. Banner vs. proper-REST adaptation for ported Researcher skills.** Wave 2/3 of the skill ports shipped with a one-line REST-adaptation banner between frontmatter and skill body, telling the runtime agent to translate `git add`/`commit`/`push` into Contents API recipes. Empirical question: does an agent following the banner actually translate cleanly, or does it fumble (try to run `git push`, try to read local-only paths)? Resolves the first time a real beta session exercises a `finish-convo` / `update-docs` / `add-paper` skill end-to-end and the work either lands cleanly or doesn't. If clean → banner is sufficient; if fumbles → prioritize Wave 2/3 proper REST rewrites.
+- **2026-05-11 → 2026-06-08. Banner vs. proper-REST adaptation for ported Researcher skills.** Wave 2/3 of the skill ports shipped with a one-line REST-adaptation banner between frontmatter and skill body, telling the runtime agent to translate `git add`/`commit`/`push` into Contents API recipes. **Status changed by the §2.0b clone-first runtime architecture:** since the project repo is now cloned at session start and native git commands are the supported runtime path, the banner is no longer just unnecessary — it is **wrong**, telling the agent to translate away the very commands it should now run directly. Resolution: sweep the affected skills (12 identified by `grep -l "git add\|git commit\|git push\|git mv" template/skills/*/SKILL.md`, plus `branch-document-review` which carries explicit REST-adaptation language) and either strip the banner or rewrite it to say "this skill assumes the project repo is cloned per RESEARCHER.md §2.0b; run the git commands directly." Tracked as a follow-up issue rather than blocking the runtime change, since the runtime change is independently shippable and the skill sweep is a separable diff.
 - **2026-05-11. Phase 9 collaborator walkthrough.** v1.1 collaborator mode (professor + grad student) is spec'd in `docs/plans/01_initial_build.md` Phase 4.5 but not built. The first concrete signal we need is a real collaborator pair willing to test. Resolves when (a) we have a candidate and (b) we walk them through bootstrap + a session.
 
 ---
 
 ## Appendix — Common runtime issues
 
-- **PAT expired or insufficient scope (401, 403):** re-bootstrap step 2b. Most common cause of session-start failure.
-- **Connection error on a `curl` to `api.github.com`:** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Settings per BOOTSTRAP step 1; if the change was made in this same chat session, the user must start a fresh chat to pick it up — network-access changes are empirically NOT propagated in-chat.
-- **422 on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET first, capture `sha`, retry the PUT with `sha` field included.
+- **PAT expired or insufficient scope (401, 403):** re-bootstrap step 2b. Most common cause of session-start failure. Also triggers if the §2.0b `git clone` fails authentication — the error will surface as "fatal: Authentication failed" or similar.
+- **Connection error on a `curl` to `api.github.com` (or on `git clone`):** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Settings per BOOTSTRAP step 1; if the change was made in this same chat session, the user must start a fresh chat to pick it up — network-access changes are empirically NOT propagated in-chat.
+- **`git push` rejected (non-fast-forward):** the remote branch advanced since the §2.0b clone — typically because the user pushed from another session or their laptop. Run `git pull --rebase origin <branch>` to reconcile, then re-push. If the rebase has conflicts, surface to the user; don't auto-resolve.
+- **`git push` rejected (protected branch, 403 / "protected branch hook declined"):** same case as `main`-is-protected at merge time. The user has branch protection on `main` and the agent tried to push directly. Open a PR instead (§6 step 1).
+- **`git clone` fails for the project repo (§2.0b):** surface to user; most likely PAT expiry or repo-name mismatch. As fallback, operate against the Contents API per-file using the legacy recipes still documented inline at §2c, §3, §6 — note to the user that you're in degraded mode (one commit per file, no `git diff` introspection).
+- **Sandbox state lost between turns / `/home/claude/${REPO}/` gone:** the sandbox filesystem can reset on some session paths. Re-run the §2.0b clone to recover. Any unpushed commits in the prior working tree are lost; if you're uncertain whether a write completed, `git log --oneline -10` on the fresh clone tells you what's actually on the remote.
 - **STATUS.md missing `workflow_mode` field:** assume `branches` (the v1 default). Don't error.
 - **SKILL_INDEX.md unreachable (DNS failure, 404):** operate without skills. Surface to user. The workflow degrades to "you have my judgment but no shared toolkit"; the user may want to wait for upstream to recover.
 - **User-named repo doesn't match Project Instructions (`<REPO>`):** see §4. Don't proceed.
 - **Project Instructions look truncated, missing `TOKEN`/`USERNAME`/`REPO`, or missing recipes:** stop. The bootstrap may not have completed correctly. Walk the user through re-pasting Project Instructions per BOOTSTRAP step 8.
 - **`main` is protected and merge fails (405/422):** see §6 step 2 — the collaborator-mode case. Stop, surface URL, wait for owner to merge in GitHub UI.
-- **Stale content from `raw.githubusercontent.com`:** GitHub's raw CDN can serve stale content for 24+ hours after an upstream write (empirically observed on 2026-05-11; the previously-published ~5-minute estimate was wrong by orders of magnitude). This is why §2.0 makes the local clone the primary architecture — `git clone` against github.com and reads against the Contents API don't suffer the same staleness. If you've fallen through to the WebFetch fallback and the content looks wrong (doesn't match what `STATUS.md` or a recent commit suggests should be there), the raw CDN is the most likely culprit; retry against the Contents API URL (`https://api.github.com/repos/danparshall/claude_researcher/contents/PATH`) for time-sensitive reads, or run the clone now if the §2.0 clone never succeeded.
+- **Stale content from `raw.githubusercontent.com`:** GitHub's raw CDN can serve stale content for 24+ hours after an upstream write (empirically observed on 2026-05-11; the previously-published ~5-minute estimate was wrong by orders of magnitude). This is why §2.0a makes the local clone the primary architecture — `git clone` against github.com and reads against the Contents API don't suffer the same staleness. If you've fallen through to the WebFetch fallback and the content looks wrong (doesn't match what `STATUS.md` or a recent commit suggests should be there), the raw CDN is the most likely culprit; retry against the Contents API URL (`https://api.github.com/repos/danparshall/claude_researcher/contents/PATH`) for time-sensitive reads, or run the clone now if the §2.0a clone never succeeded.
 
 ---
 
 ## Known v1 limitations
 
 - **Collaborator mode is not implemented.** This file assumes the acting user owns the research repo (`OWNER == USERNAME`). If you're a grad student working on a professor's repo, the bootstrap and session-start sequence currently can't distinguish OWNER from acting user, and `seed_repo.py` doesn't configure branch protection on `main`. The collaborator-mode design (direct-collaborator on a private repo, where the professor adds the student as a collaborator and the student's fine-grained PAT is scoped to the professor's repo) is planned for v1.1; see [`docs/plans/01_initial_build.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/01_initial_build.md) Phase 4.5 for what's required. Until then, each researcher needs their own research repo.
-- **Atomic commits via the Git Data API are not implemented.** Each Contents API PUT is its own commit, so a multi-file write (like the `docs/active → docs/historical` move at wrap-up) produces one commit per file. v1 accepts the noisy log; v2 will batch via the tree+commit pattern.
 - **Branch protection on `main` is not auto-configured.** The bootstrap does not enable protection. If you want protection, configure manually via `https://github.com/<USERNAME>/<REPO>/settings/branches`. v1.1 will set this automatically for collaborative repos.
 - **Skill versions are pinned to `main`.** Agents fetch skills from the upstream repo's `main` branch. If breaking changes ever ship to a skill, in-flight sessions on stale Project files could break. The fix (SHA pinning or tagged releases) is YAGNI for v1; revisit if it becomes a real problem.
+
+> **Resolved 2026-06-08:** *Atomic commits via the Git Data API are not implemented.* The §2.0b clone-based architecture makes this moot — the directory move in §6 step 3 is now a single `git mv` + `git commit`, not N per-file Contents API PUTs. The Git Data API tree+commit pattern was never needed.
 

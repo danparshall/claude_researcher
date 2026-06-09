@@ -34,7 +34,7 @@ Full runtime instructions (session-start fetches, calibration to the user's git 
 
    `/home/claude/.claude_researcher_template/template/RESEARCHER.md`
 
-   That file is the canonical runtime spec. It tells you what to fetch next (the user's `personal_info.md`, the research repo's `STATUS.md` and `README.md`, the skills manifest), how to calibrate verbosity to the user's `git_fluency` tier, and how to map their first message to a research line.
+   That file is the canonical runtime spec. It will direct you to (a) clone the user's project repo with auth (`§2.0b`) — the preferred runtime architecture, since reads are local and writes are real git commits — then (b) fetch the user's `personal_info.md` from `claude_research_config`, then (c) read `STATUS.md` and `README.md` from the project clone, then (d) calibrate verbosity to the user's `git_fluency` tier and map their first message to a research line.
 
 ## Ordering rule
 
