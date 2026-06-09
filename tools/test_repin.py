@@ -80,6 +80,67 @@ def test_idempotent_when_already_pinned():
     assert out == text  # re-pinning to the same ref changes nothing
 
 
+def test_dry_run_writes_nothing_and_skips_git():
+    # Issue #18: --dry-run was silently dropped and the script committed for
+    # real. Real dry-run semantics: report the would-be rewrite, touch nothing.
+    import contextlib
+    import io
+    import tempfile
+
+    import repin
+
+    url = (
+        "https://raw.githubusercontent.com/danparshall/claude_researcher/"
+        f"old0000000000000000000000000000000000000/{DOMAIN_ALLOWLIST}"
+    )
+    original = f"{url} ... and again {url}"
+    git_calls = []
+    real_git = repin.git
+    repin.git = lambda *a: git_calls.append(a)
+    try:
+        with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False) as f:
+            f.write(original)
+            path = f.name
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            committed = repin.repin_file(
+                path, [DOMAIN_ALLOWLIST], NEW, "msg", dry_run=True
+            )
+        with open(path) as f:
+            on_disk = f.read()
+    finally:
+        repin.git = real_git
+        os.unlink(path)
+    assert committed is False
+    assert on_disk == original  # file untouched
+    assert git_calls == []  # no add, no commit
+    assert "2" in out.getvalue() and "would" in out.getvalue().lower()
+
+
+def test_dry_run_flag_parses():
+    import repin
+
+    assert repin.build_parser().parse_args(["--dry-run"]).dry_run is True
+    assert repin.build_parser().parse_args([]).dry_run is False
+
+
+def test_unknown_flag_fails_loud():
+    # The other half of issue #18: unknown flags must error with usage,
+    # never fall through to the real run.
+    import contextlib
+    import io
+
+    import repin
+
+    try:
+        with contextlib.redirect_stderr(io.StringIO()):
+            repin.build_parser().parse_args(["--bogus"])
+    except SystemExit as e:
+        assert e.code != 0
+    else:
+        raise AssertionError("unknown flag was silently accepted")
+
+
 if __name__ == "__main__":
     tests = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     failed = 0
