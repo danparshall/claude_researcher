@@ -542,7 +542,7 @@ Present the rendered text to the user as a single code block. Tell them:
 
 **Verification affordance.** Once the user confirms the paste, ask them to spot-check that all three substitutions are present in the pasted text — the literal strings `<TOKEN>`, `<USERNAME>`, `<REPO>` should NOT appear; the actual values should. If any placeholder is still literal, the runtime agent won't be able to authenticate — have them re-render and re-paste.
 
-> **Token handling:** the PAT lives only in the Project Instructions text in the user's claude.ai account, not in any file in their GitHub repos. Don't echo the token back in chat output, don't write it to any seed file, don't include it in commit messages.
+> **Token handling:** the PAT lives only in the Project Instructions text in the user's claude.ai account, not in any file in their GitHub repos. Don't echo the token back in chat output, don't write it to any seed file, don't include it in commit messages. The threat model here is *public exposure* — git-tracked files, echoed transcripts, anything that could get captured to a public surface. The PAT itself is scoped and rotatable by design; appearing in this Project Instructions context is exactly where it belongs.
 
 ### PAT scope and lifecycle (heads-up to the user)
 

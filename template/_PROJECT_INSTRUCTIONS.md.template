@@ -8,7 +8,7 @@ USERNAME="<USERNAME>"
 REPO="<REPO>"
 ```
 
-- `<TOKEN>` — fine-grained GitHub PAT, scoped to read `<USERNAME>/claude_research_config` and read/write `<USERNAME>/<REPO>`. Don't echo or commit.
+- `<TOKEN>` — fine-grained GitHub PAT, scoped to read `<USERNAME>/claude_research_config` and read/write `<USERNAME>/<REPO>`. Don't echo it back to the user or write it to a repo file — it's a scoped, rotatable credential designed to live in this Project Instructions context.
 - `<USERNAME>` — the GitHub username that owns both repos.
 - `<REPO>` — just the repo name (not `owner/repo`).
 

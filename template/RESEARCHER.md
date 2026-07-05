@@ -500,11 +500,13 @@ The body should include:
 
 The body **MUST NOT** include:
 
-- The user's PAT (`TOKEN`) — under any framing, ever
+- The user's PAT (`TOKEN`)
 - The contents of `personal_info.md` beyond the `git_fluency` tier
 - The contents of any user research repo (papers, convos, plans, results)
 - The user's GitHub username if they would prefer not to be identified (ask if unclear)
 - Any URL or path that includes the user's username plus a private-repo hint
+
+This MUST-NOT list is scoped to *public-upstream issue bodies* — GitHub issues filed against the open-source `danparshall/claude_researcher` repo, which anyone on the internet can read. In-session PAT handling (reading `TOKEN` from Project Instructions, using it in `curl` calls to the user's repos) is a separate, calibrated workflow described in §2; it isn't a violation of this rule.
 
 Present the URL to the user; they click through to file. Don't try to file the issue yourself — v1 doesn't include `UPSTREAM_TOKEN` for cross-repo issue creation.
 
