@@ -294,29 +294,20 @@ If the first message doesn't name a line and STATUS.md shows multiple active lin
 
 ### Starting a new research line
 
-If the user wants to start a new line:
+If the user wants to start a new line, invoke the **`start-research-line`** skill. It bundles the four artifacts of a new research line into one atomic ceremony:
 
-**CONFIRMATION GATE.** *"I'm about to create a new research line called `<branch-name>`. In `branches` mode this means: a new git branch in your repo, plus a new directory `docs/active/<branch-name>/`. Confirm to proceed."*
+1. A row in STATUS.md's Active Research Lines table on `main`
+2. The git branch (in `branches` mode)
+3. The `docs/active/<branch>/{convos,plans,results}` directory tree
+4. A seeded `RESEARCH_LOG.md` carrying the line's purpose
 
-> **(novice:** explain that "branches are like separate parallel workspaces in your repo. We can experiment in this branch without touching anything in main. When the work is done, we'll merge it into main as the permanent record." **(fluent:** just do it.)
+Read the skill from the local template clone at `/home/claude/.claude_researcher_template/template/skills/start-research-line/SKILL.md`, or via WebFetch fallback per §2.0a.
 
-In `branches` mode, create the branch with native git from the local clone:
+**Why a skill instead of a scripted block here:** the STATUS.md update is load-bearing. Every future session-start read of STATUS.md needs to see the line at a glance — the session-start sequence does not include an `ls docs/active/` step, so any research line not in the table is effectively invisible to future sessions. Bundling the four artifacts into a skill guarantees the STATUS entry lands *with* the rest, not as a follow-on step that gets forgotten.
 
-```bash
-cd /home/claude/${REPO}
-git checkout main
-git pull --ff-only origin main        # make sure we're current
-git checkout -b <branch-name>
-git push -u origin <branch-name>      # publish and set upstream
-```
+> **(novice:** before invoking, explain that "branches are like separate parallel workspaces in your repo. We can experiment in this branch without touching anything in main. When the work is done, we'll merge it into main as the permanent record.") **(fluent:** just invoke the skill.)
 
-(Fallback if the §2.0b clone failed: the legacy Refs API recipe — `GET /repos/$USERNAME/$REPO/git/ref/heads/main` to capture `main`'s sha, then `POST /repos/$USERNAME/$REPO/git/refs` with `{"ref":"refs/heads/<branch-name>","sha":"$MAIN_SHA"}`. Surface degraded mode.)
-
-In `main_only` mode, skip the branch creation; everything happens on `main`.
-
-Then create the directory by writing `docs/active/<branch-name>/RESEARCH_LOG.md` with a brief stub (date, one-line description), `git add` it, `git commit -m "Open <branch-name>: research-log stub"`, `git push`. All subsequent writes during the session happen on this branch — `git status` will show your current branch; if you need to switch lines mid-session, `git checkout <other-branch>` first.
-
-Branch-name validation: lowercase, alphanumeric and hyphens, ≤39 characters. Suggest one based on the topic (suggest-with-Enter pattern); user can override.
+After the skill completes, all subsequent writes during the session happen on the new branch — `git status` will show your current branch; if you need to switch lines mid-session, `git checkout <other-branch>` first.
 
 ---
 

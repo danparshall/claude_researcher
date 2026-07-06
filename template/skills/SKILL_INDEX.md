@@ -20,6 +20,11 @@ Skills are grouped by lifecycle role.
 
 ## Session lifecycle skills
 
+### start-research-line
+
+- **Trigger:** user wants to start a new research line ("start a new line", "cut a branch for X", "let's begin Y"). Bundles branch creation + `docs/active/<line>/` scaffold + `RESEARCH_LOG.md` seed + STATUS.md Active Research Lines table update as one atomic ceremony, so future session-start reads see the line at a glance.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/start-research-line/SKILL.md`
+
 ### finish-convo
 
 - **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than the full research-line merge in `RESEARCHER.md` §6.

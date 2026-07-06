@@ -87,7 +87,27 @@ Per-project configuration the skills read at runtime. Update only when the proje
 - `paper_summaries.structure`: single-file
 ```
 
-Then check whether STATUS.md already has an "Archived Research Lines" section. If not, append:
+Then check whether STATUS.md already has an "Active Research Lines" section. If not, append:
+
+```markdown
+## Active Research Lines
+
+Lines currently in flight; see `docs/active/<topic>/` for material. Updated by the `start-research-line` skill.
+
+| Topic | Started | Purpose |
+|-------|---------|---------|
+| (none yet) | | |
+```
+
+Then check whether STATUS.md has a "Recent Sessions" section. If not, append:
+
+```markdown
+## Recent Sessions
+
+(One-line session summaries, newest first)
+```
+
+Then check whether STATUS.md has an "Archived Research Lines" section. If not, append:
 
 ```markdown
 ## Archived Research Lines
@@ -97,10 +117,6 @@ Lines moved to docs/historical/ — not currently active, but available for refe
 | Topic | Summary | Archived | Material |
 |-------|---------|----------|----------|
 | (none yet) | | | |
-
-## Recent Sessions
-
-(One-line session summaries, newest first)
 ```
 
 If STATUS.md doesn't exist, ask the user whether to create one. A minimal seed:
@@ -123,6 +139,14 @@ Per-project configuration the skills read at runtime. Update only when the proje
 - `BIB_FILE`: unset
 - `PAPERS_INDEX`: PAPER_INDEX.md
 - `paper_summaries.structure`: single-file
+
+## Active Research Lines
+
+Lines currently in flight; see `docs/active/<topic>/` for material. Updated by the `start-research-line` skill.
+
+| Topic | Started | Purpose |
+|-------|---------|---------|
+| (none yet) | | |
 
 ## Recent Sessions
 
@@ -159,7 +183,7 @@ Tell the user what was created:
 Research workflow initialized:
   - docs/active/           (active research lines)
   - docs/historical/       (archived research lines)
-  - STATUS.md              (Project parameters section + Archived Research Lines table + Recent Sessions section added)
+  - STATUS.md              (Project parameters + Active/Archived Research Lines tables + Recent Sessions section added)
   [- docs/active/<branch>/ (with RESEARCH_LOG.md, convos/, plans/, results/)]
 
 Next steps:
