@@ -69,6 +69,11 @@ Skills are grouped by lifecycle role.
 - **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-papers/SKILL.md`
 
+### audit-status
+
+- **Trigger:** user asks to audit STATUS.md, check repo hygiene, or make sure STATUS is current after several sessions of active work ("audit STATUS", "check repo hygiene", "STATUS looks stale"). Cross-references Active/Archived Research Lines tables against actual git branch state (merged vs unmerged), and flags bloat when STATUS drifts past its dashboard role. Requires clone-first mode (§2.0b); stops cleanly in degraded REST fallback.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-status/SKILL.md`
+
 ---
 
 ## Task management skills
