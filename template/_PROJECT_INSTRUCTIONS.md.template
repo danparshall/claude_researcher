@@ -20,24 +20,32 @@ Full runtime instructions (session-start fetches, calibration to the user's git 
 
 ## Session start — your first actions, in order
 
-1. **Clone the upstream template** to your sandbox:
+1. **Get the runtime spec.** It lives at `template/RESEARCHER.md` in the public repo `github.com/danparshall/claude_researcher`. Two paths:
 
-   ```bash
-   git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
-   ```
+   - **Clone the template** — primary. Fast for subsequent reads, current content:
 
-   Shallow clone (no history needed). The target path is conventional — the runtime instructions assume it.
+     ```bash
+     git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
+     ```
 
-   **If the clone fails**, fall back to fetching just `RESEARCHER.md` with `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md`. The raw-CDN path can be stale by 24+ hours after upstream changes, so surface the failure to the user before relying on it — they should know you're in degraded mode.
+     Shallow clone; the target path is conventional (the runtime instructions assume it).
+
+   - **WebFetch RESEARCHER.md** — if you'd rather review the file first, or the clone fails:
+
+     ```
+     https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md
+     ```
+
+     Raw-CDN can be up to 24 hours stale; that's fine for reviewing intent, less fine as a working copy. If you took this path due to clone failure, tell the user you're in degraded mode.
 
 2. **Read `RESEARCHER.md`** and follow its session-start sequence:
 
-   `/home/claude/.claude_researcher_template/template/RESEARCHER.md`
+   `/home/claude/.claude_researcher_template/template/RESEARCHER.md` (from the clone), or the WebFetch response if you took that path.
 
    That file is the canonical runtime spec. It will direct you to (a) clone the user's project repo with auth (`§2.0b`) — the preferred runtime architecture, since reads are local and writes are real git commits — then (b) fetch the user's `personal_info.md` from `claude_research_config`, then (c) read `STATUS.md` and `README.md` from the project clone, then (d) calibrate verbosity to the user's `git_fluency` tier and map their first message to a research line.
 
 ## Ordering rule
 
-Context is limited, so this project follows a convention about which documents to read when. Before any other tool calls — including `conversation_search`, `recent_chats`, or reading files other than `RESEARCHER.md` itself — perform the clone (or fallback fetch) and read `RESEARCHER.md`. Past-chat search tools are available but should not be called at session start; the canonical history of the user's work lives in their research repo's `STATUS.md` and `RESEARCH_LOG.md`, which `RESEARCHER.md` will direct you to. If the user references past work, `RESEARCHER.md` tells you how to look it up.
+Context is limited, so this project follows a convention about which documents to read when. Before taking any actions that touch the user's repos, get `RESEARCHER.md` (clone or WebFetch, per step 1 above) and read it — it tells you what to fetch and in what order. Past-chat search tools (`conversation_search`, `recent_chats`) are available but generally not useful at session start; the canonical history of the user's work lives in their research repo's `STATUS.md` and `RESEARCH_LOG.md`, which `RESEARCHER.md` will direct you to. If the user references past work, `RESEARCHER.md` tells you how to look it up.
 
 If anything in this file looks inconsistent with the user's actual setup (wrong username, wrong repo, expired token, missing values), stop and surface the mismatch before doing any work.
