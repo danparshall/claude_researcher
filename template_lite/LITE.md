@@ -79,6 +79,22 @@ No ceremony. Before finishing: update STATUS.md (intent + one ≤5-line entry),
 append DECISIONS.md if the heuristic fired, commit, push. That's the whole
 wrap-up.
 
+## Checking for lite updates
+
+If the user says "check for lite updates" (or similar): the canonical copy of
+this file is `template_lite/LITE.md` in the upstream repo,
+`github.com/danparshall/claude_researcher`. Shallow-clone it and diff:
+
+```bash
+git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.cr_upstream
+diff /home/claude/${REPO}/LITE.md /home/claude/.cr_upstream/template_lite/LITE.md
+```
+
+Clone, not `raw.githubusercontent.com` — the raw CDN can serve stale content
+for 24+ hours after an upstream write. Present the diff and let the user
+decide what to adopt; **never blind-overwrite** — the local copy may carry
+deliberate per-repo customizations, which is half the reason it lives here.
+
 ## Never list
 
 Lite will never grow: research lines / branches-as-lines, a skills manifest,
