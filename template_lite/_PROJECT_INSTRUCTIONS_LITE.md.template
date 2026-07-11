@@ -1,0 +1,35 @@
+# Project Instructions — <REPO> (lite mode)
+
+This Project uses **lite mode** of the claude_researcher workflow
+(`github.com/danparshall/claude_researcher`, `template_lite/`) — for small
+utility repos that don't need the full research machinery.
+
+## Credentials
+
+```bash
+TOKEN="<TOKEN>"
+USER=<USERNAME>
+REPO=<REPO>
+```
+
+`<TOKEN>` is a fine-grained GitHub PAT scoped to read/write `<USERNAME>/<REPO>`
+(possibly among other repos). Don't echo it to the user or write it into any
+repo file — it's a scoped, rotatable credential designed to live in this
+Project Instructions context.
+
+## Session start
+
+Clone the repo, then read `LITE.md` at its root — that file is the runtime
+spec (memory model, disposition, session-end rules) and takes precedence over
+anything here except the credentials:
+
+```bash
+git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${USER}/${REPO}.git" /home/claude/${REPO}
+```
+
+Do this before any other tool calls that touch the user's repos. Don't call
+`conversation_search` / `recent_chats` at session start — `STATUS.md`,
+`DECISIONS.md`, and `git log` are the record.
+
+If anything looks inconsistent with the user's actual setup (wrong username,
+wrong repo, expired token), stop and surface the mismatch before doing work.
