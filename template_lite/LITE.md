@@ -79,6 +79,24 @@ No ceremony. Before finishing: update STATUS.md (intent + one ≤5-line entry),
 append DECISIONS.md if the heuristic fired, commit, push. That's the whole
 wrap-up.
 
+## One-time setup (converting a repo to lite mode)
+
+1. Copy this file to the repo root as `LITE.md`.
+2. Seed `STATUS.md` (sections: `## Current intent`, `## Open questions`,
+   `## Sessions`) and an empty `DECISIONS.md`. `HISTORY.md`, `docs/plans/`,
+   `docs/active/`, `docs/historical/` are created on first need, not upfront.
+3. Add this pointer to `CLAUDE.md` at the repo root (create it if absent),
+   so Claude Code and other local agents pick up the workflow — they read
+   `CLAUDE.md` automatically and would otherwise never open this file:
+
+   > **Workflow:** this repo uses lite mode. Read `LITE.md` at the repo root
+   > before doing work — it defines the memory model (STATUS.md, DECISIONS.md,
+   > docs/plans) and session rules. Same pointer applies to `AGENTS.md` if
+   > this repo grows one.
+
+4. For claude.ai access: fill `template_lite/_PROJECT_INSTRUCTIONS_LITE.md.template`
+   from upstream and paste it into a Project's instructions.
+
 ## Checking for lite updates
 
 If the user says "check for lite updates" (or similar): the canonical copy of
