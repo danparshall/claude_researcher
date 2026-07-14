@@ -54,7 +54,7 @@ Ask the user:
 
 **Branch name validation.** Lowercase, alphanumeric plus hyphens, ≤39 characters. Suggest a name derived from the topic (suggest-with-Enter pattern); user can override.
 
-**Purpose.** One sentence. If the user hasn't provided one, ask before proceeding — it lands in two files and is the future-you-and-them signal of what this line was for.
+**Purpose.** One sentence, amendable at milestones (if the line's direction shifts materially, update the row's Purpose in the same commit as the milestone — but the fresh Summary at merge time is where the final story gets told, so don't over-groom). If the user hasn't provided one, ask before proceeding — it lands in two files and is the future-you-and-them signal of what this line was for.
 
 > **(novice:** explain first that "branches are like separate parallel workspaces in your repo. We can experiment in this branch without touching anything in `main`. When the work is done, we'll merge it into `main` as the permanent record.") **(fluent:** just proceed.)
 

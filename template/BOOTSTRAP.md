@@ -441,13 +441,32 @@ _PROJECT_INSTRUCTIONS.md
 ```markdown
 # Status — <RESEARCH_REPO>
 
-## What this repo is
+**Last updated:** <YYYY-MM-DD> · **Workflow mode:** branches
+**How to read this file:** STATUS logs research-line lifecycle only (row opened at line start, row moved to Archived at merge). Day-to-day detail lives in `docs/active/<branch>/RESEARCH_LOG.md`. Sessions do not write STATUS — only the `start-research-line` and merge ceremonies do. Most sessions only need to read down through the Active Research Lines table.
 
-<TOPIC>
+## Current focus
+
+- Repo just created via claude_researcher bootstrap on <YYYY-MM-DD>. <TOPIC>
+
+## Active Research Lines
+
+Newest-first by start date. Purpose set at line start (1 sentence), amended at milestones.
+
+| Topic | Started | Purpose |
+|---|---|---|
+
+(No research lines yet — `start-research-line` adds the first row.)
+
+## Archived Research Lines
+
+Newest-first by archive date. Summary written fresh at archive time (1 sentence, ≤2 if needed); Material = where the record lives (dir, file, results path, or PR).
+
+| Topic | Summary | Archived | Material |
+|---|---|---|---|
 
 ## Project parameters
 
-Per-project configuration the skills read at runtime. Update only when the project's scope or conventions change.
+Per-project configuration the skills read at runtime (an explicit extra read — this sits below the partial-read fold). Update only when the project's scope or conventions change.
 
 - `PROJECT_QUESTION`: <PROJECT_QUESTION>
 - `CONDITIONAL_SECTION`: unset
@@ -455,18 +474,7 @@ Per-project configuration the skills read at runtime. Update only when the proje
 - `PAPERS_INDEX`: PAPER_INDEX.md
 - `paper_summaries.structure`: single-file
 
-## Current state
-
-- **Branch:** main only. No research lines yet.
-- **Last session:** None — repo just created via claude_researcher bootstrap on <YYYY-MM-DD>.
-
-## Recent sessions
-
-(Sessions will be appended here by `update-docs` and `finish-convo` skills as work progresses.)
-
-## Archived research lines
-
-(Research lines that have been completed and merged to main. Empty for now.)
+<!-- main_only repos: replace the two tables above with a capped `## Recent Sessions` (≤20 entries, ≤2 lines each + link; older entries roll to a per-year archive file) plus the same Archived table. -->
 ```
 
 #### `RESEARCH_LOG.md`

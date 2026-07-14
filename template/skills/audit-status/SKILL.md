@@ -102,7 +102,8 @@ Cross-reference the branch inventory against the table contents. Findings fall i
 ### Bucket A — Unmerged branch missing from Active table
 
 - Branch exists on origin, not merged into main, no matching row in Active table.
-- **Proposed fix:** add a row. Ask user for one-sentence Purpose. Suggest Started date from the branch's first-commit date: `git log --reverse --format=%as origin/<branch> | head -1`.
+- **Pending-deletion carve-out (check first):** if the branch is annotated as classified-for-deletion — in STATUS's `## Known issues`, or in a worksheet that Known issues references — do NOT flag it as a finding. List all such branches once, in a compact "Pending deletion (suppressed)" block at the end of the report, so they stay visible without generating repeat findings every audit. If a suppressed branch is still undeleted after ~30 days, ask once whether the sweep is still planned.
+- **Proposed fix (unannotated branches):** add a row. Ask user for one-sentence Purpose. Suggest Started date from the branch's first-commit date: `git log --reverse --format=%as origin/<branch> | head -1`.
 
 ### Bucket B — Active table row with no matching branch
 
@@ -120,25 +121,37 @@ Cross-reference the branch inventory against the table contents. Findings fall i
   1. Move the branch's row from Active (if present) to Archived. Ask for Summary + Archived date + Material path (typically `docs/historical/<branch>/`).
   2. Offer to delete the stale remote branch: `git push origin --delete <branch>`. The user may want to keep it around; honor that.
 
-### Bucket D — Archived row with no `docs/historical/<topic>/`
+### Bucket D — Archived row whose Material reference doesn't resolve
 
-- Row exists in the Archived table but the historical directory isn't on main.
-- **Surface the anomaly.** This suggests a partial archive (row was added but the directory move never happened, or the directory was later deleted). Ask the user how to reconcile:
+- The check is **"does the row's Material reference resolve?"** — NOT "does `docs/historical/<topic>/` exist." Valid Material under the one-row-per-line convention: a per-topic historical dir, a *shared/consolidated* historical dir, a code or `results/` path, a specific file, or a merged-PR link with a content map. Resolve dirs/files with `ls`/`test -e` on main; PR links count as resolving if the PR exists and is merged. (Requiring a per-topic dir produced 27 false positives on a fully-conformant repo — econ-impact, 2026-07-11.)
+- **Surface only genuine non-resolution.** A dangling Material suggests a partial archive (row added but the move never happened, or the target was later deleted/renamed). Ask the user how to reconcile:
+  - Fix the Material reference → point it at where the record actually lives.
   - Delete the row → treat as never-archived.
-  - Restore the historical directory from git history → check `git log --all -- docs/historical/<topic>/` for the last-known state.
+  - Restore the target from git history → check `git log --all -- <path>` for the last-known state.
   - Leave the discrepancy → note in commit message that it's intentional.
 
 Don't auto-fix Bucket D. The information asymmetry is the point.
 
-### Bloat heuristics (soft — surface for user judgment)
+### Schema & bloat heuristics (mode-aware; soft unless marked firm)
 
-Don't hard-block on these. Present each as a question, not a prescription:
+Check `workflow_mode` first (absent = `branches`). Present each as a question, not a prescription:
 
-- **STATUS.md > ~200 lines** → *"STATUS is at N lines. Is that fine, or should we look at what's driving the length?"*
-- **`## Recent Sessions` > ~20 entries** → *"Recent Sessions has N entries. Trim oldest? Move to a per-year archive file? Keep?"*
-- **`## Current Focus` > ~30 lines** → *"Current Focus is N lines — that's beyond dashboard length. Move the detail into the relevant `docs/active/<branch>/RESEARCH_LOG.md` and leave a pointer here?"*
+**`branches` mode (orchestrator schema):**
+- **`## Recent Sessions` EXISTS** → schema finding, not bloat: *"This STATUS still carries a Recent Sessions section — under the orchestrator model sessions log to RESEARCH_LOG only. Migrate (entries → a sessions-archive file in docs/historical/)?"* The entry-count heuristic does not apply in this mode; the section's presence is the finding.
+- **Section order** → the how-to-read header, `## Current focus`, and `## Active Research Lines` should precede everything else (partial-read convention, RESEARCHER.md §2c). If not: *"Reorder so session-start can read only the top of the file?"*
+- **STATUS.md > ~200 lines** → soft flag (a healthy orchestrator STATUS runs ~100–150 even with 15+ active lines). **> ~300 lines → firm finding**: something diary-shaped is accumulating; identify which section.
+- **Oversize Purpose (>1 sentence) or Summary (>2 sentences)** → soft flag: *"Row X's Purpose/Summary has drifted past the cap — trim, or move the detail to the line's RESEARCH_LOG?"*
 
-A project with 60 active-but-slow research lines has a legitimately long Active table; a policy repo may have 30+ Recent Sessions worth reading. The thresholds are calibration hints, not rules.
+**`main_only` mode:**
+- **`## Recent Sessions` > ~20 entries** → *"Recent Sessions has N entries. Roll the oldest into a per-year archive file?"*
+- **Any entry > 2 lines** → *"Entry from YYYY-MM-DD runs long — trim to ≤2 lines + link, detail into the convo/log?"*
+- **STATUS.md > ~200 lines** → soft flag, same question as above.
+
+**Both modes:**
+- **`## Current focus` > ~30 lines** → *"Current focus is N lines — beyond dashboard length. Move the detail into the relevant `docs/active/<branch>/RESEARCH_LOG.md` and leave a pointer here?"*
+- **Derived recency:** include a last-activity-per-line table in the report by default — `git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:short)' refs/remotes/origin` joined against the Active table. This replaces what Recent Sessions used to signal, at zero storage cost.
+
+A project with 60 active-but-slow research lines has a legitimately long Active table. The soft thresholds are calibration hints, not rules; only the >300-line branches-mode check is firm.
 
 ## Step 5: Present findings, one at a time
 

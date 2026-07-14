@@ -30,7 +30,7 @@ Both environments set positive markers; the probe checks for either side affirma
 
 1. Run the update-docs skill first.
 
-Read and follow `/Users/dan/.claude/skills/update-docs/SKILL.md`. This creates/updates the convo summary, saves results with provenance links, and updates RESEARCH_LOG.md and STATUS.md.
+Read and follow `/Users/dan/.claude/skills/update-docs/SKILL.md`. This creates/updates the convo summary, saves results with provenance links, and updates RESEARCH_LOG.md (plus, in `main_only` mode only, a capped STATUS one-liner — in `branches` mode STATUS.md is never written at wrap; see RESEARCHER.md §2c).
 
 2. If the session produced something ready to implement:
 
@@ -41,7 +41,8 @@ Read and follow `/Users/dan/.claude/skills/update-docs/SKILL.md`. This creates/u
 3. Stage and commit all changed files:
 
 ```bash
-git add docs/active/<branch-name>/ STATUS.md
+git add docs/active/<branch-name>/                    # branches mode: STATUS.md is NOT staged
+# main_only mode only: also  git add STATUS.md         (capped Recent Sessions one-liner)
 git commit -m "convo: <convo-name> — <one-line summary>"
 ```
 
@@ -60,5 +61,5 @@ Research branches can live for weeks — don't let unpushed work accumulate.
 - Create a PR (research branches stay open until user explicitly asks to merge)
 - Merge into main (NEVER without explicit request)
 - Run the finish-branch pipeline
-- Rewrite STATUS.md with authoritative conclusions
+- Write STATUS.md at all in branches mode (lifecycle ceremonies only), or rewrite its conclusions in main_only mode
 </required>
