@@ -55,6 +55,8 @@ After Phase B: dry-read each edited SKILL.md as a fresh agent would — no step 
 
 ## Questions for Dan
 
+**Sign-off 2026-07-14 (Dan, in-session): LGTM, proceed — all four defaults below approved as written.** Q1: flag >200 / firm >300. Q2: ≤20 entries, ≤2 lines each. Q3: audit-status yes, session-start no. Q4: this repo keeps Recent Sessions under the main_only cap, no migration. Executing in the same claude.ai session (Dan's call, overriding the fresh-session default).
+
 1. **Bloat numbers for the orchestrator era:** old hints were 200 lines / 20 sessions. Proposal: flag > 200 lines, firm finding > 300 (econ-impact sits at ~112–114 with 16 active lines). Original F5 said firm at ~500 — that was calibrated to diary-era files. Confirm or adjust.
 2. **main_only Recent Sessions cap:** proposal ≤ 20 entries retained, each ≤ 2 lines + link; older entries roll to a per-year archive file. Confirm.
 3. **Derived recency:** should audit-status (or session-start) print a last-activity-per-line table from `git for-each-ref` as standard output? Cheap, useful, but adds noise. Default: audit-status yes, session-start no.
