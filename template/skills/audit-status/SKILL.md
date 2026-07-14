@@ -134,7 +134,9 @@ Don't auto-fix Bucket D. The information asymmetry is the point.
 
 ### Schema & bloat heuristics (mode-aware; soft unless marked firm)
 
-Check `workflow_mode` first (absent = `branches`). Present each as a question, not a prescription:
+Check the repo's mode first: `workflow_mode` in STATUS.md (absent = `branches`) — but **before that, check for lite mode** (a `LITE.md` at repo root, or STATUS.md opening with `## Current intent`). Lite repos have their own memory model and this skill's tables/buckets don't apply as-is: offer the lite checks instead — session-log entries ≤5 lines each, ≤~10 entries with overflow rolled to `HISTORY.md` (newest-first, rotate by count not age), and `docs/active/` ≤~10 files with the oldest rotated to `docs/historical/`. Run Buckets A–D on a lite repo only if it actually maintains Active/Archived tables.
+
+For full-workflow repos, present each finding as a question, not a prescription:
 
 **`branches` mode (orchestrator schema):**
 - **`## Recent Sessions` EXISTS** → schema finding, not bloat: *"This STATUS still carries a Recent Sessions section — under the orchestrator model sessions log to RESEARCH_LOG only. Migrate (entries → a sessions-archive file in docs/historical/)?"* The entry-count heuristic does not apply in this mode; the section's presence is the finding.
