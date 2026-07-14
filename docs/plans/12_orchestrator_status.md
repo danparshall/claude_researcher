@@ -62,6 +62,10 @@ After Phase B: dry-read each edited SKILL.md as a fresh agent would — no step 
 3. **Derived recency:** should audit-status (or session-start) print a last-activity-per-line table from `git for-each-ref` as standard output? Cheap, useful, but adds noise. Default: audit-status yes, session-start no.
 4. **This repo's own STATUS** is diary-style with Recent Sessions and is explicitly flat/`main_only`-shaped ("not a research project itself"). Default: it keeps Recent Sessions under the main_only cap and gets trimmed opportunistically, no migration. Confirm.
 
+## Execution record (2026-07-14, same session as sign-off)
+
+Phases A–D complete on this branch. Acceptance test (step 12) against econ-impact: **Buckets A/B/C/D all 0** after two validation-driven skill fixes that the plan didn't anticipate: (1) preflight must `git fetch --prune` — unpruned refs from econ-impact's Jul-11 deletion sweep produced 8 phantom Bucket-A flags; (2) valid Material types extended to globs and commit refs (2 false Bucket-D flags otherwise; both resolved in reality). Also added: bundle rows cover branches named in Summary/Material (Bucket C). Schema checks: no Recent Sessions, section order correct, 114 lines, no oversize flags, derived recency table produced. main_only fixture (step 13): presence-finding correctly silent, entry-count heuristic correct, oversize-entry flag fires on a 3-line entry. The 4 Known-issues deletion-pending locals are desktop-side only (origin already clean) — suppression logic verified against them pre-prune.
+
 ## What could change
 
 - **Upstream Nori sync:** these files diverge further from the upstream Skillset; if Dan later pulls upstream changes to update-docs/finish-convo, this plan's mode-split is the likely conflict site. The PR description should name the diverged files for future syncs.

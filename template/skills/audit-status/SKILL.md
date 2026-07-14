@@ -19,7 +19,7 @@ fi
 **If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the git commands in this skill directly from that working tree. **This skill requires clone-first mode.** If the §2.0b clone failed and you're in degraded REST fallback, the branch-merge queries this skill depends on don't have clean REST equivalents; stop and tell the user you can't audit STATUS without the local clone. Don't attempt a partial audit — the whole point of the skill is comparing git state against STATUS state, and half-visibility into git state produces misleading findings.
 
 <required>
-1. Preflight: confirm clone-first mode; fetch origin
+1. Preflight: confirm clone-first mode; `git fetch --prune origin` — the `--prune` is load-bearing: without it, branches deleted on origin persist as stale local refs and generate phantom Bucket A findings (found live on econ-impact, 2026-07-14: 8 phantom flags from a deletion sweep three days prior)
 2. Inventory branches: classify each remote branch as merged / unmerged; check for docs directories
 3. Parse STATUS.md's Active and Archived tables
 4. Compute findings: table-vs-git mismatches (buckets A–D) plus bloat heuristics
@@ -116,14 +116,14 @@ Cross-reference the branch inventory against the table contents. Findings fall i
 
 ### Bucket C — Merged branch missing from Archived table
 
-- Branch is merged into `origin/main`; no row in Archived table.
+- Branch is merged into `origin/main`; no row in Archived table. **Bundle rows count:** a consolidated row (e.g. "v4-prompt-design (bundle)") covers every branch it names in its Topic, Summary, or Material — check those fields before flagging.
 - **Proposed fix sequence** (offer as two steps, approve each):
   1. Move the branch's row from Active (if present) to Archived. Ask for Summary + Archived date + Material path (typically `docs/historical/<branch>/`).
   2. Offer to delete the stale remote branch: `git push origin --delete <branch>`. The user may want to keep it around; honor that.
 
 ### Bucket D — Archived row whose Material reference doesn't resolve
 
-- The check is **"does the row's Material reference resolve?"** — NOT "does `docs/historical/<topic>/` exist." Valid Material under the one-row-per-line convention: a per-topic historical dir, a *shared/consolidated* historical dir, a code or `results/` path, a specific file, or a merged-PR link with a content map. Resolve dirs/files with `ls`/`test -e` on main; PR links count as resolving if the PR exists and is merged. (Requiring a per-topic dir produced 27 false positives on a fully-conformant repo — econ-impact, 2026-07-11.)
+- The check is **"does the row's Material reference resolve?"** — NOT "does `docs/historical/<topic>/` exist." Valid Material under the one-row-per-line convention: a per-topic historical dir, a *shared/consolidated* historical dir, a code or `results/` path, a specific file or glob (`docs/20260303_*`), a commit/merge reference, or a merged-PR link with a content map. Resolve dirs/files/globs with `ls` on main; commit refs with `git cat-file -e <sha>`; PR links count as resolving if the PR exists and is merged. (Requiring a per-topic dir produced 27 false positives on a fully-conformant repo — econ-impact, 2026-07-11.)
 - **Surface only genuine non-resolution.** A dangling Material suggests a partial archive (row added but the move never happened, or the target was later deleted/renamed). Ask the user how to reconcile:
   - Fix the Material reference → point it at where the record actually lives.
   - Delete the row → treat as never-archived.
