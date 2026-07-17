@@ -57,6 +57,8 @@ git push -u origin <branch-name>
 
 Research branches can live for weeks — don't let unpushed work accumulate.
 
+If the push is rejected (non-fast-forward) — another session pushed this branch, or (`main_only`) a concurrent session pushed `main` — recover per RESEARCHER.md's Appendix entry for rejected pushes: `git pull --rebase`, and if the only conflicts are append-on-top regions (RESEARCH_LOG.md's newest-first entries; in `main_only`, STATUS.md's `## Recent Sessions` one-liners), resolve with `python3 /home/claude/.claude_researcher_template/template/scripts/resolve_append_conflict.py <file>` (keeps both sides), `git add`, `git rebase --continue`, re-push. Any other conflict shape: surface to the user.
+
 5. Do NOT:
 - Create a PR (research branches stay open until user explicitly asks to merge)
 - Merge into main (NEVER without explicit request)

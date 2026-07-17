@@ -18,13 +18,23 @@ side first, then incoming side). No content from either side is dropped.
 
 This resolution is **only correct** when both sides legitimately added their
 own content in the same region and the union of both blocks is the right
-final state. The canonical case is `STATUS.md`'s Recent Sessions section in
-a multi-committer research repo: branch A adds bullets on top, branch B adds
-bullets on top, the merge wants both sets of bullets present. Each
-contributor's block stays internally chronological; the resulting newest-
-first invariant holds within each contributor's block, though the absolute
-chronology across contributors may not interleave perfectly. That's the
-expected shape for a multi-committer running ledger like STATUS.md.
+final state. The canonical cases, by workflow mode:
+
+- **`branches` mode:** STATUS.md's lifecycle tables — two concurrent
+  ceremonies both appending a row to `## Active Research Lines` (two
+  `start-research-line` invocations) or `## Archived Research Lines` (two
+  merge ceremonies). Both rows must survive; row order in these tables does
+  not encode precedence.
+- **`main_only` mode:** STATUS.md's `## Recent Sessions` section — session A
+  adds a one-liner on top, session B adds a one-liner on top, the merge
+  wants both present.
+- **Either mode:** RESEARCH_LOG.md's newest-first session entries when the
+  same branch is worked from two sessions.
+
+Each contributor's block stays internally chronological; the newest-first
+invariant holds within each block, though absolute chronology across
+contributors may not interleave perfectly. That's the expected shape for a
+multi-committer running ledger.
 
 ## When this is NOT safe
 
@@ -36,7 +46,12 @@ This script does NOT understand the semantics of the conflicting content.
   where concatenating two diverging blocks produces a parse error or
   semantic incoherence.
 - The conflict is in a structured table where row order matters (e.g., a
-  config file whose order encodes precedence).
+  config file whose order encodes precedence). Markdown ledger tables whose
+  rows are independent (the STATUS.md lifecycle tables above) are fine; the
+  unsafe case is order-as-semantics.
+- One side *deleted* lines the other side kept or edited (e.g., a merge
+  ceremony's Active-row removal tangled with a neighboring edit) — keeping
+  both would resurrect the deleted content.
 
 Limit usage to multi-committer running ledgers like STATUS.md, RESEARCH_LOG
 sections, or other append-on-top text files. Surface any other shape to the
