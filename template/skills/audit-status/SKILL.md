@@ -19,7 +19,7 @@ fi
 **If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the git commands in this skill directly from that working tree. **This skill requires clone-first mode.** If the §2.0b clone failed and you're in degraded REST fallback, the branch-merge queries this skill depends on don't have clean REST equivalents; stop and tell the user you can't audit STATUS without the local clone. Don't attempt a partial audit — the whole point of the skill is comparing git state against STATUS state, and half-visibility into git state produces misleading findings.
 
 <required>
-1. Preflight: confirm clone-first mode; fetch origin
+1. Preflight: confirm clone-first mode; `git fetch --prune origin` — the `--prune` is load-bearing: without it, branches deleted on origin persist as stale local refs and generate phantom Bucket A findings (found live on econ-impact, 2026-07-14: 8 phantom flags from a deletion sweep three days prior)
 2. Inventory branches: classify each remote branch as merged / unmerged; check for docs directories
 3. Parse STATUS.md's Active and Archived tables
 4. Compute findings: table-vs-git mismatches (buckets A–D) plus bloat heuristics
@@ -102,7 +102,8 @@ Cross-reference the branch inventory against the table contents. Findings fall i
 ### Bucket A — Unmerged branch missing from Active table
 
 - Branch exists on origin, not merged into main, no matching row in Active table.
-- **Proposed fix:** add a row. Ask user for one-sentence Purpose. Suggest Started date from the branch's first-commit date: `git log --reverse --format=%as origin/<branch> | head -1`.
+- **Pending-deletion carve-out (check first):** if the branch is annotated as classified-for-deletion — in STATUS's `## Known issues`, or in a worksheet that Known issues references — do NOT flag it as a finding. List all such branches once, in a compact "Pending deletion (suppressed)" block at the end of the report, so they stay visible without generating repeat findings every audit. If a suppressed branch is still undeleted after ~30 days, ask once whether the sweep is still planned.
+- **Proposed fix (unannotated branches):** add a row. Ask user for one-sentence Purpose. Suggest Started date from the branch's first-commit date: `git log --reverse --format=%as origin/<branch> | head -1`.
 
 ### Bucket B — Active table row with no matching branch
 
@@ -115,30 +116,44 @@ Cross-reference the branch inventory against the table contents. Findings fall i
 
 ### Bucket C — Merged branch missing from Archived table
 
-- Branch is merged into `origin/main`; no row in Archived table.
+- Branch is merged into `origin/main`; no row in Archived table. **Bundle rows count:** a consolidated row (e.g. "v4-prompt-design (bundle)") covers every branch it names in its Topic, Summary, or Material — check those fields before flagging.
 - **Proposed fix sequence** (offer as two steps, approve each):
   1. Move the branch's row from Active (if present) to Archived. Ask for Summary + Archived date + Material path (typically `docs/historical/<branch>/`).
   2. Offer to delete the stale remote branch: `git push origin --delete <branch>`. The user may want to keep it around; honor that.
 
-### Bucket D — Archived row with no `docs/historical/<topic>/`
+### Bucket D — Archived row whose Material reference doesn't resolve
 
-- Row exists in the Archived table but the historical directory isn't on main.
-- **Surface the anomaly.** This suggests a partial archive (row was added but the directory move never happened, or the directory was later deleted). Ask the user how to reconcile:
+- The check is **"does the row's Material reference resolve?"** — NOT "does `docs/historical/<topic>/` exist." Valid Material under the one-row-per-line convention: a per-topic historical dir, a *shared/consolidated* historical dir, a code or `results/` path, a specific file or glob (`docs/20260303_*`), a commit/merge reference, or a merged-PR link with a content map. Resolve dirs/files/globs with `ls` on main; commit refs with `git cat-file -e <sha>`; PR links count as resolving if the PR exists and is merged. (Requiring a per-topic dir produced 27 false positives on a fully-conformant repo — econ-impact, 2026-07-11.)
+- **Surface only genuine non-resolution.** A dangling Material suggests a partial archive (row added but the move never happened, or the target was later deleted/renamed). Ask the user how to reconcile:
+  - Fix the Material reference → point it at where the record actually lives.
   - Delete the row → treat as never-archived.
-  - Restore the historical directory from git history → check `git log --all -- docs/historical/<topic>/` for the last-known state.
+  - Restore the target from git history → check `git log --all -- <path>` for the last-known state.
   - Leave the discrepancy → note in commit message that it's intentional.
 
 Don't auto-fix Bucket D. The information asymmetry is the point.
 
-### Bloat heuristics (soft — surface for user judgment)
+### Schema & bloat heuristics (mode-aware; soft unless marked firm)
 
-Don't hard-block on these. Present each as a question, not a prescription:
+Check the repo's mode first: `workflow_mode` in STATUS.md (absent = `branches`) — but **before that, check for lite mode** (a `LITE.md` at repo root, or STATUS.md opening with `## Current intent`). Lite repos have their own memory model and this skill's tables/buckets don't apply as-is: offer the lite checks instead — session-log entries ≤5 lines each, ≤~10 entries with overflow rolled to `HISTORY.md` (newest-first, rotate by count not age), and `docs/active/` ≤~10 files with the oldest rotated to `docs/historical/`. Run Buckets A–D on a lite repo only if it actually maintains Active/Archived tables.
 
-- **STATUS.md > ~200 lines** → *"STATUS is at N lines. Is that fine, or should we look at what's driving the length?"*
-- **`## Recent Sessions` > ~20 entries** → *"Recent Sessions has N entries. Trim oldest? Move to a per-year archive file? Keep?"*
-- **`## Current Focus` > ~30 lines** → *"Current Focus is N lines — that's beyond dashboard length. Move the detail into the relevant `docs/active/<branch>/RESEARCH_LOG.md` and leave a pointer here?"*
+For full-workflow repos, present each finding as a question, not a prescription:
 
-A project with 60 active-but-slow research lines has a legitimately long Active table; a policy repo may have 30+ Recent Sessions worth reading. The thresholds are calibration hints, not rules.
+**`branches` mode (orchestrator schema):**
+- **`## Recent Sessions` EXISTS** → schema finding, not bloat: *"This STATUS still carries a Recent Sessions section — under the orchestrator model sessions log to RESEARCH_LOG only. Migrate (entries → a sessions-archive file in docs/historical/)?"* The entry-count heuristic does not apply in this mode; the section's presence is the finding.
+- **Section order** → the how-to-read header, `## Current focus`, and `## Active Research Lines` should precede everything else (partial-read convention, RESEARCHER.md §2c). If not: *"Reorder so session-start can read only the top of the file?"*
+- **STATUS.md > ~200 lines** → soft flag (a healthy orchestrator STATUS runs ~100–150 even with 15+ active lines). **> ~300 lines → firm finding**: something diary-shaped is accumulating; identify which section.
+- **Oversize Purpose (>1 sentence) or Summary (>2 sentences)** → soft flag: *"Row X's Purpose/Summary has drifted past the cap — trim, or move the detail to the line's RESEARCH_LOG?"*
+
+**`main_only` mode:**
+- **`## Recent Sessions` > ~20 entries** → *"Recent Sessions has N entries. Roll the oldest into a per-year archive file?"*
+- **Any entry > 2 lines** → *"Entry from YYYY-MM-DD runs long — trim to ≤2 lines + link, detail into the convo/log?"*
+- **STATUS.md > ~200 lines** → soft flag, same question as above.
+
+**Both modes:**
+- **`## Current focus` > ~30 lines** → *"Current focus is N lines — beyond dashboard length. Move the detail into the relevant `docs/active/<branch>/RESEARCH_LOG.md` and leave a pointer here?"*
+- **Derived recency:** include a last-activity-per-line table in the report by default — `git for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:short)' refs/remotes/origin` joined against the Active table. This replaces what Recent Sessions used to signal, at zero storage cost.
+
+A project with 60 active-but-slow research lines has a legitimately long Active table. The soft thresholds are calibration hints, not rules; only the >300-line branches-mode check is firm.
 
 ## Step 5: Present findings, one at a time
 

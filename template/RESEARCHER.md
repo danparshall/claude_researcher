@@ -209,23 +209,27 @@ Read fields: `Name`, `Current role`, history (academic + work), `Tools and langu
 
 If the fetch returns 404, the user's `claude_research_config` doesn't exist or the PAT lacks access. **Surface to the user** — they may need to re-bootstrap. Don't proceed without `personal_info.md`; operating without identity context is a degradation.
 
-### 2c — Read the research repo's `STATUS.md` and `README.md` from the local clone
+### 2c — Read the research repo's `STATUS.md` (partial) and `README.md` from the local clone
 
-Both files are at the root of the project repo cloned in §2.0b:
+Both files are at the root of the project repo cloned in §2.0b. **Read STATUS.md partially**: view from the top through the end of the `## Active Research Lines` table, then stop. In an orchestrator-schema STATUS (the default since 2026-07), everything a session normally needs — the how-to-read header, `workflow_mode`, `## Current focus`, and the Active table — sits above that point by design. Read further only when the task requires it: archived-line lookups, `## Project parameters` consumers, audits.
 
 ```
-view /home/claude/<REPO>/STATUS.md
+view /home/claude/<REPO>/STATUS.md [1, N]   # N = a line or two past the Active Research Lines table; ~60 covers most repos
 view /home/claude/<REPO>/README.md
 ```
 
 (Fallback if the §2.0b clone failed: `curl` with the PAT against the Contents API — same recipe shape as §2b, paths `/repos/$USERNAME/$REPO/contents/STATUS.md` and `.../README.md`. Surface to the user that you're in degraded mode.)
 
-STATUS.md tells you what's currently active, recent sessions, the archived-research-lines table, and may contain a top-of-file `workflow_mode` field:
+**The STATUS ↔ RESEARCH_LOG boundary.** STATUS.md records research-line *lifecycle* and repo-level state only: a row added when a line starts (Purpose: 1 sentence, amendable at milestones), a row moved to Archived when it merges (Summary: written fresh at close, 1 sentence, ≤2 if needed), plus Current focus, Project parameters, and open questions. Everything session-shaped — what you did today, findings, dead ends, next steps — belongs in the line's `RESEARCH_LOG.md`. In `branches` mode, **sessions never write STATUS.md; only the `start-research-line` and §6 merge ceremonies do.** There is no `## Recent Sessions` section in branches mode; recency is derived from git when needed (`git for-each-ref --sort=-committerdate refs/remotes/origin`). In `main_only` mode, a capped `## Recent Sessions` survives (≤20 entries, ≤2 lines each with a link out; older entries roll to a per-year archive file).
+
+STATUS.md's top-of-file `workflow_mode` field:
 
 - `workflow_mode: branches` (default) — each research line is a git branch + a `docs/active/<branch>/` directory. Wrap-up opens a PR and merges. **Use this if the field is absent.**
 - `workflow_mode: main_only` — solo repo, no branches. Each research line is just a `docs/active/<branch>/` directory on `main`. Wrap-up is a directory move + STATUS update; no PR.
 
-STATUS.md may also carry a `## Project parameters` section listing per-project config (`PROJECT_QUESTION`, `CONDITIONAL_SECTION`, `BIB_FILE`, `PAPERS_INDEX`, `paper_summaries.structure`). Skills that need these values read them from STATUS.md — no extra fetch since STATUS.md is already part of session-start.
+STATUS.md may also carry a `## Project parameters` section listing per-project config (`PROJECT_QUESTION`, `CONDITIONAL_SECTION`, `BIB_FILE`, `PAPERS_INDEX`, `paper_summaries.structure`). Skills that need these values read that section on demand — it sits below the Active table, so it's an explicit extra read under the partial-read convention, still no extra fetch.
+
+Repos predating the orchestrator schema (a diary-style STATUS with `## Recent Sessions` in branches mode) still work — read enough to orient, and expect `audit-status` to flag the schema as a migration candidate.
 
 README.md tells you what the repo is about (the user's framing of their own work).
 
@@ -449,15 +453,21 @@ For lighter session-end (the more common case — "we're at a good stopping poin
 
    `git mv` preserves history (`git log --follow` will trace files across the move). If you need to inspect what's about to move first: `git ls-tree -r HEAD docs/active/<branch-name>/`.
 
-4. **Update STATUS.md's "Archived Research Lines" table** on `main`. Edit STATUS.md in place (append a row with `<branch-name>` + date archived (today, YYYY-MM-DD) + one-line summary of what was learned), then:
+4. **Move the line's row from "Active Research Lines" to "Archived Research Lines"** in STATUS.md on `main` — this is the closing half of the lifecycle ceremony (`start-research-line` opened it). Delete the Active row; add the Archived row with:
+
+   - **Summary** — written *fresh at close* (1 sentence, ≤2 if needed): what was learned, not what was attempted. Never copy the Active row's Purpose — Purpose says what the line set out to do and is usually stale by merge time.
+   - **Archived** — today, YYYY-MM-DD.
+   - **Material** — a reference that *resolves*: a `docs/historical/<topic>/` dir, a shared/consolidated dir, a results path, or the merged PR. One row per research line even when dirs are consolidated.
+
+   If the branch carried content edits that were relocated during a STATUS migration or take-main conflict resolution, grep-verify they survived somewhere reachable before committing.
 
    ```bash
    git add STATUS.md
-   git commit -m "Archive <branch-name>: STATUS update"
+   git commit -m "STATUS: archive <branch-name> (merge ceremony)"
    git push origin main
    ```
 
-   This is a separate commit from step 3 on purpose — the directory move and the index update are different concerns; keeping them separate makes the history readable.
+   This is a separate commit from step 3 on purpose — the directory move and the index update are different concerns; keeping them separate makes the history readable. This ceremony and `start-research-line` are the **only** writers of STATUS.md in branches mode — sessions never touch it (see §2c boundary).
 
 5. **(Optional) delete the merged branch:**
 

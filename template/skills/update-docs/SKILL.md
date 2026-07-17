@@ -1,6 +1,6 @@
 ---
 name: update-docs
-description: Checkpoint research progress mid-session — create/update convo summary, save results with provenance, update RESEARCH_LOG and STATUS.md. Core operation that finish-convo builds on.
+description: Checkpoint research progress mid-session — create/update convo summary, save results with provenance, update RESEARCH_LOG (and, in main_only mode only, a capped STATUS one-liner). Core operation that finish-convo builds on.
 ---
 
 ## Runtime detection
@@ -104,11 +104,10 @@ Place the new entry at the TOP of the log (below the header), so the most recent
 
 If updating an existing RESEARCH_LOG entry (mid-session checkpoint), update in place rather than creating a duplicate.
 
-5. Update STATUS.md with a one-line session summary.
+5. Session summary — mode-dependent. Check `workflow_mode` in STATUS.md's header (absent = `branches`).
 
-- Add a line under a "Recent Sessions" section (or create it if it doesn't exist)
-- Format: `- YYYY-MM-DD: [branch] explored X, found Y`
-- Do NOT rewrite STATUS.md conclusions — just append the one-liner
+- **`branches` mode: do NOT touch STATUS.md.** The session summary is the RESEARCH_LOG entry you wrote in step 4 — that IS the session record. STATUS.md is written only by the `start-research-line` and merge ceremonies (see RESEARCHER.md §2c boundary). Do not add STATUS.md to this skill's commit.
+- **`main_only` mode:** append a one-liner under `## Recent Sessions`. Format: `- YYYY-MM-DD: explored X, found Y — <link to convo or log>`. Hard cap: ≤2 lines per entry; detail belongs in the convo doc / RESEARCH_LOG. If the section exceeds ~20 entries, offer to roll the oldest into a per-year archive file. Do NOT rewrite STATUS.md conclusions — just append.
 </required>
 
 # Common Mistakes
@@ -121,9 +120,9 @@ If updating an existing RESEARCH_LOG entry (mid-session checkpoint), update in p
 - Problem: A table or figure in results/ has no context — future agents don't know what question it was answering
 - Fix: Every results file has a provenance header; every convo lists its results
 
-**Overwriting STATUS.md**
-- Problem: A one-session finding replaces months of accumulated context
-- Fix: ONLY append a one-liner. Never rewrite existing STATUS.md content during update-docs.
+**Writing STATUS.md in branches mode**
+- Problem: The skill historically appended a Recent Sessions one-liner every session; entries drifted to diary length, branch copies of STATUS forked from main's, and merges conflicted (this exact failure motivated the orchestrator model — claude_researcher#38).
+- Fix: In `branches` mode, update-docs never writes STATUS.md. In `main_only` mode, ONLY append the capped one-liner; never rewrite existing content.
 
 **Creating a duplicate RESEARCH_LOG entry on second update-docs call**
 - Problem: Mid-session checkpoint creates a second entry for the same session

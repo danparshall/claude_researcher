@@ -27,12 +27,12 @@ Skills are grouped by lifecycle role.
 
 ### finish-convo
 
-- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than the full research-line merge in `RESEARCHER.md` §6.
+- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than the full research-line merge in `RESEARCHER.md` §6. Writes convo doc + RESEARCH_LOG; touches STATUS only in `main_only` mode (capped one-liner) — never in `branches` mode.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/finish-convo/SKILL.md`
 
 ### update-docs
 
-- **Trigger:** mid-session checkpoint ("save what we've got"). Same writes as finish-convo without the "session is ending" framing.
+- **Trigger:** mid-session checkpoint ("save what we've got"). Same writes as finish-convo without the "session is ending" framing (STATUS untouched in `branches` mode; capped one-liner in `main_only`).
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/update-docs/SKILL.md`
 
 ### init-research-repo
@@ -71,7 +71,7 @@ Skills are grouped by lifecycle role.
 
 ### audit-status
 
-- **Trigger:** user asks to audit STATUS.md, check repo hygiene, or make sure STATUS is current after several sessions of active work ("audit STATUS", "check repo hygiene", "STATUS looks stale"). Cross-references Active/Archived Research Lines tables against actual git branch state (merged vs unmerged), and flags bloat when STATUS drifts past its dashboard role. Requires clone-first mode (§2.0b); stops cleanly in degraded REST fallback.
+- **Trigger:** user asks to audit STATUS.md, check repo hygiene, or make sure STATUS is current after several sessions of active work ("audit STATUS", "check repo hygiene", "STATUS looks stale"). Cross-references Active/Archived Research Lines tables against actual git branch state (merged vs unmerged); verifies Archived Material references resolve (consolidated dirs OK, pending-deletion branches suppressed); mode-aware schema checks (Recent Sessions presence is a finding in branches mode; capped in main_only) and bloat flags (soft >200 lines, firm >300 in branches mode); reports derived last-activity-per-line recency. Requires clone-first mode (§2.0b); stops cleanly in degraded REST fallback.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-status/SKILL.md`
 
 ---
