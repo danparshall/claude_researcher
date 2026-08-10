@@ -33,6 +33,10 @@ The format below is the v1 schema. Agents reading this file should be able to fi
 - **Git fluency:** <novice | occasional | fluent>
 - **Mode:** <claude.ai-only | also-local>
 - **Home repo:** <HOME_REPO>
+- **Codename base:** <FIRST_NAME_OR_SHORT_HANDLE>
+- **Git commit email:** <EMAIL>
+
+`Codename base` is the leading token of the per-session agent codename that RESEARCHER.md §2.0b constructs at session start. Format: `<Codename base> (web, <REPO>, <YYYYMMDDTHHMM>)`. The full codename is set as `user.name` for git commits *and* is the timestamp portion of the session's convo filename (so `git log` and `docs/active/<branch>/convos/` cross-reference by inspection). Default at bootstrap: your first name. Override to a shorter handle if you prefer (e.g., `DP`, `Prof-Smith`). `Git commit email` is set as `user.email` for the same commits — the address you want GitHub to attribute agent commits to.
 
 `Home repo` is the catch-all GitHub repo for personal / non-research-project tasks. Used by the `task-create` skill (override target when the user says "my personal list" or similar) and `task-remind` (second query target at session-start). Default at bootstrap: `<USERNAME>/claude_research_config` — the same config repo created during setup. Users with a dedicated tasks repo can override.
 

@@ -122,13 +122,23 @@ After the template clone, clone the user's repo. Reads happen against the local 
 ```bash
 git clone https://x-access-token:${TOKEN}@github.com/${USERNAME}/${REPO}.git /home/claude/${REPO}
 cd /home/claude/${REPO}
-git config user.email "claude@anthropic.com"
-git config user.name "Claude (claude_researcher)"
 ```
+
+**Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Read `Codename base` and `Git commit email` from `personal_info.md` (fetched in §2b — if you haven't yet, come back to this after that fetch).
+
+```bash
+SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442
+CODENAME="${CODENAME_BASE} (web, ${REPO}, ${SESSION_TS})"
+git config user.email "${COMMIT_EMAIL}"
+git config user.name  "${CODENAME}"
+```
+
+Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session each commit came from, and the timestamp fragment matches the session's convo filename verbatim.
+
+If `Codename base` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
 
 - **Not shallow** — `git log` / `git diff` lookups during a session (resumption, audit-docs, finish-convo) need full history.
 - **PAT hygiene.** The PAT lands in `.git/config`. Sandbox-local and resets per session — not a new exposure — **but do not echo URLs that include the token, do not paste `.git/config` contents back, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** If ever uncertain, ask before any operation that would print the remote URL.
-- **Commit identity.** Set `user.email`/`user.name` so commits aren't `root@sandbox`. The user may override via `Git commit identity:` in `personal_info.md`.
 - **Working directory.** `/home/claude/${REPO}/` is conventional; `cd` back if a sub-command leaves you elsewhere.
 
 **Fallback if the clone fails.** Most likely PAT expiry or `<REPO>` mismatch — see `resolve-runtime-issue`. Degraded fallback operates against the Contents API per-file.
@@ -161,7 +171,7 @@ curl -s -H "Authorization: token $TOKEN" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
-Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks.
+Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `Codename base`, `Git commit email`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks. `Codename base` and `Git commit email` feed the git-identity construction in §2.0b — export them as `CODENAME_BASE` and `COMMIT_EMAIL` now if you haven't already run §2.0b's `git config` step.
 
 404 means the user's `claude_research_config` doesn't exist or the PAT lacks access — surface (`resolve-runtime-issue`). Don't proceed without `personal_info.md`.
 
@@ -211,13 +221,18 @@ Respond with full context. Greeting style depends on tier (novice → warm + nam
 
 **Resumption.** Use the trackers, not `conversation_search` — see §1.5.
 
-**Convo-name handshake.** In your first or second response, propose a name for this session's convo and confirm. Format: `YYYYMMDD_<short-slug>` for `main_only`, `<short-slug>` for `branches` mode (the branch carries date context). Also propose a human-readable **chat title** derived from the slug so the WebUI chat-list stays aligned with `docs/convos/` filenames.
+**Convo-name handshake.** In your first or second response, propose a name for this session's convo and confirm. **Format includes the `$SESSION_TS` captured in §2.0b** — the timestamp cross-references the convo file with the git-log entries the session will produce.
 
-**Slug → title mapping:** drop `YYYYMMDD_`; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
+- `main_only` mode: `${SESSION_TS}_<short-slug>.md` (e.g., `20260810T1442_managed_retreat_planning.md`)
+- `branches` mode: `<short-slug>_${SESSION_TS}.md` (e.g., `managed_retreat_planning_20260810T1442.md` — the branch already carries the date, so the slug leads)
 
-Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned) — sound right?"*
+Also propose a human-readable **chat title** derived from the slug so the WebUI chat-list stays aligned with `docs/convos/` filenames.
 
-The user can accept, counter-propose, or say "no need to log this one." This name is the join key for the convo file, plan files, results files, and any STATUS entries. You can't see the chat title from inside the chat, so without a user-confirmed name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
+**Slug → title mapping:** drop the `SESSION_TS` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
+
+Example: *"I'll log this session as `managed_retreat_planning_20260511T0930` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930)`. Sound right?"*
+
+The user can accept, counter-propose, or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without a user-confirmed name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
 
 ---
 
