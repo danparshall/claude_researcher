@@ -27,8 +27,13 @@ Skills are grouped by lifecycle role.
 
 ### finish-convo
 
-- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than the full research-line merge in `RESEARCHER.md` §6. Writes convo doc + RESEARCH_LOG; touches STATUS only in `main_only` mode (capped one-liner) — never in `branches` mode.
+- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than `finishing-a-research-branch`. Writes convo doc + RESEARCH_LOG; touches STATUS only in `main_only` mode (capped one-liner) — never in `branches` mode. Branch stays open.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/finish-convo/SKILL.md`
+
+### finishing-a-research-branch
+
+- **Trigger:** user signals the research line is done and ready to merge ("done", "ready to ship", "let's merge it"). Full close-out ceremony: PR + merge (branches mode) or archive-only (main_only mode), then move `docs/active/<branch>/` → `docs/historical/<branch>/`, then move the STATUS row Active → Archived, then optionally delete the branch. Use `finish-convo` instead for mid- or end-of-session checkpoints that keep the branch open.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/finishing-a-research-branch/SKILL.md`
 
 ### update-docs
 
@@ -160,6 +165,20 @@ These three skills share a single GitHub-Issues backend (issues with the `task` 
 
 ---
 
+## Runtime / meta skills
+
+### resolve-runtime-issue
+
+- **Trigger:** a session-start fetch, git operation, or REST call fails in a way that isn't self-explanatory — expired PAT, network error, non-fast-forward push (with the safe append-conflict recovery), protected-branch push, lost sandbox state, missing config, stale raw-CDN read. Contains the recovery table that used to live in RESEARCHER.md's Appendix.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/resolve-runtime-issue/SKILL.md`
+
+### report-upstream-issue
+
+- **Trigger:** user reports a bug in `claude_researcher` itself (this file, the skills, the bootstrap, the template scripts) — not a problem with their own research. Produces a pre-filled GitHub issue URL against the upstream repo; the user clicks to file. Enforces the MUST-NOT list for issue-body contents (no PAT, no research-repo contents, no identifying info without consent).
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/report-upstream-issue/SKILL.md`
+
+---
+
 ## Skills intentionally not ported
 
 These skills exist in upstream Nori but don't apply to `claude_researcher`'s claude.ai runtime. Listed here so the agent doesn't search for them.
@@ -167,7 +186,7 @@ These skills exist in upstream Nori but don't apply to `claude_researcher`'s cla
 - `use-worktree`, `clean-worktrees` — local-filesystem-only; no parallel to git worktrees in claude.ai sandbox.
 - `webapp-testing`, `building-ui-ux` — out of scope for v1 (no webapp frontend in research workflow).
 - `using-screenshots` — claude.ai handles images natively in chat.
-- `finishing-a-development-branch` — collapsed into `RESEARCHER.md` §6 wrap-up (the merge-PR-and-archive flow lives in RESEARCHER.md, not a skill).
+- `finishing-a-development-branch` — the research-line analogue is `finishing-a-research-branch`; there's no separate development-branch flow in this template.
 - `updating-noridocs` — Nori-specific; no Nori on the web side.
 - `maintaining-decision-docs` — out of scope for v1 research repos.
 
