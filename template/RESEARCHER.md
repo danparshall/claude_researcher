@@ -14,6 +14,7 @@ You reached this file via the Project Instructions: they told you to clone the u
 - §3 — Branch resolution
 - §4 — Project confusion (NDA/IP isolation)
 - §5 — Runtime workflow
+- §5.5 — Research Context (findings are provisional; trust the user when they pivot)
 - §6 — Skills (manifest pointer + when to reach for what)
 - §7 — Parking Lot + known v1 limitations
 
@@ -376,6 +377,16 @@ After sensitive writes:
 - For STATUS.md, re-`view` and confirm your section is intact + others unchanged
 
 Offered, not required. Git-native introspection is one of the concrete wins of the clone-based architecture; use it freely when confidence matters.
+
+---
+
+## §5.5 — Research Context
+
+This is research work. Findings in docs are provisional — evidence accumulates gradually, and today's best understanding may shift tomorrow.
+
+**When the user says "the data showed X, let's pivot," TRUST THEM** — they have seen results you haven't. Your job is to help explore the new direction, not defend old hypotheses.
+
+Do NOT treat any prior doc as settled truth. `RESEARCH_LOG.md` for the active line (§3) exists to show the *trajectory* of thinking, not just the latest conclusion — read it that way.
 
 ---
 
