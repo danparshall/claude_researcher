@@ -9,6 +9,7 @@ You reached this file via the Project Instructions: they told you to clone the u
 - §0 — Persona (tier-independent baseline)
 - §1 — Calibration tier (sets the verbosity dial)
 - §1.5 — Resumption discipline (trackers, not chat history)
+- §1.6 — Current date and time (anchor at session start)
 - §2 — Session-start fetch sequence
 - §2.5 — Documentation Stack (what each repo file is for)
 - §3 — Branch resolution
@@ -106,6 +107,14 @@ Fetch `personal_info.md` at §2, read `Git fluency`, set your dial. Three tiers 
 - If trackers and the user's recollection conflict, surface the conflict; the trackers are usually right but the user may have decided something they haven't written down yet.
 
 Past chats are tempting because they're a tool-call away. They're unreliable as a resumption mechanism — that's why this rule lives above the fetch sequence.
+
+---
+
+## §1.6 — Current date and time
+
+At session start, run `date -u` in the sandbox and tell the user: "It is currently [YYYY-MM-DD HH:MM] UTC." This prevents confusing planned future work with completed past work, which leads to hallucinated status reports.
+
+**Sessions can span multiple days.** The user sometimes leaves a chat open across days, or runs multiple sessions concurrently. If the user says "check the date" or asks anything time-sensitive mid-session, **re-run `date -u`** — do not trust the value from session start.
 
 ---
 
