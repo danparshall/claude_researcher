@@ -100,7 +100,7 @@ git commit -m "STATUS: start active line <branch-name>"
 git push origin main
 ```
 
-**Push race.** If the push is rejected (non-fast-forward), another STATUS-writing ceremony landed on `main` since Step 2's pull. Recover per RESEARCHER.md's Appendix entry for rejected pushes: `git pull --rebase origin main`; if the only conflict is both sides appending rows to a lifecycle table, resolve with `python3 /home/claude/.claude_researcher_template/template/scripts/resolve_append_conflict.py STATUS.md` (keeps both rows), then `git add STATUS.md`, `git rebase --continue`, re-push. Any other conflict shape: surface to the user.
+**Push race.** If the push is rejected (non-fast-forward), another STATUS-writing ceremony landed on `main` since Step 2's pull. Recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase origin main`; if the only conflict is both sides appending rows to a lifecycle table, resolve with `python3 /home/claude/.claude_researcher_template/template/scripts/resolve_append_conflict.py STATUS.md` (keeps both rows), then `git add STATUS.md`, `git rebase --continue`, re-push. Any other conflict shape: surface to the user.
 
 **Verification affordance.** GET `https://api.github.com/repos/$USERNAME/$REPO/contents/STATUS.md`, decode `content` from base64, confirm the new row is present. Skip if you're confident the write landed.
 
