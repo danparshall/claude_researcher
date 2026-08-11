@@ -10,6 +10,7 @@ You reached this file via the Project Instructions: they told you to clone the u
 - §1 — Calibration tier (sets the verbosity dial)
 - §1.5 — Resumption discipline (trackers, not chat history)
 - §2 — Session-start fetch sequence
+- §2.5 — Documentation Stack (what each repo file is for)
 - §3 — Branch resolution
 - §4 — Project confusion (NDA/IP isolation)
 - §5 — Runtime workflow
@@ -246,6 +247,41 @@ Also propose a human-readable **chat title** derived from the slug so the WebUI 
 Example: *"I'll log this session as `managed_retreat_planning_20260511T0930` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930)`. Sound right?"*
 
 The user can accept, counter-propose, or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without a user-confirmed name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
+
+---
+
+## §2.5 — Documentation Stack
+
+The research repo has a specific documentation structure. Each file has a defined role — don't duplicate information across files. Reads happen against the local clone at `/home/claude/${REPO}/`; writes are real `git commit`s pushed back.
+
+### Repo-level files (stable across research lines)
+
+| File | Role | When to read |
+|------|------|-------------|
+| **STATUS.md** | Where everything is. Complete line inventory (active and archived), current focus, per-line detail. In `branches` mode, sessions never write STATUS mid-session — only `start-research-line` and `finishing-a-research-branch` do; in `main_only` mode, a capped `## Recent Sessions` survives. | Every session start (partial per §2c), every line switch |
+| **README.md** | What this repo does and why. Overview of archived research lines. Updated when something merges. Stable between merges. | Every session start |
+| **PAPER_INDEX.md** | One-sentence summary of each paper in `papers/`. Entry point for literature lookup. | When you need to find a paper on a topic (repos with `papers/`) |
+| **PAPER_SUMMARIES.md** | Key conclusions per paper, with numerical findings. Too long for every session — reach for it after the index points you somewhere. | On demand, after PAPER_INDEX identifies a paper |
+| **papers/** | Raw PDFs of source literature. | On demand |
+
+`RESEARCHER.md` (this file) and skills live in the upstream template clone at `/home/claude/.claude_researcher_template/template/`, not in the user's repo — see §2.0a.
+
+### Research-line files (per active or archived line)
+
+| File | Role | When to read |
+|------|------|-------------|
+| **docs/active/\<line\>/RESEARCH_LOG.md** | The index for this line. Which convos tied to which plans, session history, trajectory of thinking. Newest entries first. | Every session start after §3 branch resolution |
+| **docs/active/\<line\>/convos/** | Conversation summaries. One file per session, named per the handshake format from §2e. | On demand, when you need to understand why a decision was made |
+| **docs/active/\<line\>/plans/** | Implementation plans. Each MUST point back to the originating convo so the reasoning is auditable. | When implementing something |
+| **docs/active/\<line\>/results/** | Analysis outputs, figures, data summaries produced during research. | On demand |
+
+### Lifecycle: active → historical
+
+Archiving is **preservation**, not disposal. Moving docs to `docs/historical/` means "this line answered its questions and the results are safely on `main`." Everything is kept — code, results, docs. Only the user decides when to archive.
+
+`finishing-a-research-branch` handles the close-out ceremony (branches mode: PR + merge, then `git mv docs/active/<line> docs/historical/<line>` + STATUS row Active → Archived; main_only mode: skip the PR, do the doc move + STATUS update). Do not archive by hand — the skill bundles the required steps.
+
+Historical docs are **never deleted** — always recoverable when you need to revisit prior reasoning. But they're not loaded into session context by default. The STATUS.md Archived table tells agents what's there and why, so they know it exists without reading it. Skip `docs/historical/` unless the user asks to revisit an archived line.
 
 ---
 
