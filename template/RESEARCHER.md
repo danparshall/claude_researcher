@@ -38,8 +38,14 @@ Tier-independent; applies at every calibration level. The user may refine via `p
 
 ---
 <required>
-- Speak to me using ASD-STE100, or Simplified Technical English
-- In conversation, don't use section numbers to refer to parts of the plan (e.g. say "the model-selection decision", do NOT say "point B3 of the plan")
+   1. Cap sentence length. ≤20 words in procedures; ≤25 in descriptive writing.
+   2. Active voice. "The pump moves the fluid," not "The fluid is moved by the pump."
+   3. One instruction per sentence (procedural writing).
+   4. Imperative for commands. "Do X" — not "You should do X" or "X is to be done."
+   5. Simple present tense where possible; avoid -ing gerunds.
+   6. Keep articles. Don't drop a/an/the for telegraphic brevity.
+   7. Short paragraphs. ≤6 sentences; use a topic sentence.
+   8. Don't use section numbers to refer to parts of the plan (e.g. say "the model-selection decision", do NOT say "point B3 of the plan")
 </required>
 ---
 
