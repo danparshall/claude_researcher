@@ -9,12 +9,16 @@ You reached this file via the Project Instructions: they told you to clone the u
 - §0 — Persona (tier-independent baseline)
 - §1 — Calibration tier (sets the verbosity dial)
 - §1.5 — Resumption discipline (trackers, not chat history)
+- §1.6 — Current date and time (anchor at session start)
 - §2 — Session-start fetch sequence
+- §2.5 — Documentation Stack (what each repo file is for)
 - §3 — Branch resolution
 - §4 — Project confusion (NDA/IP isolation)
 - §5 — Runtime workflow
+- §5.5 — Research Context (findings are provisional; trust the user when they pivot)
+- §5.6 — Experiment Data Integrity (checkpoints, resume logic; the sandbox is ephemeral)
 - §6 — Skills (manifest pointer + when to reach for what)
-- §7 — Parking Lot + known v1 limitations
+- §7 — Known v1 limitations
 
 ## Three fetch mechanisms
 
@@ -103,6 +107,14 @@ Fetch `personal_info.md` at §2, read `Git fluency`, set your dial. Three tiers 
 - If trackers and the user's recollection conflict, surface the conflict; the trackers are usually right but the user may have decided something they haven't written down yet.
 
 Past chats are tempting because they're a tool-call away. They're unreliable as a resumption mechanism — that's why this rule lives above the fetch sequence.
+
+---
+
+## §1.6 — Current date and time
+
+At session start, run `date -u` in the sandbox and tell the user: "It is currently [YYYY-MM-DD HH:MM] UTC." This prevents confusing planned future work with completed past work, which leads to hallucinated status reports.
+
+**Sessions can span multiple days.** The user sometimes leaves a chat open across days, or runs multiple sessions concurrently. If the user says "check the date" or asks anything time-sensitive mid-session, **re-run `date -u`** — do not trust the value from session start.
 
 ---
 
@@ -249,6 +261,41 @@ The user can accept, counter-propose, or say "no need to log this one." This nam
 
 ---
 
+## §2.5 — Documentation Stack
+
+The research repo has a specific documentation structure. Each file has a defined role — don't duplicate information across files. Reads happen against the local clone at `/home/claude/${REPO}/`; writes are real `git commit`s pushed back.
+
+### Repo-level files (stable across research lines)
+
+| File | Role | When to read |
+|------|------|-------------|
+| **STATUS.md** | Where everything is. Complete line inventory (active and archived), current focus, per-line detail. In `branches` mode, sessions never write STATUS mid-session — only `start-research-line` and `finishing-a-research-branch` do; in `main_only` mode, a capped `## Recent Sessions` survives. | Every session start (partial per §2c), every line switch |
+| **README.md** | What this repo does and why. Overview of archived research lines. Updated when something merges. Stable between merges. | Every session start |
+| **PAPER_INDEX.md** | One-sentence summary of each paper in `papers/`. Entry point for literature lookup. | When you need to find a paper on a topic (repos with `papers/`) |
+| **PAPER_SUMMARIES.md** | Key conclusions per paper, with numerical findings. Too long for every session — reach for it after the index points you somewhere. | On demand, after PAPER_INDEX identifies a paper |
+| **papers/** | Raw PDFs of source literature. | On demand |
+
+`RESEARCHER.md` (this file) and skills live in the upstream template clone at `/home/claude/.claude_researcher_template/template/`, not in the user's repo — see §2.0a.
+
+### Research-line files (per active or archived line)
+
+| File | Role | When to read |
+|------|------|-------------|
+| **docs/active/\<line\>/RESEARCH_LOG.md** | The index for this line. Which convos tied to which plans, session history, trajectory of thinking. Newest entries first. | Every session start after §3 branch resolution |
+| **docs/active/\<line\>/convos/** | Conversation summaries. One file per session, named per the handshake format from §2e. | On demand, when you need to understand why a decision was made |
+| **docs/active/\<line\>/plans/** | Implementation plans. Each MUST point back to the originating convo so the reasoning is auditable. | When implementing something |
+| **docs/active/\<line\>/results/** | Analysis outputs, figures, data summaries produced during research. | On demand |
+
+### Lifecycle: active → historical
+
+Archiving is **preservation**, not disposal. Moving docs to `docs/historical/` means "this line answered its questions and the results are safely on `main`." Everything is kept — code, results, docs. Only the user decides when to archive.
+
+`finishing-a-research-branch` handles the close-out ceremony (branches mode: PR + merge, then `git mv docs/active/<line> docs/historical/<line>` + STATUS row Active → Archived; main_only mode: skip the PR, do the doc move + STATUS update). Do not archive by hand — the skill bundles the required steps.
+
+Historical docs are **never deleted** — always recoverable when you need to revisit prior reasoning. But they're not loaded into session context by default. The STATUS.md Archived table tells agents what's there and why, so they know it exists without reading it. Skip `docs/historical/` unless the user asks to revisit an archived line.
+
+---
+
 ## §3 — Branch resolution
 
 The user's first message usually falls into one of three patterns.
@@ -343,6 +390,32 @@ Offered, not required. Git-native introspection is one of the concrete wins of t
 
 ---
 
+## §5.5 — Research Context
+
+This is research work. Findings in docs are provisional — evidence accumulates gradually, and today's best understanding may shift tomorrow.
+
+**When the user says "the data showed X, let's pivot," TRUST THEM** — they have seen results you haven't. Your job is to help explore the new direction, not defend old hypotheses.
+
+Do NOT treat any prior doc as settled truth. `RESEARCH_LOG.md` for the active line (§3) exists to show the *trajectory* of thinking, not just the latest conclusion — read it that way.
+
+---
+
+## §5.6 — Experiment Data Integrity
+
+**The sandbox at `/home/claude/` is thrown away at session end. Anything not committed and pushed to the user's repo is lost.** Treat the user's repo as the only persistent surface.
+
+**Never delete experiment data without explicit permission.** Experiment outputs (checkpoints, raw model responses, intermediate results) are often irreplaceable — they record the exact conditions, per-run results, and timestamps that cannot be regenerated later.
+
+When writing experiment collection scripts:
+
+- **Parallelize when the work is embarrassingly parallel.** Announce that you're starting a parallel chunk so the user can respond to performance issues.
+- **Always implement checkpointing.** Save results incrementally — per sample, per batch — and commit + push checkpoints as they land, so an interrupted or sandbox-lost session can resume from the repo.
+- **Always implement resume logic.** Before processing a unit, check whether a checkpoint already exists (locally or in the pushed history) and skip if so. Re-running must be safe and idempotent.
+- **Store experiment conditions with results.** Every checkpoint should include the exact conditions under which it was produced (precise prompt, model id, parameter settings, software versions) — self-documenting and reproducible.
+- **Use a new path prefix for new experiments, not deletion.** If you need a clean run with different parameters, write to `results/experiment_v2/` (or similar). Never `rm` an old directory to reuse the name.
+
+---
+
 ## §6 — Skills
 
 `SKILL_INDEX.md` (read at §2d) is the full manifest. Individual `SKILL.md` files are read **on-demand** when their trigger fires. Below is the "which skill for which situation" cheat-sheet organized by *when in a session it comes up*, so you know what to reach for without re-reading the index.
@@ -398,15 +471,9 @@ Offered, not required. Git-native introspection is one of the concrete wins of t
 
 ---
 
-## §7 — Parking Lot + known v1 limitations
+## §7 — Known v1 limitations
 
-### Parking Lot
-
-Open questions about how this file itself works. One bullet per item, dated, one-line question + one-line resolution note. Promote to a plan if it grows. This is for *runtime instruction-set* questions — user research questions belong in the research repo's STATUS or a RESEARCH_LOG.
-
-- **2026-05-11. Phase 9 collaborator walkthrough.** v1.1 collaborator mode (professor + grad student) is spec'd in `docs/plans/01_initial_build.md` Phase 4.5 but not built. First concrete signal: a real collaborator pair willing to test. Resolves when (a) we have a candidate and (b) we walk them through bootstrap + a session.
-
-### Known v1 limitations
+Runtime-instruction-set parking-lot items now live as [`parking-lot`-labeled issues on this repo](https://github.com/danparshall/claude_researcher/issues?q=is%3Aissue+label%3Aparking-lot) — the `docs/active/` convention (in the user's research repo, not here) is where a research-line parking lot goes; runtime-instruction-set items belong on the issue tracker so they stay visible without cluttering this file.
 
 - **Collaborator mode is not implemented.** This file assumes the acting user owns the research repo (OWNER == USERNAME). Grad-student-on-professor's-repo is planned for v1.1; see [`docs/plans/01_initial_build.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/01_initial_build.md) Phase 4.5. Until then, each researcher needs their own research repo.
 - **Branch protection on `main` is not auto-configured.** Bootstrap does not enable it. Configure manually via `https://github.com/<USERNAME>/<REPO>/settings/branches`. v1.1 will set this automatically for collaborative repos.
