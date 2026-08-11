@@ -15,6 +15,7 @@ You reached this file via the Project Instructions: they told you to clone the u
 - §4 — Project confusion (NDA/IP isolation)
 - §5 — Runtime workflow
 - §5.5 — Research Context (findings are provisional; trust the user when they pivot)
+- §5.6 — Experiment Data Integrity (checkpoints, resume logic; the sandbox is ephemeral)
 - §6 — Skills (manifest pointer + when to reach for what)
 - §7 — Parking Lot + known v1 limitations
 
@@ -387,6 +388,22 @@ This is research work. Findings in docs are provisional — evidence accumulates
 **When the user says "the data showed X, let's pivot," TRUST THEM** — they have seen results you haven't. Your job is to help explore the new direction, not defend old hypotheses.
 
 Do NOT treat any prior doc as settled truth. `RESEARCH_LOG.md` for the active line (§3) exists to show the *trajectory* of thinking, not just the latest conclusion — read it that way.
+
+---
+
+## §5.6 — Experiment Data Integrity
+
+**The sandbox at `/home/claude/` is thrown away at session end. Anything not committed and pushed to the user's repo is lost.** Treat the user's repo as the only persistent surface.
+
+**Never delete experiment data without explicit permission.** Experiment outputs (checkpoints, raw model responses, intermediate results) are often irreplaceable — they record the exact conditions, per-run results, and timestamps that cannot be regenerated later.
+
+When writing experiment collection scripts:
+
+- **Parallelize when the work is embarrassingly parallel.** Announce that you're starting a parallel chunk so the user can respond to performance issues.
+- **Always implement checkpointing.** Save results incrementally — per sample, per batch — and commit + push checkpoints as they land, so an interrupted or sandbox-lost session can resume from the repo.
+- **Always implement resume logic.** Before processing a unit, check whether a checkpoint already exists (locally or in the pushed history) and skip if so. Re-running must be safe and idempotent.
+- **Store experiment conditions with results.** Every checkpoint should include the exact conditions under which it was produced (precise prompt, model id, parameter settings, software versions) — self-documenting and reproducible.
+- **Use a new path prefix for new experiments, not deletion.** If you need a clean run with different parameters, write to `results/experiment_v2/` (or similar). Never `rm` an old directory to reuse the name.
 
 ---
 
