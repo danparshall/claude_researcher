@@ -473,8 +473,6 @@ When writing experiment collection scripts:
 
 ## §7 — Known v1 limitations
 
-Runtime-instruction-set parking-lot items now live as [`parking-lot`-labeled issues on this repo](https://github.com/danparshall/claude_researcher/issues?q=is%3Aissue+label%3Aparking-lot) — the `docs/active/` convention (in the user's research repo, not here) is where a research-line parking lot goes; runtime-instruction-set items belong on the issue tracker so they stay visible without cluttering this file.
-
 - **Collaborator mode is not implemented.** This file assumes the acting user owns the research repo (OWNER == USERNAME). Grad-student-on-professor's-repo is planned for v1.1; see [`docs/plans/01_initial_build.md`](https://github.com/danparshall/claude_researcher/blob/main/docs/plans/01_initial_build.md) Phase 4.5. Until then, each researcher needs their own research repo.
 - **Branch protection on `main` is not auto-configured.** Bootstrap does not enable it. Configure manually via `https://github.com/<USERNAME>/<REPO>/settings/branches`. v1.1 will set this automatically for collaborative repos.
 - **Skill versions are pinned to `main`.** Agents fetch skills from the upstream `main` branch. If breaking changes ever ship, in-flight sessions on stale Project files could break. SHA pinning or tagged releases is YAGNI for v1; revisit if it becomes a real problem.
