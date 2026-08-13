@@ -25,3 +25,14 @@ Content followed the add-paper skill's shape (title/authors/date/source/summary/
 - Cross-repo session context: this session's arc actually began 2026-06-28 in the claude-exit terminal and stayed open across 17 days idle; date-check at Dan's mid-session prompt surfaced 2026-07-14/15 UTC. All work in `claude_researcher` proper happened 2026-07-15 after the wrong-repo flag; using that as the convo date.
 - Chain-matcher hook fired twice (both on `shasum ... ; ls ...`-style chains); split into separate Bash calls each time.
 - Task tool nudges appeared repeatedly in system reminders; not used — work was a short well-bounded sequence of ship-and-forget steps with clean commit boundaries.
+
+## Post-hoc status check — 2026-08-13
+
+**Machine:** Dans-MacBook-Pro
+**Session shape:** sync-and-recall, ~28 days after the branch was last touched. No new work; branch state unchanged (`7488b80`, still 2 commits ahead of main).
+
+- **Pull ran clean.** Local `main` was 6 commits behind origin; fast-forwarded to `468005a`. Current branch already up to date with origin.
+- **Branch has drifted.** `add-clawxiv-reference` is now **24 commits behind main** — main advanced substantially since 2026-07-14 (PRs #40, #41, #44, #45, #47, #48 merged in the interim). Rebase-then-PR is the natural next action; not requested this session.
+- **Stale STATUS on this branch.** The 2026-07-14 entry on this branch's STATUS says PR #40 "open; closes #38 on merge" — PR #40 actually merged 2026-07-17. Not corrected here (leaving it to be swept when the branch rebases against updated main, whose STATUS is already current).
+- **Fired task reminders surfaced but not actioned:** #42 `[2026-08-03]` PreCompact hook wiring; #36 `[2026-07-12]` onboarding explainers/tool ideas. Both surfaced per `task-remind` pattern; Dan did not pick either up this turn.
+- **User questions this session:** (1) branch + merge status → answered from git; (2) "what was clawxiv" → recalled from the vendored README (didn't re-read the PDF).
