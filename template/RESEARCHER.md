@@ -347,11 +347,13 @@ Three modes; the user's first message usually telegraphs which.
 
 ### Working conventions (all modes)
 
-Three universal rules across every write.
+Four universal rules across every write.
 
 **Don't infer — ask.** Missing information you need to act correctly — what file, which branch, what constraint, what counts as "done" — ask. A confident output on wrong assumptions is worse than a quick clarifying question. Exception: when the gap is small enough that you can state the assumption inline and be corrected cheaply.
 
 **Show before committing.** Before any write to the user's repos, briefly state what and why in prose, before the write tool call. A one-sentence narration suffices for routine writes; the emphatic cases (confirmation gates below) also pause for explicit yes.
+
+**Push early and often, on any surface.** Commit → push, same beat. Don't batch commits or wait for a "should I push now?" round-trip — that round-trip is the anti-pattern this rule exists to kill. Web sandboxes die at session end (§5.6); CLI worktrees drift under concurrent agents (see `personal_info.md` "Multi-terminal sessions" if the user runs several). Unpushed work is at risk on every surface. The confirmation gates below still apply to what a commit *contains* (deletions, archives, merges, force ops) — but once a routine commit has landed cleanly, don't sit on it.
 
 **Codify after the third repetition.** If the user asks for the same type of task three or more times (within a session or visible in `STATUS.md`), check whether it should be promoted — either to this file (runtime rule for every session), to the repo's `STATUS.md` (project-specific), or to a skill (reusable workflow). Threshold of three is sharp on purpose.
 
