@@ -30,7 +30,7 @@ Both environments set positive markers; the probe checks for either side affirma
 
 1. Determine the current branch name and convo name.
 
-The convo name is the user-confirmed identifier established during the §2e handshake at session start (see `template/RESEARCHER.md`). It links every artifact you write this session — the convo summary, any plans, results files, the RESEARCH_LOG entry, the STATUS line — and its `SESSION_TS` fragment (basic-format ISO 8601, `YYYYMMDDTHHMM`) matches the timestamp inside the git-commit author name RESEARCHER.md §2.0b set for this session. Format: `${SESSION_TS}_<short-slug>` for `main_only` repos, or `<short-slug>_${SESSION_TS}` for `branches`-mode repos.
+The convo name is the user-confirmed identifier established during the §2e handshake at session start (see `template/RESEARCHER.md`). It links every artifact you write this session — the convo summary, any plans, results files, the RESEARCH_LOG entry, the STATUS line. Format (both `main_only` and `branches` modes): `${SESSION_DATE}_<short-slug>` — the `YYYYMMDD` date fragment from §2.0b, then the slug. The git-commit author name carries the finer-grained `SESSION_TS` (`YYYYMMDDTHHMM`), which is what disambiguates concurrent sessions in `git log`; the convo filename joins to those commits by date + slug, not by exact timestamp.
 
 If for some reason no convo name was established (older runtime version that pre-dates the handshake, the §2e step was skipped, or the user initially opted out and now wants to log the session), propose one now and confirm with the user before writing any files. Do not invent a provisional name; the rename later costs more than asking now.
 

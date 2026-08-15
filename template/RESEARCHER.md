@@ -152,13 +152,14 @@ cd /home/claude/${REPO}
 **Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Read `Codename base` and `Git commit email` from `personal_info.md` (fetched in §2b — if you haven't yet, come back to this after that fetch).
 
 ```bash
-SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442
+SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442 — used for git codename
+SESSION_DATE=$(date -u +%Y%m%d)          # e.g., 20260810   — used for convo filenames
 CODENAME="${CODENAME_BASE} (web, ${REPO}, ${SESSION_TS})"
 git config user.email "${COMMIT_EMAIL}"
 git config user.name  "${CODENAME}"
 ```
 
-Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session each commit came from, and the timestamp fragment matches the session's convo filename verbatim.
+Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the codename format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session each commit came from. Convo filenames use the date-only `SESSION_DATE` (§2e); the codename's HHMM fragment is what disambiguates concurrent sessions in the git log.
 
 If `Codename base` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
 
@@ -246,16 +247,15 @@ Respond with full context. Greeting style depends on tier (novice → warm + nam
 
 **Resumption.** Use the trackers, not `conversation_search` — see §1.5.
 
-**Convo-name handshake.** In your first or second response, propose a name for this session's convo and confirm. **Format includes the `$SESSION_TS` captured in §2.0b** — the timestamp cross-references the convo file with the git-log entries the session will produce.
+**Convo-name handshake.** In your first or second response, propose a name for this session's convo and confirm. **Format is `${SESSION_DATE}_<short-slug>.md`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
 
-- `main_only` mode: `${SESSION_TS}_<short-slug>.md` (e.g., `20260810T1442_managed_retreat_planning.md`)
-- `branches` mode: `<short-slug>_${SESSION_TS}.md` (e.g., `managed_retreat_planning_20260810T1442.md` — the branch already carries the date, so the slug leads)
+- Both modes: `${SESSION_DATE}_<short-slug>.md` (e.g., `20260810_managed_retreat_planning.md`)
 
 Also propose a human-readable **chat title** derived from the slug so the WebUI chat-list stays aligned with `docs/convos/` filenames.
 
-**Slug → title mapping:** drop the `SESSION_TS` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
+**Slug → title mapping:** drop the `SESSION_DATE` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
 
-Example: *"I'll log this session as `managed_retreat_planning_20260511T0930` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930)`. Sound right?"*
+Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930)`. Sound right?"*
 
 The user can accept, counter-propose, or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without a user-confirmed name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
 
