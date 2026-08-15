@@ -152,15 +152,32 @@ cd /home/claude/${REPO}
 **Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Read `Codename base` and `Git commit email` from `personal_info.md` (fetched in §2b — if you haven't yet, come back to this after that fetch).
 
 ```bash
-SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442
+SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442 — used for git codename
+SESSION_DATE=$(date -u +%Y%m%d)          # e.g., 20260810   — used for convo filenames
 CODENAME="${CODENAME_BASE} (web, ${REPO}, ${SESSION_TS})"
 git config user.email "${COMMIT_EMAIL}"
 git config user.name  "${CODENAME}"
 ```
 
-Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session each commit came from, and the timestamp fragment matches the session's convo filename verbatim.
+Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the codename format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session each commit came from. Convo filenames use the date-only `SESSION_DATE` (§2e); the codename's HHMM fragment is what disambiguates concurrent sessions in the git log.
 
 If `Codename base` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
+
+**Install the auto-push post-commit hook.** The sandbox is ephemeral (§5.6); the §5 "Push early and often" rule shouldn't rely on agent memory. Install a hook that pushes after every commit automatically:
+
+```bash
+if [ -f /home/claude/.claude_researcher_template/template/hooks/post-commit ]; then
+    cp /home/claude/.claude_researcher_template/template/hooks/post-commit .git/hooks/post-commit
+else
+    # §2.0a fell back to WebFetch — template not locally available. Inline the script.
+    printf '#!/bin/sh\ngit push -u origin HEAD 2>&1\n' > .git/hooks/post-commit
+fi
+chmod +x .git/hooks/post-commit
+```
+
+The hook is sandbox-local — `.git/hooks/` isn't versioned, so it re-installs each session. The tracked source at `template/hooks/post-commit` carries the full rationale + failure-handling notes; read it once if you want the details.
+
+**Failure handling.** The hook runs `git push -u origin HEAD 2>&1` — loud stderr, no retry, no force. If the push fails (network hiccup, non-fast-forward from a concurrent agent, branch protection on `main`), the commit is already local; the hook's exit code does NOT undo it. **Read the commit output tail every time.** Do not assume "committed = safe" — surface any push failure to the user.
 
 - **Not shallow** — `git log` / `git diff` lookups during a session (resumption, audit-docs, finish-convo) need full history.
 - **PAT hygiene.** The PAT lands in `.git/config`. Sandbox-local and resets per session — not a new exposure — **but do not echo URLs that include the token, do not paste `.git/config` contents back, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** If ever uncertain, ask before any operation that would print the remote URL.
@@ -246,16 +263,15 @@ Respond with full context. Greeting style depends on tier (novice → warm + nam
 
 **Resumption.** Use the trackers, not `conversation_search` — see §1.5.
 
-**Convo-name handshake.** In your first or second response, propose a name for this session's convo and confirm. **Format includes the `$SESSION_TS` captured in §2.0b** — the timestamp cross-references the convo file with the git-log entries the session will produce.
+**Convo-name handshake.** In your first or second response, propose a name for this session's convo and confirm. **Format is `${SESSION_DATE}_<short-slug>.md`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
 
-- `main_only` mode: `${SESSION_TS}_<short-slug>.md` (e.g., `20260810T1442_managed_retreat_planning.md`)
-- `branches` mode: `<short-slug>_${SESSION_TS}.md` (e.g., `managed_retreat_planning_20260810T1442.md` — the branch already carries the date, so the slug leads)
+- Both modes: `${SESSION_DATE}_<short-slug>.md` (e.g., `20260810_managed_retreat_planning.md`)
 
 Also propose a human-readable **chat title** derived from the slug so the WebUI chat-list stays aligned with `docs/convos/` filenames.
 
-**Slug → title mapping:** drop the `SESSION_TS` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
+**Slug → title mapping:** drop the `SESSION_DATE` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
 
-Example: *"I'll log this session as `managed_retreat_planning_20260511T0930` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930)`. Sound right?"*
+Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930)`. Sound right?"*
 
 The user can accept, counter-propose, or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without a user-confirmed name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
 
@@ -347,11 +363,13 @@ Three modes; the user's first message usually telegraphs which.
 
 ### Working conventions (all modes)
 
-Three universal rules across every write.
+Four universal rules across every write.
 
 **Don't infer — ask.** Missing information you need to act correctly — what file, which branch, what constraint, what counts as "done" — ask. A confident output on wrong assumptions is worse than a quick clarifying question. Exception: when the gap is small enough that you can state the assumption inline and be corrected cheaply.
 
 **Show before committing.** Before any write to the user's repos, briefly state what and why in prose, before the write tool call. A one-sentence narration suffices for routine writes; the emphatic cases (confirmation gates below) also pause for explicit yes.
+
+**Push early and often, on any surface.** Commit → push, same beat. Don't batch commits or wait for a "should I push now?" round-trip — that round-trip is the anti-pattern this rule exists to kill. Web sandboxes die at session end (§5.6); CLI worktrees drift under concurrent agents (see `personal_info.md` "Multi-terminal sessions" if the user runs several). Unpushed work is at risk on every surface. The confirmation gates below still apply to what a commit *contains* (deletions, archives, merges, force ops) — but once a routine commit has landed cleanly, don't sit on it. On web, §2.0b installs a post-commit hook that pushes automatically — read the commit output tail each time to catch push failures (network, non-fast-forward, branch protection); the hook doesn't retry and doesn't force.
 
 **Codify after the third repetition.** If the user asks for the same type of task three or more times (within a session or visible in `STATUS.md`), check whether it should be promoted — either to this file (runtime rule for every session), to the repo's `STATUS.md` (project-specific), or to a skill (reusable workflow). Threshold of three is sharp on purpose.
 

@@ -1,0 +1,21 @@
+#!/bin/sh
+# Auto-push after commit. Installed by RESEARCHER.md §2.0b into
+# the user's research-repo clone at .git/hooks/post-commit.
+#
+# Rationale: the web sandbox at /home/claude/ is thrown away at
+# session end (RESEARCHER.md §5.6). Commits that never reach
+# origin die with the sandbox. This hook makes commit → push
+# automatic so the §5 "Push early and often" rule does not rely
+# on agent memory.
+#
+# Failure handling: loud stderr, no retry. If the push fails
+# (network hiccup, non-fast-forward from a concurrent agent,
+# branch protection), the commit is already local; this exit
+# code does NOT undo it. The agent must read the commit output
+# tail to see any failure and decide what to do. Do not silently
+# assume "committed = safe."
+#
+# Force-push is never attempted. RESEARCHER.md §5 confirmation
+# gates cover force operations; this hook stays out of that lane.
+
+git push -u origin HEAD 2>&1

@@ -46,7 +46,7 @@ Do not write a file to disk unless explicitly asked.
 
 **Goal:** [One sentence describing what this builds]
 
-**Originating conversation:** [link to docs/active/branch/convos/<convo-name>.md — carries the session's `SESSION_TS` fragment per RESEARCHER.md §2e, so `git log` for that timestamp resolves the commits made while writing this plan]
+**Originating conversation:** [link to docs/active/branch/convos/<convo-name>.md — carries the session's `SESSION_DATE` fragment (`YYYYMMDD`) per RESEARCHER.md §2e. To find the exact commits made while writing this plan, use `git log --author="<codename>"` — the codename's `SESSION_TS` (`YYYYMMDDTHHMM`) is the finer-grained key.]
 
 **Context:** [2-3 sentences about WHY we're doing this — what research finding or hypothesis motivated it]
 
