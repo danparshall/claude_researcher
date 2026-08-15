@@ -163,6 +163,22 @@ Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the coden
 
 If `Codename base` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
 
+**Install the auto-push post-commit hook.** The sandbox is ephemeral (§5.6); the §5 "Push early and often" rule shouldn't rely on agent memory. Install a hook that pushes after every commit automatically:
+
+```bash
+if [ -f /home/claude/.claude_researcher_template/template/hooks/post-commit ]; then
+    cp /home/claude/.claude_researcher_template/template/hooks/post-commit .git/hooks/post-commit
+else
+    # §2.0a fell back to WebFetch — template not locally available. Inline the script.
+    printf '#!/bin/sh\ngit push -u origin HEAD 2>&1\n' > .git/hooks/post-commit
+fi
+chmod +x .git/hooks/post-commit
+```
+
+The hook is sandbox-local — `.git/hooks/` isn't versioned, so it re-installs each session. The tracked source at `template/hooks/post-commit` carries the full rationale + failure-handling notes; read it once if you want the details.
+
+**Failure handling.** The hook runs `git push -u origin HEAD 2>&1` — loud stderr, no retry, no force. If the push fails (network hiccup, non-fast-forward from a concurrent agent, branch protection on `main`), the commit is already local; the hook's exit code does NOT undo it. **Read the commit output tail every time.** Do not assume "committed = safe" — surface any push failure to the user.
+
 - **Not shallow** — `git log` / `git diff` lookups during a session (resumption, audit-docs, finish-convo) need full history.
 - **PAT hygiene.** The PAT lands in `.git/config`. Sandbox-local and resets per session — not a new exposure — **but do not echo URLs that include the token, do not paste `.git/config` contents back, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** If ever uncertain, ask before any operation that would print the remote URL.
 - **Working directory.** `/home/claude/${REPO}/` is conventional; `cd` back if a sub-command leaves you elsewhere.
@@ -353,7 +369,7 @@ Four universal rules across every write.
 
 **Show before committing.** Before any write to the user's repos, briefly state what and why in prose, before the write tool call. A one-sentence narration suffices for routine writes; the emphatic cases (confirmation gates below) also pause for explicit yes.
 
-**Push early and often, on any surface.** Commit → push, same beat. Don't batch commits or wait for a "should I push now?" round-trip — that round-trip is the anti-pattern this rule exists to kill. Web sandboxes die at session end (§5.6); CLI worktrees drift under concurrent agents (see `personal_info.md` "Multi-terminal sessions" if the user runs several). Unpushed work is at risk on every surface. The confirmation gates below still apply to what a commit *contains* (deletions, archives, merges, force ops) — but once a routine commit has landed cleanly, don't sit on it.
+**Push early and often, on any surface.** Commit → push, same beat. Don't batch commits or wait for a "should I push now?" round-trip — that round-trip is the anti-pattern this rule exists to kill. Web sandboxes die at session end (§5.6); CLI worktrees drift under concurrent agents (see `personal_info.md` "Multi-terminal sessions" if the user runs several). Unpushed work is at risk on every surface. The confirmation gates below still apply to what a commit *contains* (deletions, archives, merges, force ops) — but once a routine commit has landed cleanly, don't sit on it. On web, §2.0b installs a post-commit hook that pushes automatically — read the commit output tail each time to catch push failures (network, non-fast-forward, branch protection); the hook doesn't retry and doesn't force.
 
 **Codify after the third repetition.** If the user asks for the same type of task three or more times (within a session or visible in `STATUS.md`), check whether it should be promoted — either to this file (runtime rule for every session), to the repo's `STATUS.md` (project-specific), or to a skill (reusable workflow). Threshold of three is sharp on purpose.
 
