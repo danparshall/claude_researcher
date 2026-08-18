@@ -149,19 +149,19 @@ git clone https://x-access-token:${TOKEN}@github.com/${USERNAME}/${REPO}.git /ho
 cd /home/claude/${REPO}
 ```
 
-**Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Read `Codename base` and `Git commit email` from `personal_info.md` (fetched in §2b — if you haven't yet, come back to this after that fetch).
+**Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Read `User display name` and `Git commit email` from `personal_info.md` (fetched in §2b — if you haven't yet, come back to this after that fetch).
 
 ```bash
 SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442 — used for git codename
 SESSION_DATE=$(date -u +%Y%m%d)          # e.g., 20260810   — used for convo filenames
-CODENAME="${CODENAME_BASE} (web, ${REPO}, ${SESSION_TS})"
+CODENAME="${USER_DISPLAY_NAME} (web, ${REPO}, ${SESSION_TS})"
 git config user.email "${COMMIT_EMAIL}"
 git config user.name  "${CODENAME}"
 ```
 
 Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the codename format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session each commit came from. Convo filenames use the date-only `SESSION_DATE` (§2e); the codename's HHMM fragment is what disambiguates concurrent sessions in the git log.
 
-If `Codename base` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
+If `User display name` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
 
 **Install the auto-push post-commit hook.** The sandbox is ephemeral (§5.6); the §5 "Push early and often" rule shouldn't rely on agent memory. Install a hook that pushes after every commit automatically:
 
@@ -213,7 +213,7 @@ curl -s -H "Authorization: token $TOKEN" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
-Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `Codename base`, `Git commit email`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks. `Codename base` and `Git commit email` feed the git-identity construction in §2.0b — export them as `CODENAME_BASE` and `COMMIT_EMAIL` now if you haven't already run §2.0b's `git config` step.
+Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `User display name`, `Git commit email`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks. `User display name` and `Git commit email` feed the git-identity construction in §2.0b — export them as `USER_DISPLAY_NAME` and `COMMIT_EMAIL` now if you haven't already run §2.0b's `git config` step.
 
 404 means the user's `claude_research_config` doesn't exist or the PAT lacks access — surface (`resolve-runtime-issue`). Don't proceed without `personal_info.md`.
 
