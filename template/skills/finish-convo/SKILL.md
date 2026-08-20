@@ -30,7 +30,7 @@ Both environments set positive markers; the probe checks for either side affirma
 
 1. Run the update-docs skill first.
 
-Read and follow `/Users/dan/.claude/skills/update-docs/SKILL.md`. This creates/updates the convo summary, saves results with provenance links, and updates RESEARCH_LOG.md (plus, in `main_only` mode only, a capped STATUS one-liner — in `branches` mode STATUS.md is never written at wrap; see RESEARCHER.md §2c).
+Read and follow `template/skills/update-docs/SKILL.md`. This creates/updates the convo summary, saves results with provenance links, and updates RESEARCH_LOG.md (plus, in `main_only` mode only, a capped STATUS one-liner — in `branches` mode STATUS.md is never written at wrap; see RESEARCHER.md §2c).
 
 2. If the session produced something ready to implement:
 
