@@ -44,3 +44,17 @@ The investigation surfaced the actual defect: the web port of `finishing-a-resea
 - Sandbox git-hook firing (post-commit auto-push) remains unverified by a fresh web session — irrelevant to merge gating, still relevant to §2.0b generally.
 - Branch name `pre-merge-hook` is a mild misnomer for what shipped; fine to keep, but the PR title should say what it actually is.
 - Port-fidelity audit of the other Wave 2/3 skills against their CLI parents: is finishing-a-research-branch the only one that lost required steps in translation?
+
+## Addendum (2026-08-20) — close-out handoff
+
+Post-checkpoint follow-up in the same session. Sync verified: `main` == `origin/main` at `9e44c73`, `pre-merge-hook` == origin at `0d9f35c`. A new branch `origin/flare-design` appeared from another session — not touched here.
+
+Readiness assessment: branch is complete-shaped (full scope shipped, convo doc committed, nothing deferred onto it). Merge has deploy value — web runtime agents fetch skills raw from `main`, so the Step 1.5 fix only reaches real sessions once merged.
+
+**Decision:** Dan hands the close ceremony to a fresh agent. Notes for that agent (`finishing-a-development-branch`):
+
+- This repo has **no tests, no linters, no CI** — skill steps 1–5/7 are N/A by design (matches PRs #45–#49); don't go hunting for missed infra.
+- Merge method: **real merge commit, not squash/rebase** — house convention for SHA-pin reachability (see STATUS.md notes on PRs #10, #40, #49).
+- Repo layout is intentionally flat (`docs/convos/` + `docs/plans/`); there is no `docs/active/<branch>/` to archive — development-branch flow, not research-branch flow.
+- At merge, optionally trim the "(on the branch until merge)" parenthetical from the 2026-08-19 STATUS.md Recent-sessions entry and note the merge/PR number there.
+- Possible STATUS.md conflict surface vs `flare-design` is append-shaped (Recent sessions / Branch bullet).
