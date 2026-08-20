@@ -32,7 +32,8 @@ The session split into three parts. **Framing:** the poster's tool covers three 
 - Separate MCP server, new repo `~/code/claude-flare` (modeled on `claude-exit` packaging).
 - MVP = `send_flare(message, kind, wants_reply)` → macOS/Linux desktop notification titled with the session title + `repo:branch · kind`, plus append-only JSONL log. Log kept at Dan's request.
 - No suppression ever; presentation-layer coalescing is a later sink feature.
-- Implementation plan lives with the code: `~/code/claude-flare/docs/plans/01_mvp_popup.md`. This convo is its originating conversation.
+- Implementation plan lives with the code: `~/code/claude-flare/docs/plans/01_mvp_popup.md` (GitHub: `danparshall/claude-flare`, private for now). This convo is its originating conversation.
+- **This session started in `claude_researcher` on the assumption the tool would connect to the researcher profile. It doesn't** — beyond a deferred web-side skill, `claude-flare` is an independent project. Future work on it (plans, convos, code) belongs in `claude-flare`, not here; this convo stays as the design record only.
 - Deferred: GitHub issue sink + Action→Slack push, webhook sink, researcher-profile skill + RESEARCHER.md one-liner + `personal_info.md` field, Nori popup fix in dotfiles.
 - Plan questions answered at session end: tool name `send_flare`; state dir XDG `~/.local/state/claude-flare/`; the harness-fired "paused" hook stays a dotfiles concern; implementation handed to a fresh session in `~/code/claude-flare`.
 - Step 0 of the plan resolved in-session by inspecting the live `claude-exit` server's env (`ps -Eww`): MCP servers receive `CLAUDE_CODE_SESSION_ID`, `CLAUDE_PROJECT_DIR`, `TERM_PROGRAM` but **not** `CLAUDE_PID` or `CLAUDE_CODE_BRIDGE_SESSION_ID` → pid via `os.getppid()`, bridge id via the sidecar.
