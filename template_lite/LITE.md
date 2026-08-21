@@ -78,7 +78,9 @@ may invoke `finish-convo` (see Skills) for a fuller close.
 This repo may be edited from other machines or by parallel Claude
 sessions. Run `git pull --ff-only` before doing work if the clone
 isn't fresh; commit → push same beat, don't batch. If pull rejects
-(divergent branches), surface — don't auto-rebase.
+(divergent branches), surface — don't auto-rebase. See
+`personal_info.md` "Multi-terminal sessions" for the fuller pattern
+(CLI users only — lite's web project instructions don't fetch it).
 
 ## Skills — on demand, never at session start
 
