@@ -73,6 +73,13 @@ No automatic ceremony. Before finishing: update STATUS.md (intent + one
 ≤5-line entry), append DECISIONS.md if triggered, commit, push. The user
 may invoke `finish-convo` (see Skills) for a fuller close.
 
+## Multi-machine / concurrent agents
+
+This repo may be edited from other machines or by parallel Claude
+sessions. Run `git pull --ff-only` before doing work if the clone
+isn't fresh; commit → push same beat, don't batch. If pull rejects
+(divergent branches), surface — don't auto-rebase.
+
 ## Skills — on demand, never at session start
 
 Standard skills from upstream `template/skills/` (e.g. `finish-convo`,
