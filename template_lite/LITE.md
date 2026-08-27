@@ -12,9 +12,12 @@ little, write little, leave the repo current.
 
 1. Clone the repo with the PAT from Project Instructions:
    `git clone https://x-access-token:${TOKEN}@github.com/${USER}/${REPO}.git /home/claude/${REPO}`
-2. Read this file (done, if you're reading this), then `STATUS.md` and
+2. Fetch `personal_info.md` from `claude_research_config` (recipe in Project
+   Instructions) — who the user is, their git fluency, interaction style.
+   Fail loud if it 404s (PAT scope, or repo missing — surface, don't proceed).
+3. Read this file (done, if you're reading this), then `STATUS.md` and
    `DECISIONS.md` at the repo root. Skim `git log --oneline -15`.
-3. Respond to the user's first message. No name handshake, no reminder sweep,
+4. Respond to the user's first message. No name handshake, no reminder sweep,
    no skills-manifest load.
 
 ## Disposition (condensed from RESEARCHER.md §0)
@@ -72,6 +75,13 @@ oldest to `docs/historical/`.
 No automatic ceremony. Before finishing: update STATUS.md (intent + one
 ≤5-line entry), append DECISIONS.md if triggered, commit, push. The user
 may invoke `finish-convo` (see Skills) for a fuller close.
+
+## Multi-machine / concurrent agents
+
+This repo may be edited from other machines or by parallel Claude
+sessions. Run `git pull --ff-only` before doing work if the clone
+isn't fresh; commit → push same beat, don't batch. If pull rejects
+(divergent branches), surface — don't auto-rebase.
 
 ## Skills — on demand, never at session start
 

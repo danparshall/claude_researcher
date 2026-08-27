@@ -32,7 +32,7 @@ Skills are grouped by lifecycle role.
 
 ### finishing-a-research-branch
 
-- **Trigger:** user signals the research line is done and ready to merge ("done", "ready to ship", "let's merge it"). Full close-out ceremony: PR + merge (branches mode) or archive-only (main_only mode), then move `docs/active/<branch>/` → `docs/historical/<branch>/`, then move the STATUS row Active → Archived, then optionally delete the branch. Use `finish-convo` instead for mid- or end-of-session checkpoints that keep the branch open.
+- **Trigger:** user signals the research line is done and ready to merge ("done", "ready to ship", "let's merge it"). Full close-out ceremony: finish-convo checkpoint + audit-docs on the still-open line, then PR + merge (branches mode) or archive-only (main_only mode), then move `docs/active/<branch>/` → `docs/historical/<branch>/`, then move the STATUS row Active → Archived, then optionally delete the branch. Use `finish-convo` instead for mid- or end-of-session checkpoints that keep the branch open.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/finishing-a-research-branch/SKILL.md`
 
 ### update-docs

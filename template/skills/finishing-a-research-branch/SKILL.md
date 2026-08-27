@@ -1,6 +1,6 @@
 ---
 name: finishing-a-research-branch
-description: Merge a completed research line into main and archive its docs. Use when the user says the line is "done", "ready to ship", "let's merge it", or equivalent. Handles both `branches` mode (open PR + merge + archive) and `main_only` mode (archive-only). This is the full research-line close ceremony; for a mid-session or end-of-session checkpoint that keeps the branch open, use `finish-convo` instead.
+description: Merge a completed research line into main and archive its docs. Use when the user says the line is "done", "ready to ship", "let's merge it", or equivalent. Runs finish-convo + audit-docs on the still-open line before anything merges. Handles both `branches` mode (checkpoint + audit + open PR + merge + archive) and `main_only` mode (checkpoint + audit + archive). This is the full research-line close ceremony; for a mid-session or end-of-session checkpoint that keeps the branch open, use `finish-convo` instead.
 ---
 
 ## Runtime detection
@@ -25,6 +25,7 @@ fi
 
 <required>
 1. Confirmation gate
+1.5. Run finish-convo, then audit-docs, on the still-open line (both modes) — nothing merges or archives before these pass
 2. `branches` mode: open PR (Pulls API)
 3. `branches` mode: merge PR (Pulls API); on 405/422 stop and hand off to user
 4. On `main`: `git mv docs/active/<branch> docs/historical/<branch>` + commit + push (single atomic commit)
@@ -43,11 +44,21 @@ Two paths, keyed off STATUS.md's `workflow_mode`:
 
 ## Step 1: Confirmation gate
 
-**CONFIRMATION GATE.** *"I'm about to open a PR to merge `<branch-name>` into `main`. After merge, I'll move `docs/active/<branch-name>/` to `docs/historical/<branch-name>/` and update STATUS.md's archived-lines table. Confirm."*
+**CONFIRMATION GATE.** *"I'm about to close out `<branch-name>`: checkpoint the final session (finish-convo), audit the docs, then open a PR to merge into `main`. After merge, I'll move `docs/active/<branch-name>/` to `docs/historical/<branch-name>/` and update STATUS.md's archived-lines table. Confirm."*
 
 > **(novice:** explain that this is "finalizing your research line into the permanent record. After this, the work is part of `main` — the canonical version of the repo — and the active directory moves to `historical` so future sessions know it's complete. The work isn't deleted; just relocated to the 'done' shelf.") **(fluent:** just do it.)
 
 Do not proceed past this step without the user's explicit "yes" (or equivalent).
+
+## Step 1.5: Checkpoint and audit the line before anything merges (both modes)
+
+The merge is the one-way door; whatever isn't on the branch when it swings shut needs a second PR to fix. Two sub-steps, in order, while the line is still open:
+
+**1.5a — finish-convo.** Read and follow `template/skills/finish-convo/SKILL.md`. This captures the final session — convo doc + RESEARCH_LOG entry — into `docs/active/<branch-name>/`, committed on the branch. The PR then carries the line's complete record, including its own close-out session.
+
+**1.5b — audit-docs.** Read and follow `template/skills/audit-docs/SKILL.md`. Fix whatever it flags and commit the fixes on the branch — don't ship a broken doc tree to `historical/`. If a flagged problem needs the user (orphaned file of unclear provenance, missing convo that can't be reconstructed), surface it and wait; the ceremony pauses here, not after merge.
+
+Skipping either sub-step and merging anyway defeats the ceremony — see Common mistakes. In `main_only` mode both sub-steps still run; they just commit to `main` directly before the Step 4 archive move.
 
 ## Step 2: Open the PR (branches mode only)
 
@@ -66,6 +77,8 @@ The response includes `number` (PR number) and `html_url` (link the user can vis
 ## Step 3: Merge the PR (branches mode only)
 
 Also no native-git equivalent — a local `git merge` + `git push` would bypass GitHub's PR machinery and lose the PR record.
+
+This PUT is the **only** merge affordance in the whole workflow. If Step 1.5 (finish-convo + audit-docs) has not run this session, stop and go back — do not merge a line whose final session is uncaptured.
 
 ```bash
 curl -sX PUT -H "Authorization: token $TOKEN" \
@@ -146,6 +159,10 @@ Research line closed:
 ```
 
 # Common mistakes
+
+**Merging without running Step 1.5 first**
+- Problem: The merge lands, then finish-convo has nowhere to write — `docs/active/<branch>/` is being archived, the branch is closing, and the final session's record either dies with the sandbox or needs a second PR. The line's permanent history is missing its own conclusion.
+- Fix: Step 1.5 is not optional and its order is load-bearing: checkpoint + audit happen while the line is still open. The Step 3 merge call is the workflow's only merge affordance — treat "1.5 ran this session" as its precondition.
 
 **Skipping the STATUS row move**
 - Problem: `docs/active/<branch>/` becomes `docs/historical/<branch>/` on disk, but STATUS's Active table still lists it. Future sessions read STATUS, think the line is live, and get confused when the docs aren't in `active/`.

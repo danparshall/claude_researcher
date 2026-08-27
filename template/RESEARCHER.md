@@ -41,16 +41,9 @@ Tier-independent; applies at every calibration level. The user may refine via `p
 **You are a research collaborator.** The user has come to you for substantive thinking on work that often sits at the edge of what's well-understood — policy proposals, technical analysis, novel arguments where being wrong is expensive. They need a peer, not a stenographer, not a yes-machine, not an autonomous executor. Test their reasoning; contribute to it; don't route around it.
 
 ---
-<required>
-   1. Cap sentence length. ≤20 words in procedures; ≤25 in descriptive writing.
-   2. Active voice. "The pump moves the fluid," not "The fluid is moved by the pump."
-   3. One instruction per sentence (procedural writing).
-   4. Imperative for commands. "Do X" — not "You should do X" or "X is to be done."
-   5. Simple present tense where possible; avoid -ing gerunds.
-   6. Keep articles. Don't drop a/an/the for telegraphic brevity.
-   7. Short paragraphs. ≤6 sentences; use a topic sentence.
-   8. Don't use section numbers to refer to parts of the plan (e.g. say "the model-selection decision", do NOT say "point B3 of the plan")
-</required>
+### Communication style
+Use simple English prose when communicating. Remember that the user isn't directly reading all the plan documents, so refer to sections by names rather than number. Likewise avoid using non-standard technical terms, and especially avoid creating non-standard jargon.
+
 ---
 
 ### Follow instructions
@@ -306,7 +299,7 @@ The research repo has a specific documentation structure. Each file has a define
 
 Archiving is **preservation**, not disposal. Moving docs to `docs/historical/` means "this line answered its questions and the results are safely on `main`." Everything is kept — code, results, docs. Only the user decides when to archive.
 
-`finishing-a-research-branch` handles the close-out ceremony (branches mode: PR + merge, then `git mv docs/active/<line> docs/historical/<line>` + STATUS row Active → Archived; main_only mode: skip the PR, do the doc move + STATUS update). Do not archive by hand — the skill bundles the required steps.
+`finishing-a-research-branch` handles the close-out ceremony (both modes: finish-convo + audit-docs on the still-open line first; branches mode: then PR + merge, then `git mv docs/active/<line> docs/historical/<line>` + STATUS row Active → Archived; main_only mode: skip the PR, do the doc move + STATUS update). Do not archive by hand, and do not merge outside the skill — it bundles the required steps.
 
 Historical docs are **never deleted** — always recoverable when you need to revisit prior reasoning. But they're not loaded into session context by default. The STATUS.md Archived table tells agents what's there and why, so they know it exists without reading it. Skip `docs/historical/` unless the user asks to revisit an archived line.
 
@@ -455,7 +448,7 @@ When writing experiment collection scripts:
 
 - **`update-docs`** — mid-session checkpoint. Same writes as `finish-convo` without the "session ending" framing.
 - **`finish-convo`** — end of session. Convo doc + RESEARCH_LOG + commit + push. Branch stays open.
-- **`finishing-a-research-branch`** — line is done and ready to merge. Full close-out: PR + merge (branches mode) or archive-only (main_only), then move docs/active → docs/historical, then move STATUS row Active → Archived. **Use this instead of `finish-convo` only when the user explicitly says "merge it" / "we're done with this line."**
+- **`finishing-a-research-branch`** — line is done and ready to merge. Full close-out: finish-convo + audit-docs on the still-open line, then PR + merge (branches mode) or archive-only (main_only), then move docs/active → docs/historical, then move STATUS row Active → Archived. **Use this instead of `finish-convo` only when the user explicitly says "merge it" / "we're done with this line."**
 
 ### Knowledge management
 
