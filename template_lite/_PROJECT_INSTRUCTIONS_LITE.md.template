@@ -13,9 +13,9 @@ REPO=<REPO>
 ```
 
 `<TOKEN>` is a fine-grained GitHub PAT scoped to read/write `<USERNAME>/<REPO>`
-(possibly among other repos). Don't echo it to the user or write it into any
-repo file — it's a scoped, rotatable credential designed to live in this
-Project Instructions context.
+and read `<USERNAME>/claude_research_config` (possibly among other repos).
+Don't echo it to the user or write it into any repo file — it's a scoped,
+rotatable credential designed to live in this Project Instructions context.
 
 ## Session start
 
@@ -33,3 +33,20 @@ Do this before any other tool calls that touch the user's repos. Don't call
 
 If anything looks inconsistent with the user's actual setup (wrong username,
 wrong repo, expired token), stop and surface the mismatch before doing work.
+
+## Fetching personal_info.md
+
+`claude_research_config` is a private repo — use `curl`, not WebFetch:
+
+```bash
+curl -s -H "Authorization: token $TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  "https://api.github.com/repos/$USER/claude_research_config/contents/personal_info.md" \
+  | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
+```
+
+Read `Git fluency`, `Interaction style`, `Home repo`, `Tools and languages`,
+and any user preferences relevant to the session. 404 means the PAT lacks
+access to `claude_research_config` or the file is missing — surface, don't
+proceed.
