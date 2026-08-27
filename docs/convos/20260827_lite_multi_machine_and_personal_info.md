@@ -51,3 +51,48 @@ No stand-alone `results/` files — output was the branch itself. Deliverables:
 - **Fragility of the "Multi-terminal sessions" pointer.** That section name is Dan-specific; other lite users' `personal_info.md` files won't have it. Unresolved whether to leave, drop, or genericize.
 - **Is there existing "communication style / simple prose / don't invent jargon" guidance somewhere I didn't search?** Dan asked and searched paths came up empty. Possibilities: misremembered; exists in an unindexed location; or meant-to-add but never landed. If it's the last, `personal_info.md` "Note from Dan" is the natural home — alongside the AI-Policy-vs-Safety terminology rule, which is a nearby-in-concept but narrower rule.
 - **Should the `_PROJECT_INSTRUCTIONS_LITE.md.template` change include a note that existing users need to re-scope their PATs?** Currently the change assumes readers of the template are setting up fresh; existing users would silently get a 404 on first fetch after the change lands. A one-line callout in the changelog / migration note would help.
+
+---
+
+## Addendum — 2026-08-27 evening (close-out session)
+
+**Date:** 2026-08-27 (UTC ~20:05–21:00)
+**Machine:** Dans-MacBook-Pro
+**Session type:** fresh-agent pickup, close-out of PR #52 + side-quest.
+
+### What triggered the pickup
+
+Dan opened the session with "sync with origin, and then let's discuss the apparently-dangling PR 52." Sync fast-forwarded main from `f372225` → `6998784` (PR #53 communication-style-prose swap). PR #52 was `OPEN`/`MERGEABLE`/`CLEAN` in git terms, but "dangling" in workflow terms: STATUS.md's Branch inventory didn't list `lite-multi-machine-note`, "Recent sessions" had no entry for 2026-08-21 or 2026-08-27, and the convo above had left three open questions unresolved.
+
+### Open-question dispositions
+
+- **(a) Stale parenthetical + (b) fragile "Multi-terminal sessions" pointer.** Dan collapsed both into one edit — deleted the entire `See personal_info.md "Multi-terminal sessions" for the fuller pattern (CLI users only ...)` block from `template_lite/LITE.md` lines 84–86 (option (b) from the earlier convo). Kills both the stale-parenthetical and Dan-specific-pointer concerns in a single move. Committed as `992d487`.
+- **(c) PAT re-scope migration note.** Discussed at length. Dan's own read: "honestly I don't think anyone else is using LITE." Recommendation surfaced: skip the migration note entirely — defensive documentation warning yourself about a change you just made is theater, and a 6-month cleanup ticket would just be removing debt we created. Dan accepted, skipping (c).
+- **(d) "Simple prose / no jargon" guidance search.** Not re-searched this session, but PR #53 (`communication-style-prose`, merged 2026-08-27 morning by another session) swapped the numbered writing-style block for prose — worth checking whether that closes the original gap Dan was looking for, or whether the missing thing is a separate concern. Flagged, not resolved.
+
+### PR #52 close-out mechanics
+
+Sequence, in order:
+1. Commit `992d487` on branch (LITE.md drop) + push.
+2. STATUS.md update on main (`4743560`): Branch inventory gains `lite-multi-machine-note`; "Recent sessions" gains today's close-out entry.
+3. PR body rewritten to reflect the six-commit shape and the design decisions (`personal_info`-fetch vs. Never-list tension, PAT-migration-note skipped).
+4. Merge attempt → `DIRTY`/`CONFLICTING`. Cause: step 2's Recent-sessions entry on main collided with the branch's own `a645085` Recent-sessions entry from the original session. Both bullets targeted the same insertion point.
+5. Conflict resolution followed the PR #51 pattern: pulled `origin/main` into the branch, resolved STATUS.md by keeping **both** 2026-08-27 entries (close-out first, dev session second — newest-first per the section convention), also updated the Branch inventory line to say "merged" instead of "open for review". Merge commit `d518bb1` on branch, pushed.
+6. `gh pr merge 52 --merge` → real merge commit **`6145b7d`** on main.
+7. Follow-up STATUS commit on main **`2863e75`** filled in the real merge SHA in the Branch inventory line, matching the pattern from `f372225` (which had done the same for PR #51's `8a79715`).
+
+### Side-quest
+
+Dan asked to move `junk.txt` (untracked in `claude_researcher/`) into `bluedot_coursework/` as "UVC_notes.txt or something." Read the file first — it's substantive UV-C eye-safety notes drafted 2026-08-13: critique of Kaidzu et al. 2021, Ushio-employee majority-authorship COI, threshold-range mis-citation in Sugihara & Tanito 2022, 2025 Scientific Reports anesthesia/eye-closure critique, and a 7–10× spread in corneal-surface-cell turnover across three sources that all get invoked in far-UVC safety arguments (Kaidzu ~24h vs. Sugihara & Tanito ~48h vs. Blueprint 7d). Filed as `docs/active/biorisk/20260827_UVC_eye_safety_kaidzu_critique.md` in `bluedot_coursework` (alongside the other biorisk convo docs — `20260811_gof_dangers_and_uplift.md`, etc. — rather than at the repo root, since the content is a topical research note, not a course brief). Filing date `20260827` per that directory's convention; original 2026-08-13 draft date preserved in the commit message. Committed as `ea89dd2` in `bluedot_coursework`.
+
+### Deliverables from this session
+
+- claude_researcher: commits `992d487` (branch), `4743560` (main STATUS), `d518bb1` (merge into branch), `6145b7d` (PR #52 real merge commit on main), `2863e75` (follow-up STATUS with merge SHA).
+- claude_researcher: PR #52 merged, closed.
+- claude_researcher: PR body rewritten to six-commit shape.
+- bluedot_coursework: commit `ea89dd2` (UVC Kaidzu critique filed in biorisk).
+
+### Still-dangling (deferred, not blocking)
+
+- **Two other undocumented worktrees** in `.worktrees/`: `flare-design` (`f549720`) and `precompact-update-docs` (`9a3d81f`). Neither is in STATUS's Branch inventory. Surfaced to Dan at end of session; deferred.
+- **PR #53's writing-style prose swap** may or may not close the "simple prose / no jargon" gap the original convo flagged as open. Not re-checked this session.
