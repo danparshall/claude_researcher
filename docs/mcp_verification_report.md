@@ -76,3 +76,13 @@ The actual decision is therefore not "A vs B vs C" but **which runtime the templ
 4. Have it `push_files` a two-file commit to a scratch branch of a scratch repo; check commit author attribution on GitHub.
 5. Attempt a small binary (PDF) commit via the connector. Expect failure; confirm.
 6. (Optional, for the D branch) Check whether "Request headers" appears under Advanced settings when adding a custom connector — reveals static_headers beta availability on this account.
+
+## Empirical results — checklist items 1–3 (Dan, 2026-08-31, Pro account)
+
+Ran the same day, and the docs-derived optimism above did not survive contact with the UI:
+
+- **Item 1 FAILED — no repo-picker.** claude.ai Settings → Connectors → GitHub led to a plain GitHub OAuth sign-in/authorize flow. No "All repositories vs. Only select repositories" screen appeared at any point.
+- **The dedicated App never materialized.** After the flow, github.com/settings/applications shows exactly one authorized GitHub App: **"Claude"** (the Claude *Code* PR/Issues app, marked "Never used") — no `claude-github-mcp-connector` authorization, no new installation on the `danparshall` account. Whatever the connectors page connected, it is not the GitHub-App-installation flow the docs describe.
+- **Item 3 FAILED — private repos unreachable.** A fresh claude.ai session cannot access Dan's private repos.
+
+Interpretation (pending the follow-up research pass): the GitHub entry in claude.ai's consumer connector UI appears to be the file-sync integration and/or an authorize-without-install grant, not a working MCP tool connector with installation-scoped repo access. **Consequence for the deferred connector-native rewrite: its one advantage over the PAT (credential UX with narrow scoping, no infra) is empirically absent on a consumer Pro account as of 2026-08-31.** The token-dispenser design (see `mcp_migration_design.md`) is unaffected — it uses its own custom connector with its own OAuth server, a different mechanism whose viability is tested by plan 13's Phase 0 spike before any build.
