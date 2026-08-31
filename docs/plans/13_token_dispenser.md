@@ -2,6 +2,8 @@
 
 > **STATUS: SHELVED (2026-08-31, same day as authored) — pending trigger.** After the official-connector probe was abandoned on UX grounds, Dan weighed the dispenser's setup bill (Cloudflare account, GitHub App registration, standing service) against the residual pain and adopted a cheaper interim: **annual-expiry fine-grained PAT + `tools/fill_project_instructions.py`** (one paste a year). Revisit triggers: (a) the rotation/all-repos-PAT annoyance keeps firing anyway (Dan's third-repetition rule), (b) a real beta user materializes, or (c) Dan's planned revisit in ~1–2 months (Oct–Nov 2026). The plan below remains fully specified and executable cold; design rationale unchanged in `docs/mcp_migration_design.md`.
 
+> **Scale + prep addendum (2026-08-31, concurrent CLI session):** Rotation currently touches **~10 claude.ai Projects** — one paste per Project per rotation (same PAT, N pastes) — so the interim costs ~10 pastes/year, and the dispenser's one-time account-wide connector attach amortizes over all of them: its value scales with N while its cost is fixed. Weigh that at revisit time. Phase 0's account-free prep was also completed before tabling — see **Phase 0 prep notes** at the bottom of this plan. A future pickup starts at `wrangler login`, not at research.
+
 **Goal:** Build a minimal remote MCP server that mints short-lived, per-session-scoped GitHub installation tokens, so claude.ai research sessions clone with ephemeral credentials and Dan never pastes a PAT again.
 
 **Originating conversation:** [docs/convos/20260831_github_mcp_verification.md](../convos/20260831_github_mcp_verification.md) — design rationale in [docs/mcp_migration_design.md](../mcp_migration_design.md), facts in [docs/mcp_verification_report.md](../mcp_verification_report.md).
@@ -107,3 +109,16 @@ NOTE: I will write *all* tests before I add any implementation behavior.
 4. **Merge timing approved.** Dan was about to rotate the PAT anyway, so the post-merge state gets checked in the same breath as the rotation — a convenient live test of the (unchanged) PAT path, and the natural moment to attach the dispenser once built, making that rotation the last one.
 
 ---
+
+## Phase 0 prep notes (2026-08-31, recorded at tabling)
+
+Account-free prep completed and verified same-day by the concurrent CLI session (convo: [`20260831_token_dispenser_phase0_tabled.md`](../convos/20260831_token_dispenser_phase0_tabled.md)), so a future pickup doesn't re-research:
+
+- **Scaffold command verified live:** `npm create cloudflare@latest -- <name> --template=cloudflare/ai/demos/remote-mcp-github-oauth` — template confirmed at that path in `cloudflare/ai`.
+- **Install gotcha:** the template pins `@cloudflare/workers-types` v4 while fresh wrangler (4.127.1) peer-wants v5 → `npm install --legacy-peer-deps` (the dep is `peerOptional`; safe, template code untouched). Scaffold then passes `npx wrangler deploy --dry-run` on node v22.
+- **Endpoint is `/mcp` only** (streamable HTTP; `/sse` removed from the code — the template README's `/sse` references are stale). claude.ai custom connectors expect exactly that URL; **DCR works out of the box** with `workers-oauth-provider` — leave the connector's advanced OAuth client-ID/secret fields blank.
+- **Free tier confirmed sufficient:** SQLite-backed Durable Objects (`new_sqlite_classes`) have been on the Workers Free plan since Apr 2025.
+- **Setup order:** KV namespace `OAUTH_KV` (paste ID into `wrangler.jsonc`) → first deploy to learn the `https://mcp-github-oauth.<subdomain>.workers.dev` URL (worker name comes from `wrangler.jsonc`, not the directory) → prod GitHub OAuth app (homepage = worker URL, callback = `<worker>/callback`) → secrets `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` / `COOKIE_ENCRYPTION_KEY` → redeploy. Local dev wants a second OAuth app on `http://localhost:8788`.
+- **Real-build caveat:** the template's `McpAgent` base class is deprecated as of agents SDK v0.4.0 (Feb 2026), feature-frozen; Phases 2–4 should build on `createMcpHandler` (`agents/mcp/server`) rather than recycling the spike wholesale. Spike itself still deploys and works on the deprecated path.
+- **Known claude.ai-side flakiness (2026 community reports):** OAuth can complete cleanly server-side while claude.ai never calls `/token` or never sends `initialize`; remedy is retry or remove-and-re-add the connector. Clean worker logs + failed Connect ≠ spike failure — check logs before declaring Phase 0 dead. The documented 10s OAuth timeout is real but Workers sit far under it.
+- The prepped spike lived at `/tmp/mcp-spike/` (disposable; assume gone).
