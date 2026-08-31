@@ -97,11 +97,11 @@ NOTE: I will write *all* tests before I add any implementation behavior.
 - If a real beta user materializes, the deferred connector-native runtime rewrite (verification report) may supersede parts of Phase 6's template wording.
 - The manual checklist's repo-picker finding doesn't affect this plan but decides the deferred rewrite's viability.
 
-**Questions**
+**Questions** — all four resolved by Dan, 2026-08-31 (this session):
 
-1. **TypeScript, not Python.** Dan's stated preference is Python for anything non-trivial, but the remote-MCP-with-OAuth-on-Workers path is TS-native; a Python equivalent means self-hosting (Fly/VPS) and hand-rolling more OAuth. My call: the TS surface here is small and mostly scaffold; the logic worth double-checking (JWT claims, narrowing payload) is readable regardless. Veto if you'd rather own it in Python on different hosting.
-2. Dispenser repo private or public? Public costs nothing security-wise (secrets are in Worker config) and lets template adopters fork the recipe — I'd default public once it works.
-3. Reuse the GitHub App's own OAuth credentials for login-with-GitHub, or a separate OAuth app? Reuse is fewer moving parts; separate is cleaner revocation. Default: reuse.
-4. Phase 7's merge timing: merging the template changes changes the *public* template while Dan's live Project still carries a PAT block — fine (PAT path remains supported), but confirm before merge.
+1. **TypeScript accepted.** Python preference waived for this project; the TS surface is small and the auditable logic (JWT claims, narrowing payload) is readable regardless.
+2. **Public repo, named `claude-researcher-tokens`** — explicitly so academic adopters can point their agents at it as the reference implementation.
+3. **Reuse the GitHub App's own OAuth credentials** for login-with-GitHub — "simple is better."
+4. **Merge timing approved.** Dan was about to rotate the PAT anyway, so the post-merge state gets checked in the same breath as the rotation — a convenient live test of the (unchanged) PAT path, and the natural moment to attach the dispenser once built, making that rotation the last one.
 
 ---
