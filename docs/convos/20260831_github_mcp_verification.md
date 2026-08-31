@@ -50,6 +50,10 @@ The connector-native runtime rewrite was deferred (not rejected) until a real be
 - [`docs/mcp_verification_report.md`](../mcp_verification_report.md) — the four unknowns resolved with sources + a 10-minute manual claude.ai UI checklist (commit `d70a5e9`)
 - [`docs/mcp_migration_design.md`](../mcp_migration_design.md) — chosen design, architecture, threat-model delta, template change set (commit `565788e`)
 
+## Addendum — post-close empirical check (same day)
+
+After the first finish-convo, Dan ran the manual checklist items 1–3 live on his Pro account. **They failed**: the claude.ai Settings → Connectors GitHub flow was a plain OAuth authorize with no repo-selection screen; no `claude-github-mcp-connector` App appeared on GitHub (only the pre-existing Claude Code app authorization); a fresh claude.ai session could not read his private repos. Recorded in the verification report's "Empirical results" section (commit `18a7e1e`). Consequence: the deferred connector-native rewrite loses its sole advantage (narrow-scoped credential UX without infra) as of the current consumer UI; the dispenser decision is unaffected and strengthened — its attach mechanism (own custom connector, own OAuth with DCR) is different and is exactly what plan 13's Phase 0 spike tests before any build. A community-experience search (does GitHub tool access on claude.ai web work for *anyone*, and via what path) was still running at session close; its only actionable output is evidence bearing on Phase 0's odds — anything else lands as a short note in the verification report, not a new discussion. Dan also correctly called out that the search was launched without asking whether it could change the decision (it can't).
+
 ## Open Questions
 
 - Does the claude.ai consent flow for the directory GitHub connector actually surface the "Only select repositories" picker? (Manual checklist item 1–3 — decisive for the deferred rewrite, optional for the dispenser.)
