@@ -43,6 +43,7 @@ The connector-native runtime rewrite was deferred (not rejected) until a real be
 - **Keep `tools/fill_project_instructions.py`** — the PAT path remains a first-class template option for zero-infra users, so the paste-helper stays useful (briefing had left its fate contingent).
 - **Session interaction note**: Dan called out over-use of opaque option labels ("A′/B′/D") mid-discussion — matches RESEARCHER.md §0's "refer to sections by names, avoid non-standard jargon." Restated plainly thereafter.
 - Implementation plan: [`docs/plans/13_token_dispenser.md`](../plans/13_token_dispenser.md) (written immediately after this checkpoint).
+- **Plan questions resolved same session** (recorded in the plan): TypeScript accepted; repo public and named `claude-researcher-tokens` so academic adopters can point agents at it; reuse the GitHub App's OAuth creds for the login check; merge timing approved — Dan's imminent PAT rotation doubles as the post-merge check and, once the dispenser ships, plausibly his last paste (via the paste-helper's debut).
 
 ## Results
 
@@ -52,7 +53,6 @@ The connector-native runtime rewrite was deferred (not rejected) until a real be
 ## Open Questions
 
 - Does the claude.ai consent flow for the directory GitHub connector actually surface the "Only select repositories" picker? (Manual checklist item 1–3 — decisive for the deferred rewrite, optional for the dispenser.)
-- Dispenser naming + hosting details (suggested `danparshall/claude-researcher-tokens`, Cloudflare Workers free tier) — Dan to confirm.
-- Does `workers-oauth-provider`'s DCR handshake fit claude.ai's 10-second OAuth endpoint timeout? (Expected yes; verify during build.)
+- Does `workers-oauth-provider`'s DCR handshake fit claude.ai's 10-second OAuth endpoint timeout? (Expected yes; plan 13 Phase 0 spike verifies before any real code.)
 - Can `push_files` really not carry binary content? Expect-failure test lives in the manual checklist; matters for the deferred rewrite's `add-paper` story.
 - v2 candidates: per-repo mint allowlist, mint-event notifications.
