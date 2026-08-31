@@ -54,6 +54,14 @@ The connector-native runtime rewrite was deferred (not rejected) until a real be
 
 After the first finish-convo, Dan ran the manual checklist items 1–3 live on his Pro account. **They failed**: the claude.ai Settings → Connectors GitHub flow was a plain OAuth authorize with no repo-selection screen; no `claude-github-mcp-connector` App appeared on GitHub (only the pre-existing Claude Code app authorization); a fresh claude.ai session could not read his private repos. Recorded in the verification report's "Empirical results" section (commit `18a7e1e`). Consequence: the deferred connector-native rewrite loses its sole advantage (narrow-scoped credential UX without infra) as of the current consumer UI; the dispenser decision is unaffected and strengthened — its attach mechanism (own custom connector, own OAuth with DCR) is different and is exactly what plan 13's Phase 0 spike tests before any build. A community-experience search (does GitHub tool access on claude.ai web work for *anyone*, and via what path) was still running at session close; its only actionable output is evidence bearing on Phase 0's odds — anything else lands as a short note in the verification report, not a new discussion. Dan also correctly called out that the search was launched without asking whether it could change the decision (it can't).
 
+## Addendum 2 — probe abandoned; interim adopted; plan 13 shelved (session close, second pass)
+
+The follow-up research explained Dan's failed check (he'd hit the legacy file-sync integration; the real path is custom-connector-by-URL + a manual App-install link where the repo-picker actually lives) and Dan attempted the corrected recipe — reaching the Add-custom-connector dialog — before abandoning it as too convoluted ("fluent user + guided steps + still too complicated" is now recorded as UX evidence in the verification report). That experience also recalibrated the dispenser's cost: its one-time setup (Cloudflare account, GitHub App registration, standing service) no longer clears the bar now that the paste-helper exists.
+
+**Adopted interim:** fine-grained PAT with expiration set to the maximum (~1 year) + `tools/fill_project_instructions.py` for the paste — one 30-second ritual per year. The 90-day cadence was self-imposed; annual is defensible for a two-repo-scoped credential in a private Project. IP-constrained template users can keep stricter guidance.
+
+**Plan 13 shelved, not killed** — status note added at the top of the plan. Revisit triggers: recurring annoyance (third-repetition rule), a real beta user, or Dan's intended ~Oct–Nov 2026 revisit. Dan is applying the same doc updates via his other active session where applicable.
+
 ## Open Questions
 
 - Does the claude.ai consent flow for the directory GitHub connector actually surface the "Only select repositories" picker? (Manual checklist item 1–3 — decisive for the deferred rewrite, optional for the dispenser.)

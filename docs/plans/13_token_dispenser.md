@@ -1,5 +1,7 @@
 # Token-Dispenser Implementation Plan
 
+> **STATUS: SHELVED (2026-08-31, same day as authored) — pending trigger.** After the official-connector probe was abandoned on UX grounds, Dan weighed the dispenser's setup bill (Cloudflare account, GitHub App registration, standing service) against the residual pain and adopted a cheaper interim: **annual-expiry fine-grained PAT + `tools/fill_project_instructions.py`** (one paste a year). Revisit triggers: (a) the rotation/all-repos-PAT annoyance keeps firing anyway (Dan's third-repetition rule), (b) a real beta user materializes, or (c) Dan's planned revisit in ~1–2 months (Oct–Nov 2026). The plan below remains fully specified and executable cold; design rationale unchanged in `docs/mcp_migration_design.md`.
+
 **Goal:** Build a minimal remote MCP server that mints short-lived, per-session-scoped GitHub installation tokens, so claude.ai research sessions clone with ephemeral credentials and Dan never pastes a PAT again.
 
 **Originating conversation:** [docs/convos/20260831_github_mcp_verification.md](../convos/20260831_github_mcp_verification.md) — design rationale in [docs/mcp_migration_design.md](../mcp_migration_design.md), facts in [docs/mcp_verification_report.md](../mcp_verification_report.md).
