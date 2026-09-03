@@ -96,5 +96,44 @@ Dan approved shipping T2/T3/T4 immediately after the T1 commit landed. Framework
 **What still isn't done, and is intentional:**
 - **Fold into `finishing-a-research-branch`** — the LINEAGE.md re-pinning grep-check + optional `data/processed/<branch>/` promotion. Both worth adding; both need their own design pass. Recording as a follow-up.
 - **`add-deliverable` sandbox affordance** — the runtime-detection block treats claude.ai sandbox and Claude Code symmetrically, but SHA-resolution via `gh pr view` might not be available in the sandbox. If a user hits this, resolve via the Pulls REST API instead. Not fixed pre-emptively; wait for the actual friction.
-- **Guardrail enforcement** (Tier 5) — an audit skill that checks for root-level `results/`/`output/`/`reports/`/`analysis/`, `project_docs/`, and per-workstream top-level shadow taxonomies. Would be useful for retrofitting `policy-levers/`, `econ-impact/`, `verification/` against the new framework. Not shipped this session; would be a natural fifth skill (`audit-repo-structure`) once the framework has been exercised on a real repo and the guardrails have been calibrated against real drift patterns.
 - **Operations-mode / campaign-mode archetype** for `policy-levers/`-style repos — still deferred until real retrofit pain surfaces a design brief.
+
+---
+
+## Addendum 2 — 2026-09-03 (T5 ship, same session)
+
+Dan approved shipping T5 immediately after T2/T3/T4 landed. Skill created: `template/skills/audit-repo-structure/SKILL.md`.
+
+**What T5 covers.** Guardrail enforcement — a filesystem-shape audit that walks nine finding buckets against the research-first framework's conventions and reports bucket-at-a-time. Modeled on the interaction pattern of `audit-docs` / `audit-papers` / `audit-status`: inventory, categorize, report, no auto-fix, one bucket at a time so the user's decision surface stays small.
+
+**Nine buckets:**
+- **A. Root sprawl** — `results/`, `output/`, `outputs/`, `reports/`, `analysis/`, `notes/`, `drafts/`, `sections/`, `tmp/`, `scratch/` at root. Fix depends on contents (writeups → `docs/active/<branch>/results/`, data → `data/processed/<branch>/`, deliverable outputs → `deliverables/<target>/`, scratch → gitignore + move).
+- **B. Duplicate doc dirs** — `project_docs/`, `documentation/`, `_docs/`, `docs2/`, `wiki/`, `handbook/`. Fix: merge into `docs/`.
+- **C. Workstream shadow taxonomy** — top-level dirs that look like workstreams/deliverables rather than kinds. Per-finding ask: research line (→ `docs/active/<name>/`)? Deliverable (→ `deliverables/<name>/` with LINEAGE.md)? Self-contained sub-project (accept)? **Operational-repo caveat explicit in the skill body** — a repeat pattern of "this is operational" exceptions here is the trigger to consider the deferred operations-mode archetype, and the skill's Step 5 surfaces that as a repo-shape observation rather than a per-finding fix.
+- **D. Loose files at root** — PDFs, `.py` scripts, `.sh` scripts, `.md` handoffs, `.zip` archives, `.csv`/`.parquet`/`.json` data, images. Fix depends on file type; skill lists the mapping.
+- **E. `data/` non-conformance** — missing subdirs, files directly in `data/` root, missing `data/README.md`, missing `.gitignore` block. Fix: point at `init-research-repo` (idempotent) + manual recategorization.
+- **F. Partial code scaffold** — `pyproject.toml` without `src/`, `src/` without `pyproject.toml`, missing `__init__.py`, missing `.python-version`. Fix: point at `init-code-scaffold` or complete manually.
+- **G. LINEAGE gaps** — `deliverables/<target>/` without `LINEAGE.md`, `Purpose: TBD` unresolved, empty Claims table despite shipped outputs, stale `active` branch pins. Fix: manual updates to LINEAGE (never wholesale rewrite of existing LINEAGE files).
+- **H. Notebook rot** — informational heuristic (large notebooks, production-sounding names). Non-actionable by design; some notebooks are legitimately meant to stay in notebook form.
+- **I. Standing exceptions** — enumerated list of files/dirs that should never be flagged (`README.md`, `STATUS.md`, `.venv/`, `.git/`, framework kinds, etc.). Deliberate design decision: **no persistent exception file** — re-audit each time so stale exceptions get re-considered.
+
+**Design choices worth flagging:**
+- **Operational-repo caveat is baked into the skill body, not tacked on as a footnote.** Bucket C's per-finding prompt explicitly says "if the user says the repo is operational, accept the exception," and Step 5's summary section surfaces "multiple Bucket C exceptions suggest operations-mode may be a better fit" as an explicit pattern to watch for. This turns the skill into a signal-collector for the deferred archetype decision rather than a pedantic checker.
+- **No auto-fix, in line with the other audit-* skills.** Multi-session safety (another agent's worktree may have work in flight) + operational-repo judgment call + destructiveness of `mv` in the wrong direction all point the same way.
+- **Bucket H is deliberately informational.** Pushing users to extract every large notebook is presumptuous; the skill flags but doesn't nag.
+- **Commit-per-bucket** rather than one giant commit — makes reverting a specific fix cleanly possible.
+- **Skill points at other skills** for fixes it can't complete alone (`init-research-repo` for Bucket E, `init-code-scaffold` for Bucket F, `add-deliverable` shape for Bucket G) rather than reaching into their territory.
+
+**Retrofit runway.** The three existing research repos (`policy-levers/`, `verification/`, `econ-impact/`) are the natural first exercise targets. Ordering by likely-difficulty: `verification/` (smallest, cleanest — should be a light pass); `econ-impact/` (largest, most `results/`+`output/`+`reports/`+`analysis/` sprawl — will surface real Bucket A + Bucket D volume and probably some Bucket C findings around `RCT_KnowledgeUnbundling/`, `economist_AI_boom/`, `latam/`); `policy-levers/` (most Bucket C findings; strongest test of the operational-repo caveat — if the skill nags too hard here, the caveat needs to be sharpened). Each retrofit is its own session; the results of the three runs together are the empirical calibration for whether the guardrail buckets are hitting the right targets.
+
+**Manifest.** `SKILL_INDEX.md` gained an entry in the Knowledge-management section, alongside `audit-docs`, `audit-papers`, `audit-status`.
+
+**What's now cleared from the deferred list:**
+- ~~Guardrail enforcement (Tier 5)~~ — shipped.
+- ~~Operations-mode / campaign-mode archetype~~ — remains deferred, but now with a *signal-collection mechanism* in place (Bucket C exceptions accumulate as a pattern the audit surfaces).
+
+**What's still deferred:**
+- **Fold into `finishing-a-research-branch`** — LINEAGE re-pin grep + optional `data/processed/` promotion.
+- **`add-deliverable` sandbox affordance** — REST-API SHA-resolution fallback.
+- **Operations-mode archetype** — waiting on retrofit pain + accumulated Bucket C exception patterns from real `audit-repo-structure` runs.
+- **Retrofit the three existing research repos** against the new framework — one session per repo, in the order `verification/` → `econ-impact/` → `policy-levers/`.
