@@ -42,8 +42,13 @@ Skills are grouped by lifecycle role.
 
 ### init-research-repo
 
-- **Trigger:** during bootstrap only — not normally invoked at runtime. Used by `BOOTSTRAP.md` Step 9 to seed a fresh research repo.
+- **Trigger:** during bootstrap only — not normally invoked at runtime. Used by `BOOTSTRAP.md` Step 9 to seed a fresh research repo. Scaffolds `docs/active/`, `docs/historical/`, `data/{raw,interim,processed,reference}/` with a README, a sensible `.gitignore` (Python + Cookiecutter-DS data pattern), and STATUS.md's Project parameters + Active/Archived Research Lines + Recent Sessions sections.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/init-research-repo/SKILL.md`
+
+### init-code-scaffold
+
+- **Trigger:** a research repo starts needing to hold code and doesn't have `src/` yet — the researcher is about to write more than a one-off script. Lazy companion to `init-research-repo`; creates `src/<pkg>/`, `scripts/`, `tests/`, `notebooks/`, `pyproject.toml`, `.python-version` using `uv`. Skip for pure-reading, pure-writing, or papers-only repos.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/init-code-scaffold/SKILL.md`
 
 ---
 
@@ -73,6 +78,16 @@ Skills are grouped by lifecycle role.
 
 - **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-papers/SKILL.md`
+
+### add-deliverable
+
+- **Trigger:** user is about to create an outward-facing deliverable — a paper, memo, bill response, briefing, essay, testimony, or any artifact leaving the repo for an external audience ("start a paper," "let's draft the memo," "cut a target for the bill response"). Creates `deliverables/<target>/` with a seeded `LINEAGE.md` capturing which research lines fed the deliverable (pinning merge-commit SHAs, not branch HEADs) and where citable numbers came from. Tiered rigor: light claim+source+SHA default, upgrade to fuller Method-column format for numbers that will be defended externally.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/add-deliverable/SKILL.md`
+
+### audit-repo-structure
+
+- **Trigger:** user asks to check the repo's folder layout against the framework's guardrails ("audit the layout", "is this repo tidy", "check folder structure", "guardrails audit"), or you notice signs of drift (root-level `results/`/`output/`/`reports/`, `project_docs/` alongside `docs/`, loose PDFs at root, `deliverables/<target>/` without `LINEAGE.md`, partial code scaffold). Walks nine finding buckets (A: root sprawl; B: duplicate doc dirs; C: workstream shadow taxonomy; D: root accumulation; E: `data/` non-conformance; F: partial code scaffold; G: LINEAGE gaps; H: notebook rot; I: standing exceptions). Reports bucket-at-a-time, no auto-fix, respects the operational-repo caveat (`policy-levers/`-style repos legitimately deviate from research-first defaults). Surfaces cross-audit patterns in the summary — e.g., repeated Bucket C exceptions signal the repo may want the deferred operations-mode archetype.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-repo-structure/SKILL.md`
 
 ### audit-status
 
