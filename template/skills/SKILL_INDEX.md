@@ -42,8 +42,13 @@ Skills are grouped by lifecycle role.
 
 ### init-research-repo
 
-- **Trigger:** during bootstrap only — not normally invoked at runtime. Used by `BOOTSTRAP.md` Step 9 to seed a fresh research repo.
+- **Trigger:** during bootstrap only — not normally invoked at runtime. Used by `BOOTSTRAP.md` Step 9 to seed a fresh research repo. Scaffolds `docs/active/`, `docs/historical/`, `data/{raw,interim,processed,reference}/` with a README, a sensible `.gitignore` (Python + Cookiecutter-DS data pattern), and STATUS.md's Project parameters + Active/Archived Research Lines + Recent Sessions sections.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/init-research-repo/SKILL.md`
+
+### init-code-scaffold
+
+- **Trigger:** a research repo starts needing to hold code and doesn't have `src/` yet — the researcher is about to write more than a one-off script. Lazy companion to `init-research-repo`; creates `src/<pkg>/`, `scripts/`, `tests/`, `notebooks/`, `pyproject.toml`, `.python-version` using `uv`. Skip for pure-reading, pure-writing, or papers-only repos.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/init-code-scaffold/SKILL.md`
 
 ---
 
@@ -73,6 +78,11 @@ Skills are grouped by lifecycle role.
 
 - **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-papers/SKILL.md`
+
+### add-deliverable
+
+- **Trigger:** user is about to create an outward-facing deliverable — a paper, memo, bill response, briefing, essay, testimony, or any artifact leaving the repo for an external audience ("start a paper," "let's draft the memo," "cut a target for the bill response"). Creates `deliverables/<target>/` with a seeded `LINEAGE.md` capturing which research lines fed the deliverable (pinning merge-commit SHAs, not branch HEADs) and where citable numbers came from. Tiered rigor: light claim+source+SHA default, upgrade to fuller Method-column format for numbers that will be defended externally.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/add-deliverable/SKILL.md`
 
 ### audit-status
 

@@ -63,8 +63,38 @@ Ship scope agreed: **design doc + `init-research-repo` update for Tier 1** (data
 
 ## Related
 
-- Skill: `template/skills/init-research-repo/SKILL.md` — updated this session
+- Skill: `template/skills/init-research-repo/SKILL.md` — updated this session (Tier 1)
+- Skill: `template/skills/init-code-scaffold/SKILL.md` — created this session (Tier 2; also carries the Tier 3 doc note)
+- Skill: `template/skills/add-deliverable/SKILL.md` — created this session (Tier 4)
 - Skill: `template/skills/start-research-line/SKILL.md` — sibling; scaffolds per-branch `docs/active/<branch>/`
+- Skill: `template/skills/finishing-a-research-branch/SKILL.md` — the natural home for a future opt-in `data/processed/<branch>/` → `data/processed/` promotion step (deliberately not touched this session; needs its own design)
+- Manifest: `template/skills/SKILL_INDEX.md` — updated to register the two new skills
 - Reference: [Cookiecutter Data Science opinions](https://cookiecutter-data-science.drivendata.org/opinions/) — the data-lifecycle model this session adopts
 - Existing gitignore reference: `~/code/policy-levers/.gitignore` — the mature CDS-aligned pattern the new default is modeled on
 - Dan-specific infra (out of downstream scope): `~/.claude/CLAUDE.md` "Worktree data discipline" block; `using-git-worktrees` skill; `~/data/` Syncthing sync
+
+---
+
+## Addendum — 2026-09-03 (T2 + T3 + T4 continuation, same session)
+
+Dan approved shipping T2/T3/T4 immediately after the T1 commit landed. Framework decisions and shipped artifacts:
+
+**Tier 2 — `init-code-scaffold` skill (shipped).** Lazily-invoked repo-setup skill for research repos that start needing code. Creates `src/<pkg>/`, `scripts/`, `tests/`, `notebooks/`, `pyproject.toml`, `.python-version`, optional `.venv/`. Uses `uv` per the researcher-profile Python policy. Deliberately opt-in — the skill's "When to run this skill" section calls out that reading-heavy repos (`verification/` at the time of writing) should skip it entirely. Package name is asked-for rather than guessed (renaming is a real refactor once imports exist). `pyproject.toml` template pins Python 3.12+, configures ruff and pytest, uses `src/<pkg>/` layout so tests exercise the installed package rather than a shadow-imported working copy.
+
+**Tier 3 — folded into `init-code-scaffold`'s "Data outputs from code" section (no standalone skill).** Documented decision: the `data/processed/<branch>/` convention is a *rule* about where derived data lives, not a ceremony worth reifying. The rule appears in the T2 skill because that's the surface where researchers are about to write code that produces the data in question — putting the guidance somewhere else would just mean it isn't read at the right moment. Promotion at merge time (`data/processed/<branch>/foo.csv` → `data/processed/foo.csv`) is explicitly manual and opt-in — not every branch's outputs are meant to leave the branch, and automatic promotion would risk polluting `main`'s `data/processed/` with branch-scoped artifacts that only made sense in their originating context. `finishing-a-research-branch` is the natural home for an eventual opt-in promotion step, but touching that ceremony (which contains the workflow's only merge affordance) needs its own design conversation triggered by real friction. Not this session.
+
+**Tier 4 — `add-deliverable` skill (shipped).** Creates `deliverables/<target>/` with a seeded `LINEAGE.md`. Key design choices:
+- **Merge-commit SHA pinning, not branch HEAD.** Branch names can be deleted or reused; merge commits are permanent. Rows for still-active branches carry `active` marker and are meant to be re-pinned at merge time.
+- **Tiered rigor is explicit in the LINEAGE template itself** — Light format (claim + where-it-appears + source-with-branch-SHA) is the default; Fuller format (adds a runnable Method column) is the upgrade path for citable / defensible numbers. Both formats appear in the seeded LINEAGE.md as tables the researcher can populate incrementally.
+- **The skill only scaffolds provenance, not the deliverable content itself.** Authoring the paper / memo / bill response is a separate flow (`iterative-writing-workflow` or `branch-document-review`, or plain writing). `add-deliverable` is the "cut the target and cast the lineage plumbing" ceremony that precedes writing.
+- Target names follow a suggested prefix convention (`paper-`, `memo-`, `bill-`, `essay-`, `deck-`, `testimony-`) to keep `deliverables/` scannable.
+- Chose to seed the Claims table with visible-but-commented example rows (`<!-- example: ... -->`) rather than filling it with placeholder data — pattern is discoverable without polluting the initial file.
+- Which branch the deliverable dir lives on (`main` vs. a dedicated deliverable branch vs. a research branch) is explicitly a per-deliverable decision, defaulted to `main` since most deliverables outlive any single branch.
+
+**Manifest update.** `SKILL_INDEX.md` gained entries for both new skills. `init-code-scaffold` slots into the Session-lifecycle group alongside `init-research-repo` (both are repo-setup, both are lazily-or-once invoked); `add-deliverable` slots into the Knowledge-management group next to `add-paper` (parallel shape: create-a-typed-thing-with-mandatory-metadata).
+
+**What still isn't done, and is intentional:**
+- **Fold into `finishing-a-research-branch`** — the LINEAGE.md re-pinning grep-check + optional `data/processed/<branch>/` promotion. Both worth adding; both need their own design pass. Recording as a follow-up.
+- **`add-deliverable` sandbox affordance** — the runtime-detection block treats claude.ai sandbox and Claude Code symmetrically, but SHA-resolution via `gh pr view` might not be available in the sandbox. If a user hits this, resolve via the Pulls REST API instead. Not fixed pre-emptively; wait for the actual friction.
+- **Guardrail enforcement** (Tier 5) — an audit skill that checks for root-level `results/`/`output/`/`reports/`/`analysis/`, `project_docs/`, and per-workstream top-level shadow taxonomies. Would be useful for retrofitting `policy-levers/`, `econ-impact/`, `verification/` against the new framework. Not shipped this session; would be a natural fifth skill (`audit-repo-structure`) once the framework has been exercised on a real repo and the guardrails have been calibrated against real drift patterns.
+- **Operations-mode / campaign-mode archetype** for `policy-levers/`-style repos — still deferred until real retrofit pain surfaces a design brief.
