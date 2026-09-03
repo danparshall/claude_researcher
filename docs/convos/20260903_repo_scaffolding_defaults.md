@@ -133,7 +133,7 @@ Dan approved shipping T5 immediately after T2/T3/T4 landed. Skill created: `temp
 - ~~Operations-mode / campaign-mode archetype~~ — remains deferred, but now with a *signal-collection mechanism* in place (Bucket C exceptions accumulate as a pattern the audit surfaces).
 
 **What's still deferred:**
-- **Fold into `finishing-a-research-branch`** — LINEAGE re-pin grep + optional `data/processed/` promotion.
-- **`add-deliverable` sandbox affordance** — REST-API SHA-resolution fallback.
-- **Operations-mode archetype** — waiting on retrofit pain + accumulated Bucket C exception patterns from real `audit-repo-structure` runs.
+- **Fold into `finishing-a-research-branch`** — LINEAGE re-pin grep + optional `data/processed/` promotion. Cold handoff briefing written: [`docs/lineage_finishing_branch_handoff.md`](../lineage_finishing_branch_handoff.md).
+- **`add-deliverable` sandbox affordance** — REST-API SHA-resolution fallback. Tracked: [issue #56](https://github.com/danparshall/claude_researcher/issues/56) (`task`).
+- **Operations-mode archetype** — waiting on retrofit pain + accumulated Bucket C exception patterns from real `audit-repo-structure` runs. Tracked: [issue #57](https://github.com/danparshall/claude_researcher/issues/57) (`parking-lot`).
 - **Retrofit the three existing research repos** against the new framework — one session per repo, in the order `verification/` → `econ-impact/` → `policy-levers/`.
