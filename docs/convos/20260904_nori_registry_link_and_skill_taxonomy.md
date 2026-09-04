@@ -46,3 +46,7 @@ Both repos took doc edits this session. `claude_researcher`: README "About" + HU
 - Where do Dan's uploaded standalone skills (finish-convo@1.0.0, task-create@1.0.1, …) actually live, given the anonymous API can't see them? Moderation queue, or a user-scoped namespace?
 - Should the registry-facing README replace `nori-researcher/README.md` or sit beside it under another name with `install.sh` renaming at symlink time? (dotfiles #95 asks this.)
 - Does a fresh `sks install public/researcher` on a machine with no local files actually receive the 8 inline skills? Still untested since 2026-07-20.
+
+## Correction (same day, from the follow-up dotfiles session)
+
+The "what decides inline vs linked" question above was answered by reading the sks 0.32.0 source (dotfiles `nori-researcher/PUBLISHING.md`, commits `e561141` → `142235f`): **the per-skill `nori.json` `type` field does decide it** — `"inlined-skill"` ships inline, anything else becomes a standalone package. My "at best incomplete" verdict was wrong: I inferred from Air's profile dir, but 1.0.27 was uploaded from Pro, whose untracked per-skill copies had diverged. Fix shipped in dotfiles: per-skill `nori.json` is now tracked and symlinked, all 15 customs are inline, and the registry README/GUIDE have a dotfiles source (#95, #96 both addressed there). Treat `PUBLISHING.md` as authoritative over the Provisional Findings section above.
