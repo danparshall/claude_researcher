@@ -47,6 +47,8 @@ Now fetch and follow:
 
 `claude_researcher` is a collaboration between [Dan Parshall](https://danparshall.com) and [Andrea Lopez-Luzuriaga](https://andrealopezluzuriaga.net/). Longer story and design context: [HUMANS.md](HUMANS.md).
 
+This is the browser-side port of the **`researcher` Nori skillset** for Claude Code — the same workflow for people who can install Claude Code locally. The registry page is [noriskillsets.dev/skillsets/researcher](https://noriskillsets.dev/skillsets/researcher); install with `npx nori-skillsets install researcher`. Skill names and file conventions match across the two, so you can move between them.
+
 ## Reporting issues
 
 Found a bug? Ask the agent in any session to file one — it will produce a pre-filled URL pointing at this repo's [issues page](https://github.com/danparshall/claude_researcher/issues/new) with diagnostic context. Your PAT and personal info are never included.
