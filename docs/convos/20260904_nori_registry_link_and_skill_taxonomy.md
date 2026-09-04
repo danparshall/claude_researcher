@@ -38,7 +38,7 @@ Both repos took doc edits this session. `claude_researcher`: README "About" + HU
 - dotfiles `NORI_NOTES.md`: "Custom skills / Adopted upstream / Local-only / Upstream / Skill type field" sections replaced by "Namespace vs skill tier — two different axes" (table + consequences + open question), the type-field story struck-through with a superseded note, task-* and using-git-worktrees history moved to Historical paragraphs, a new "registry-facing README and GUIDE have no dotfiles source" section, and two downstream cross-references fixed. `nori-researcher/README.md` gets a pointer + the registry URL. Commit `741454f` on dotfiles main, pushed.
 - Filed dotfiles [#95](https://github.com/danparshall/dotfiles/issues/95) (bring profile README/GUIDE under `RESEARCHER_FILES` and refresh) and [#96](https://github.com/danparshall/dotfiles/issues/96) (reconcile nori.json at next upload; ask amol what decides inline vs linked).
 - Fired reminders (3 in this repo, 8 in dotfiles) skipped at Dan's direction. #77 (grants, fired 2026-09-01) flagged as the one that matters.
-- The PDF print of the registry page (`Nori Skillsets — AI Agent Skill Registry.pdf`, 557 KB) was left untracked — this repo has no results dir and the "no large files in branch history" rule applies; the JSON API is the reproducible source anyway.
+- The PDF print of the registry page (557 KB) was archived in dotfiles as `nori-researcher/registry_page_20260904.pdf` at Dan's request (not symlinked into the profile dir, so it doesn't ship with `sks upload`). Left untracked here — this repo has no results dir.
 
 ## Open Questions
 
