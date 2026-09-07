@@ -3,13 +3,16 @@ name: write-a-plan
 description: Use when a research conversation has produced something ready to implement — creates implementation plans that reference their originating conversation, carry epistemic context, and assume the implementing agent has zero codebase context
 ---
 
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
+
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
 
 - Read the 'Guidelines'.
 - **Check for a convo file.** Look in `docs/active/<branch>/convos/` for this session's convo file.
   - If it exists: use it as the originating conversation.
-  - If it doesn't exist: "We don't have a conversation summary for this session yet. Let me create one before the plan, so the plan can reference its reasoning." Run `/Users/dan/.claude/skills/update-docs/SKILL.md` first, then continue.
+  - If it doesn't exist: "We don't have a conversation summary for this session yet. Let me create one before the plan, so the plan can reference its reasoning." Run `{{skills_dir}}/update-docs/SKILL.md` first, then continue.
 - Create a plan that a senior engineer can follow, with full provenance.
 <system-reminder>Any absolute paths in your plan MUST take into account any worktrees that may have been created</system-reminder>
 - Think about edge cases. Add them to the plan.
