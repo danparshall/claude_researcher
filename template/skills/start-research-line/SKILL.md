@@ -2,21 +2,8 @@
 description: Use when the user wants to start a new research line ("start a new line", "cut a branch for X", "let's begin Y"). Bundles branch creation + docs/active/<line>/ scaffold + RESEARCH_LOG.md seed + STATUS.md Active Research Lines table update as one atomic ceremony, so every future session-start read of STATUS.md sees the line at a glance.
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the git commands in this skill directly from that working tree. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you translate `git checkout` / `git commit` / `git push` into the Refs API / Contents API recipes from your Project Instructions.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 1. Confirmation gate (branch name + one-sentence purpose)
@@ -100,7 +87,7 @@ git commit -m "STATUS: start active line <branch-name>"
 git push origin main
 ```
 
-**Push race.** If the push is rejected (non-fast-forward), another STATUS-writing ceremony landed on `main` since Step 2's pull. Recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase origin main`; if the only conflict is both sides appending rows to a lifecycle table, resolve with `python3 /home/claude/.claude_researcher_template/template/scripts/resolve_append_conflict.py STATUS.md` (keeps both rows), then `git add STATUS.md`, `git rebase --continue`, re-push. Any other conflict shape: surface to the user.
+**Push race.** If the push is rejected (non-fast-forward), another STATUS-writing ceremony landed on `main` since Step 2's pull. Recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase origin main`; if the only conflict is both sides appending rows to a lifecycle table, resolve with `python3 {{skills_dir}}/finish-convo/resolve_append_conflict.py STATUS.md` (keeps both rows), then `git add STATUS.md`, `git rebase --continue`, re-push. Any other conflict shape: surface to the user.
 
 **Verification affordance.** GET `https://api.github.com/repos/$USERNAME/$REPO/contents/STATUS.md`, decode `content` from base64, confirm the new row is present. Skip if you're confident the write landed.
 

@@ -3,25 +3,8 @@ name: init-code-scaffold
 description: Use when a research repo starts needing to hold code and doesn't have `src/` yet — creates src/<pkg>/, scripts/, tests/, notebooks/, pyproject.toml, and .python-version using uv. Lazy companion to init-research-repo (which handles docs/, papers/, data/, .gitignore); called only when the researcher is actually about to write code, not at repo init. Skip for pure-reading, pure-writing, or papers-only research repos that don't need Python.
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the file writes and `git` commands directly from that working tree. `uv` is available in the sandbox (verify with `uv --version`); if the environment setup step fails, surface it and let the user run it locally instead. Only if the §2.0b clone failed (degraded REST fallback) do you translate the file writes into Contents API PUTs.
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
@@ -223,3 +206,7 @@ The current `finishing-a-research-branch` skill does not automate this promotion
 **Committing large derived-data files under `data/processed/`**
 - Problem: The default `.gitignore` (seeded by `init-research-repo`) ignores `data/processed/**`. Force-adding a large file with `git add -f` fights the convention, bloats the repo, and creates the exact "regenerable data in git" problem CDS is designed to prevent.
 - Fix: If the file is small and expensive to regenerate, add it to `data/reference/` instead (which is committed by design). If it's large, keep it gitignored and document the regeneration command in `data/README.md`.
+
+## claude.ai sandbox notes
+
+`uv` is available in the sandbox (verify with `uv --version`); if the environment setup step fails, surface it and let the user run it locally instead.

@@ -3,25 +3,8 @@ name: audit-repo-structure
 description: Check the repo's folder layout against the research-first framework's Tier 5 guardrails — semantic-overlap sprawl at root (results/, output/, reports/), duplicate doc directories, per-workstream shadow taxonomies, root-level accumulation of loose files (PDFs, one-off scripts, handoffs), data/ layout non-conformance, partial code scaffolding, and deliverable lineage gaps. Reports one bucket at a time; prompts the user for judgment rather than auto-fixing (some findings that look like violations in a research repo are appropriate in an operational repo).
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the `ls` / `find` / `git` commands in this skill directly from that working tree. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you fall back to the GitHub Contents API to enumerate the tree — but note that this skill is much more useful with a real working tree since it inspects file sizes, mtimes, and contents. If you have to run it under degraded REST, warn the user that findings will be more limited.
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
@@ -361,3 +344,7 @@ The patterns section is high-value — it turns a per-file audit into a repo-sha
 **Committing all buckets in one commit**
 - Problem: Reverting a specific fix (say, one wrong file move in Bucket D) means also reverting unrelated changes from Bucket A and Bucket E. History becomes hard to unwind.
 - Fix: Commit per bucket, or per logically-related group of fixes within a bucket. Keep the commit messages specific ("Bucket A: move root results/ into docs/active/<branch>/results/").
+
+## claude.ai sandbox notes
+
+If the §2.0b clone failed and you fall back to the GitHub Contents API to enumerate the tree, note that this skill is much more useful with a real working tree since it inspects file sizes, mtimes, and contents. If you have to run it under degraded REST, warn the user that findings will be more limited.

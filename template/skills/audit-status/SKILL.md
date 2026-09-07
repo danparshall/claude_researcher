@@ -2,21 +2,8 @@
 description: Check that STATUS.md's Active and Archived Research Lines tables match the actual git branch state, and that STATUS itself hasn't ballooned past its dashboard role. Use when the user says "audit STATUS," "check repo hygiene," "make sure STATUS is current," or when STATUS looks stale after several sessions of active work. Companion to `audit-docs` (docs/ directory consistency) and `audit-papers` (papers/ completeness).
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the git commands in this skill directly from that working tree. **This skill requires clone-first mode.** If the §2.0b clone failed and you're in degraded REST fallback, the branch-merge queries this skill depends on don't have clean REST equivalents; stop and tell the user you can't audit STATUS without the local clone. Don't attempt a partial audit — the whole point of the skill is comparing git state against STATUS state, and half-visibility into git state produces misleading findings.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 1. Preflight: confirm clone-first mode; `git fetch --prune origin` — the `--prune` is load-bearing: without it, branches deleted on origin persist as stale local refs and generate phantom Bucket A findings (found live on econ-impact, 2026-07-14: 8 phantom flags from a deletion sweep three days prior)
@@ -221,3 +208,7 @@ If any findings were skipped, mention that they'll surface again on the next aud
 **Missing the "no Active Research Lines section" case**
 - Problem: STATUS.md files predating the `start-research-line` convention may not have an `## Active Research Lines` section at all. The parser then reports zero active rows and everything looks like a Bucket A finding.
 - Fix: In Step 3, check for the section's existence. If missing, treat it as a distinct finding: *"STATUS.md doesn't have an Active Research Lines section. Add one (with rows populated from the branch inventory), then continue the audit?"* If the user approves, add the section per the shape in `start-research-line` Step 3, then re-enter Step 4.
+
+## claude.ai sandbox notes
+
+**This skill requires clone-first mode.** If the §2.0b clone failed and you're in degraded REST fallback, the branch-merge queries this skill depends on don't have clean REST equivalents; stop and tell the user you can't audit STATUS without the local clone. Don't attempt a partial audit — the whole point of the skill is comparing git state against STATUS state, and half-visibility into git state produces misleading findings.

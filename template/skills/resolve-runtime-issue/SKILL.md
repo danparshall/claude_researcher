@@ -3,6 +3,9 @@ name: resolve-runtime-issue
 description: Diagnose and recover from the common runtime failure modes of `claude_researcher`'s claude.ai runtime — expired PAT, network errors, non-fast-forward pushes (with the safe append-conflict recovery), protected-branch pushes, lost sandbox state, missing config, stale raw-CDN reads. Consult this skill when something in a session-start fetch, a git operation, or a REST call fails in a way that isn't self-explanatory.
 ---
 
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
+
 ## When to use
 
 Fire on any of: a `curl` returning 401/403/404 from `api.github.com`; a `git clone` / `git push` / `git pull` failing; the sandbox filesystem coming back empty mid-session; a file WebFetched from `raw.githubusercontent.com` disagreeing with what a recent commit implies; STATUS.md missing a field the runtime expects; SKILL_INDEX.md unreachable.
@@ -32,7 +35,7 @@ Cause: the remote branch advanced since the §2.0b clone (or since the last pull
 Recovery: `git pull --rebase origin <branch>`, then re-push. If the rebase has conflicts:
 
 - **Default:** surface conflicts to the user; do NOT auto-resolve.
-- **One carve-out (append-on-top ledgers):** if every conflict region sits in one of the append-on-top ledgers below, AND inspecting the conflict markers confirms **both sides only added lines** (no shared line deleted or edited by either side), resolve by keeping both with `python3 /home/claude/.claude_researcher_template/template/scripts/resolve_append_conflict.py <file>`, then `git add <file>`, `git rebase --continue`, and re-push. Read the script's docstring before first use — it carries the full safety gate.
+- **One carve-out (append-on-top ledgers):** if every conflict region sits in one of the append-on-top ledgers below, AND inspecting the conflict markers confirms **both sides only added lines** (no shared line deleted or edited by either side), resolve by keeping both with `python3 {{skills_dir}}/finish-convo/resolve_append_conflict.py <file>`, then `git add <file>`, `git rebase --continue`, and re-push. Read the script's docstring before first use — it carries the full safety gate.
 
   Append-on-top ledgers:
   - STATUS.md `## Active Research Lines` table

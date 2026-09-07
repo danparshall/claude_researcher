@@ -5,27 +5,8 @@ nori_researcher_source: nori-skillsets add-paper v1.0.0 (ported to claude_resear
 aitaxbid_source: ~/code/AITaxBID/skills/paper_processing.md@e0a736d (2026-05-02)
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the `git add` / `git commit` / `git push` commands in this skill directly from that working tree. Translate local skill paths like `/Users/<user>/.claude/skills/...` to the template clone at `/home/claude/.claude_researcher_template/template/skills/...`. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you translate `git add` / `git commit` / `git push` into the Contents API recipes from your Project Instructions.
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (operating against the wrong working tree, or using the wrong write path for the environment) is higher than the cost of one round-trip clarification.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
@@ -82,8 +63,8 @@ For **legislation, government regulatory documents, terms of reference, and cons
 
 **Dispatch:**
 
-- **Protocol A → academic** → Read `template/skills/paper-processing-academic/SKILL.md` and follow it from Step 1 onward. Step 0 (this skill) is already complete.
-- **Protocol B → institutional** → Read `template/skills/paper-processing-institutional/SKILL.md` and follow it from Step 1 onward. Step 0 (this skill) is already complete.
+- **Protocol A → academic** → Read `{{skills_dir}}/paper-processing-academic/SKILL.md` and follow it from Step 1 onward. Step 0 (this skill) is already complete.
+- **Protocol B → institutional** → Read `{{skills_dir}}/paper-processing-institutional/SKILL.md` and follow it from Step 1 onward. Step 0 (this skill) is already complete.
 - **Non-paper document** (legislation, regulatory docs, ToRs, consultant deliverables) → use `document-processing` (currently deferred per Plan 02 Wave 5; if you hit this branch, fall back to manual handling and surface to the user).
 
 # Common Mistakes
