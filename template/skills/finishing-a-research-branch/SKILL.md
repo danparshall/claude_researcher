@@ -3,25 +3,8 @@ name: finishing-a-research-branch
 description: Merge a completed research line into main and archive its docs. Use when the user says the line is "done", "ready to ship", "let's merge it", or equivalent. Runs finish-convo + audit-docs on the still-open line before anything merges. Handles both `branches` mode (checkpoint + audit + open PR + merge + archive) and `main_only` mode (checkpoint + audit + archive). This is the full research-line close ceremony; for a mid-session or end-of-session checkpoint that keeps the branch open, use `finish-convo` instead.
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-**If `claude.ai sandbox`:** the project repo is at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b. Run the `git` commands directly from that working tree. The PR open/merge steps use the Pulls REST API because there's no plain-git equivalent — use the `curl` recipes below with the PAT from Project Instructions. If the §2.0b clone failed (degraded REST fallback), translate the directory move into per-file Contents API PUTs and surface degraded mode.
-
-**If `Claude Code`:** follow the skill body as-is; substitute `gh pr create` / `gh pr merge` for the `curl` calls if `gh` is available.
-
-**If `unknown`:** stop and surface to the user.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 1. Confirmation gate
@@ -54,9 +37,9 @@ Do not proceed past this step without the user's explicit "yes" (or equivalent).
 
 The merge is the one-way door; whatever isn't on the branch when it swings shut needs a second PR to fix. Two sub-steps, in order, while the line is still open:
 
-**1.5a — finish-convo.** Read and follow `template/skills/finish-convo/SKILL.md`. This captures the final session — convo doc + RESEARCH_LOG entry — into `docs/active/<branch-name>/`, committed on the branch. The PR then carries the line's complete record, including its own close-out session.
+**1.5a — finish-convo.** Read and follow `{{skills_dir}}/finish-convo/SKILL.md`. This captures the final session — convo doc + RESEARCH_LOG entry — into `docs/active/<branch-name>/`, committed on the branch. The PR then carries the line's complete record, including its own close-out session.
 
-**1.5b — audit-docs.** Read and follow `template/skills/audit-docs/SKILL.md`. Fix whatever it flags and commit the fixes on the branch — don't ship a broken doc tree to `historical/`. If a flagged problem needs the user (orphaned file of unclear provenance, missing convo that can't be reconstructed), surface it and wait; the ceremony pauses here, not after merge.
+**1.5b — audit-docs.** Read and follow `{{skills_dir}}/audit-docs/SKILL.md`. Fix whatever it flags and commit the fixes on the branch — don't ship a broken doc tree to `historical/`. If a flagged problem needs the user (orphaned file of unclear provenance, missing convo that can't be reconstructed), surface it and wait; the ceremony pauses here, not after merge.
 
 Skipping either sub-step and merging anyway defeats the ceremony — see Common mistakes. In `main_only` mode both sub-steps still run; they just commit to `main` directly before the Step 4 archive move.
 
@@ -133,7 +116,7 @@ git push origin main
 
 This ceremony and `start-research-line` are the **only** writers of STATUS.md in `branches` mode — sessions never touch it (see RESEARCHER.md §2c boundary).
 
-**Push race.** Steps 4 and 5 both push `main`, and STATUS.md is the shared choke point between `start-research-line` and this skill. If a concurrent ceremony lands between your pull and your push, either push comes back rejected (non-fast-forward). Recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase origin main`; if the only conflicts are both-sides-appended rows in lifecycle tables, resolve with `template/scripts/resolve_append_conflict.py` (keeps both rows — row order in these tables doesn't encode precedence); any conflict involving your Active-row *deletion* goes to the user (keep-both would resurrect the deleted row).
+**Push race.** Steps 4 and 5 both push `main`, and STATUS.md is the shared choke point between `start-research-line` and this skill. If a concurrent ceremony lands between your pull and your push, either push comes back rejected (non-fast-forward). Recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase origin main`; if the only conflicts are both-sides-appended rows in lifecycle tables, resolve with `{{skills_dir}}/finish-convo/resolve_append_conflict.py` (keeps both rows — row order in these tables doesn't encode precedence); any conflict involving your Active-row *deletion* goes to the user (keep-both would resurrect the deleted row).
 
 ## Step 6: (Optional) delete the merged branch
 
@@ -179,3 +162,7 @@ Research line closed:
 **Merging without the confirmation gate**
 - Problem: Merging is the one-way door of the research workflow. An accidental early merge means the branch is closed before the user is done thinking.
 - Fix: Step 1's gate is not optional. `finish-convo` (which does NOT merge) is the right skill when the user just wants to save and stop.
+
+## claude.ai sandbox notes
+
+The PR open/merge steps use the Pulls REST API because there's no plain-git equivalent — use the `curl` recipes above with the PAT from Project Instructions. On Claude Code, substitute `gh pr create` / `gh pr merge` for the `curl` calls if `gh` is available. If the §2.0b clone failed (degraded REST fallback), translate the directory move into per-file Contents API PUTs and surface degraded mode.

@@ -4,27 +4,8 @@ description: Convert "I should remember to do X" into a tracked GitHub issue —
 nori_researcher_source: nori-researcher/skills/task-create/SKILL.md@8b619b5 (2026-06-04)
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the `git add` / `git commit` / `git push` commands in this skill directly from that working tree. Translate local skill paths like `/Users/<user>/.claude/skills/...` to the template clone at `/home/claude/.claude_researcher_template/template/skills/...`. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you translate `git add` / `git commit` / `git push` into the Contents API recipes from your Project Instructions. The `gh` verbs in this skill (`gh issue create` / `gh issue list` / `gh issue edit` / `gh issue close` / `gh search issues` / `gh label list` / `gh label create` / `gh repo view` / `gh api user`) still translate to the GitHub REST endpoints from your Project Instructions (`POST /repos/{owner}/{repo}/issues`, `PATCH /repos/{owner}/{repo}/issues/{number}`, `GET /repos/{owner}/{repo}/issues`, `GET /search/issues`, `GET /user`) — Issues and Pulls remain REST surfaces per `RESEARCHER.md` §2.0b. (gh-CLI adoption is tracked separately in upstream issue #27.)
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (operating against the wrong working tree, or using the wrong write path for the environment) is higher than the cost of one round-trip clarification.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
@@ -234,3 +215,7 @@ Committed:       <commit sha or 'no — issue stands alone'>
 **Routing a personal task to the current research repo**
 - Problem: "Remind me about the dentist next month" filed against the research repo clutters its issue list with non-research items.
 - Fix: When the user signals "personal" / "my personal list" / "real-world task" / similar, route to `home_repo` (or the default) per the Step 1 table. The cross-repo back-link prompt in Step 5 handles the convo-doc affordance.
+
+## claude.ai sandbox notes
+
+The `gh` verbs in this skill (`gh issue create` / `gh issue list` / `gh issue edit` / `gh issue close` / `gh search issues` / `gh label list` / `gh label create` / `gh repo view` / `gh api user`) still translate to the GitHub REST endpoints from your Project Instructions (`POST /repos/{owner}/{repo}/issues`, `PATCH /repos/{owner}/{repo}/issues/{number}`, `GET /repos/{owner}/{repo}/issues`, `GET /search/issues`, `GET /user`) — Issues and Pulls remain REST surfaces per `RESEARCHER.md` §2.0b. (gh-CLI adoption is tracked separately in upstream issue #27.)

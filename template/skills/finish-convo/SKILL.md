@@ -3,34 +3,15 @@ name: finish-convo
 description: End a research session — runs update-docs to checkpoint all progress, then commits and pushes. Use update-docs for mid-session checkpoints without ending the session.
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the `git add` / `git commit` / `git push` commands in this skill directly from that working tree. Translate local skill paths like `/Users/<user>/.claude/skills/...` to the template clone at `/home/claude/.claude_researcher_template/template/skills/...`. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you translate `git add` / `git commit` / `git push` into the Contents API recipes from your Project Instructions.
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (operating against the wrong working tree, or using the wrong write path for the environment) is higher than the cost of one round-trip clarification.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
 
 1. Run the update-docs skill first.
 
-Read and follow `template/skills/update-docs/SKILL.md`. This creates/updates the convo summary, saves results with provenance links, and updates RESEARCH_LOG.md (plus, in `main_only` mode only, a capped STATUS one-liner — in `branches` mode STATUS.md is never written at wrap; see RESEARCHER.md §2c).
+Read and follow `{{skills_dir}}/update-docs/SKILL.md`. This creates/updates the convo summary, saves results with provenance links, and updates RESEARCH_LOG.md (plus, in `main_only` mode only, a capped STATUS one-liner — in `branches` mode STATUS.md is never written at wrap; see RESEARCHER.md §2c).
 
 2. If the session produced something ready to implement:
 
@@ -57,7 +38,7 @@ git push -u origin <branch-name>
 
 Research branches can live for weeks — don't let unpushed work accumulate.
 
-If the push is rejected (non-fast-forward) — another session pushed this branch, or (`main_only`) a concurrent session pushed `main` — recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase`, and if the only conflicts are append-on-top regions (RESEARCH_LOG.md's newest-first entries; in `main_only`, STATUS.md's `## Recent Sessions` one-liners), resolve with `python3 /home/claude/.claude_researcher_template/template/scripts/resolve_append_conflict.py <file>` (keeps both sides), `git add`, `git rebase --continue`, re-push. Any other conflict shape: surface to the user.
+If the push is rejected (non-fast-forward) — another session pushed this branch, or (`main_only`) a concurrent session pushed `main` — recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase`, and if the only conflicts are append-on-top regions (RESEARCH_LOG.md's newest-first entries; in `main_only`, STATUS.md's `## Recent Sessions` one-liners), resolve with `python3 {{skills_dir}}/finish-convo/resolve_append_conflict.py <file>` (keeps both sides), `git add`, `git rebase --continue`, re-push. Any other conflict shape: surface to the user.
 
 5. Do NOT:
 - Create a PR (research branches stay open until user explicitly asks to merge)

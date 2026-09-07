@@ -117,6 +117,22 @@ Run before responding to the user's first message. Order matters.
 
 ### 2.0a — Clone the upstream template
 
+**Which surface am I on?** Settle this first — both environments set positive markers:
+
+```bash
+if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
+  echo "claude.ai sandbox"
+elif [ "$CLAUDECODE" = "1" ]; then
+  echo "Claude Code"
+else
+  echo "unknown — surface to user before proceeding"
+fi
+```
+
+The probe checks each side affirmatively rather than inferring from absence. If neither fires, surface it to the user rather than guess — something is misconfigured (env vars stripped, custom shell), and a wrong guess means operating against the wrong working tree.
+
+**`{{skills_dir}}` resolution.** Skills reference each other as `{{skills_dir}}/<skill>/<file>` and never expand the placeholder themselves. On Claude Code `{{skills_dir}}` is `~/.claude/skills`; in the claude.ai sandbox it is `/home/claude/.claude_researcher_template/template/skills` — the clone made just below. Each skill repeats that one resolution in a two-line surface note; sandbox-specific behavior (REST for Issues and Pulls, the post-commit push hook) lives here and in §2.0b, not in the skills.
+
 Project Instructions told you to do this on turn one; you may already have. If not:
 
 ```bash

@@ -3,25 +3,8 @@ name: add-deliverable
 description: Use when the user is ready to create an outward-facing deliverable — a paper, memo, bill response, briefing, essay, or any artifact that will leave the repo for an external audience. Creates `deliverables/<target>/` with a seeded `LINEAGE.md` capturing which research lines fed the deliverable and where its citable numbers came from. Tiered rigor — the LINEAGE starts light (source path + branch SHA) and can be upgraded to include runnable regeneration commands for numbers that will be defended in Q&A.
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the file writes and `git` commands directly from that working tree. If the §2.0b clone failed (degraded REST fallback), translate the file writes into Contents API PUTs and surface degraded mode.
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
