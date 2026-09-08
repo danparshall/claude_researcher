@@ -23,5 +23,5 @@ Both [`LICENSE`](LICENSE) (Apache 2.0) and [`LICENSE-ADDENDUM.txt`](LICENSE-ADDE
 - Bootstrap orchestration ([`BOOTSTRAP.md`](BOOTSTRAP.md)) for one-time browser-based setup.
 - Runtime [`RESEARCHER.md`](RESEARCHER.md) adapted for claude.ai's session model (Project Instructions bootstrap + REST API access via PAT).
 - REST API adaptations of git-CLI-using skills (`finish-convo`, `update-docs`, `add-paper`, `init-research-repo`, `audit-docs`, `audit-papers`).
-- Python helpers in [`scripts/`](scripts/) for the REST workflow and PDF text extraction.
+- Python helper in [`skills/finish-convo/`](skills/finish-convo/) for STATUS.md-shape append-on-top conflict resolution during push races.
 - `_PROJECT_INSTRUCTIONS.md` template + Domain Allow List baseline.
