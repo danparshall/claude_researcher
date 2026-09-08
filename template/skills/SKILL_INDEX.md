@@ -210,3 +210,5 @@ These skills exist in upstream Nori but don't apply to `claude_researcher`'s cla
 ## How skills are added
 
 When a new skill is ported (Phase 6 work), add an entry above with the same three fields. Keep the lifecycle grouping. Skills can be removed by moving them to "Skills intentionally not ported" with a rationale.
+
+**Exported skills are build artifacts.** The skills listed in `template/skills/.export_manifest.json` are copied here automatically from the dotfiles `researcher` skillset (`export_profile_skills.py` in that repo) and overwritten on every export — never edit those `SKILL.md` files in this repo; edit the source in dotfiles `nori-researcher/skills/<name>/` and let the export land. To bring another skill under the export: add its `### <name>` entry here **first** (the exporter refuses a skill with no entry), then add the name to the exporter's whitelist. `pytest tools/` is the pre-PR check for this repo — `tools/test_skill_manifest.py` fails on a hand-edited export or a skill dir with no entry here.
