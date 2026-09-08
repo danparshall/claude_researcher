@@ -5,8 +5,9 @@ dotfiles repo (`export_profile_skills.py`) — it lists a sha256 per exported
 file plus the dotfiles commit and the researcher-skillset version the
 export came from. Exported skill dirs are build artifacts: never hand-edit
 them in this repo; edit the source under dotfiles `nori-researcher/skills/`
-and re-export. These tests catch a hand edit (hash mismatch) and a skill
-dir with no `SKILL_INDEX.md` entry (or an entry with no dir).
+and re-export. These tests catch a hand edit (hash mismatch), a hand-added
+file the manifest doesn't list (the next export would delete it), and a
+skill dir with no `SKILL_INDEX.md` entry (or an entry with no dir).
 
 Runnable standalone (`python3 tools/test_skill_manifest.py`) or under pytest
 (`pytest tools/`). The manifest half skips until the first export lands.
@@ -57,10 +58,23 @@ def _load_manifest() -> dict:
     return json.loads(MANIFEST.read_text(encoding="utf-8"))
 
 
+def _manifest_skills() -> dict:
+    """The manifest's `skills` map, `{skill: {relpath: sha256}}`. A missing or
+    empty map fails by name instead of KeyError-ing or passing vacuously."""
+    skills = _load_manifest().get("skills")
+    assert isinstance(skills, dict) and skills, (
+        f"{MANIFEST.relative_to(REPO)} has no non-empty 'skills' map — exporter schema drift?")
+    return skills
+
+
+def _exporter_ignores(rel: Path) -> bool:
+    """Files the exporter neither copies nor lists (its own exclusions)."""
+    return rel.name == ".DS_Store" or "__pycache__" in rel.parts
+
+
 def test_exported_files_match_manifest():
-    manifest = _load_manifest()
     mismatches = []
-    for skill, files in manifest["skills"].items():
+    for skill, files in _manifest_skills().items():
         for rel, digest in files.items():
             path = SKILLS_DIR / skill / rel
             actual = _sha256(path) if path.is_file() else None
@@ -71,9 +85,28 @@ def test_exported_files_match_manifest():
         "edit the dotfiles source and re-export instead): " + ", ".join(mismatches))
 
 
+def test_exported_dirs_have_no_unlisted_files():
+    unlisted = []
+    for skill, files in _manifest_skills().items():
+        skill_dir = SKILLS_DIR / skill
+        if not skill_dir.is_dir():
+            continue  # test_exported_files_match_manifest reports the missing files
+        for path in sorted(skill_dir.rglob("*")):
+            if not path.is_file():
+                continue
+            rel = path.relative_to(skill_dir)
+            if _exporter_ignores(rel) or rel.as_posix() in files:
+                continue
+            unlisted.append(f"{skill}/{rel.as_posix()}")
+    assert not unlisted, (
+        "files in exported skill dirs that .export_manifest.json does not list — "
+        "the next export deletes them (the exporter rmtree's each exported dir); "
+        "add the file to the dotfiles source under nori-researcher/skills/ and "
+        "re-export instead: " + ", ".join(unlisted))
+
+
 def test_manifest_skills_have_index_entries():
-    manifest = _load_manifest()
-    missing = sorted(s for s in manifest["skills"] if s not in _index_headings())
+    missing = sorted(s for s in _manifest_skills() if s not in _index_headings())
     assert not missing, f"exported skills with no SKILL_INDEX.md entry: {missing}"
 
 

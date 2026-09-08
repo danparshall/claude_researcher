@@ -1,2 +1,4 @@
 .worktrees/
 why_we_dont_use_Opus4p8.md
+__pycache__/
+*.pyc
