@@ -1,6 +1,6 @@
 # HUMANS.md
 
-The long-form companion to the README. If the README is "how to start," this is "why this exists, what to expect, and how to get the most out of it."
+The long-form companion to the README. If the README is "how to start," this is "why this exists, what to expect, and how to get the most out of it." For a shorter, plain-language introduction, see [clauderesearch.ai](https://clauderesearch.ai).
 
 ## What this is
 

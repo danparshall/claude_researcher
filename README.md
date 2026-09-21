@@ -6,6 +6,8 @@ A toolkit that turns Claude into a research collaborator using only a browser, a
 
 You'll need a Claude.ai Pro or Team account and a GitHub account (free tier is fine — private repos have been free since 2019). The bootstrap takes about 10 minutes.
 
+New here and not a developer? Start at **[clauderesearch.ai](https://clauderesearch.ai)** — the plain-language introduction. This page is the technical home.
+
 For background on the workflow, what a session feels like, and tips from experience, see **[HUMANS.md](HUMANS.md)**.
 
 ## Quick start
