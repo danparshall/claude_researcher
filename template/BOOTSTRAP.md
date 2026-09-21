@@ -1,6 +1,6 @@
 # claude_researcher Bootstrap
 
-> **STOP — model check (do this first).** This workflow is supported for **Opus 4.7 only**. If you are **Opus 4.8**, stop now: do not run any step below. Tell the user that this workflow is not supported on Opus 4.8 and ask them to switch models to Opus 4.7 before continuing.
+> **STOP — model check (do this first).** This workflow is supported on **Opus 4.7 and Claude 5 models**. If you are **Opus 4.8**, stop now: do not run any step below. Tell the user that this workflow is not supported on Opus 4.8 and ask them to switch to Opus 4.7 or a Claude 5 model before continuing.
 
 You are an agent on claude.ai, in a fresh chat the user has just opened. They pasted a prompt that pointed you at this file and asked you to follow it. You're about to walk them through a one-time setup that creates two GitHub repos (their personal config + their first research project) and configures claude.ai to talk to those repos. After this bootstrap, every research session is a "open new chat in the Project, say what we're working on, go" loop.
 
@@ -407,11 +407,11 @@ If the file already exists (e.g., `auto_init:true` created a `README.md`), the P
 
 #### `personal_info.md`
 
-Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/af8cbdabbfd6ac5e072c0347d497092d9486e09d/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
+Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/3852c4fda45fc41c3d5eb48ee3fc8448a1af8da5/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
 
 #### `domain_allowlist.txt`
 
-Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/af8cbdabbfd6ac5e072c0347d497092d9486e09d/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
+Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_researcher/3852c4fda45fc41c3d5eb48ee3fc8448a1af8da5/template/templates/domain_allowlist.txt`. If the user named extra paper-source domains in Batch 3, add them to the paper-sources section before writing.
 
 #### `README.md`
 
@@ -536,7 +536,7 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 
 The canonical Project Instructions text lives at:
 
-> `https://raw.githubusercontent.com/danparshall/claude_researcher/af8cbdabbfd6ac5e072c0347d497092d9486e09d/template/_PROJECT_INSTRUCTIONS.md.template`
+> `https://raw.githubusercontent.com/danparshall/claude_researcher/3852c4fda45fc41c3d5eb48ee3fc8448a1af8da5/template/_PROJECT_INSTRUCTIONS.md.template`
 
 **WebFetch it.** Substitute the placeholders before showing the result to the user:
 
