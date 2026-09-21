@@ -79,6 +79,11 @@ Skills are grouped by lifecycle role.
 - **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-papers/SKILL.md`
 
+### paper-index
+
+- **Trigger:** user asks to regenerate `PAPER_INDEX.md` / `PAPER_RELATED.md` or check them against `PAPER_SUMMARIES.md` ("regen the index", "run paper-index check", "the counts are stale"), or wants to add the check-only pre-commit hook to a paper-collection repo. Bundles the stdlib-only `paper_index.py` dispatcher with `index` / `check` / `counts` subcommands; PAPER_SUMMARIES.md is the source of truth and everything else (INDEX marker blocks, RELATED reverse index, the SUMMARIES header count) is derived from it. Python 3.9+.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-index/SKILL.md`
+
 ### add-deliverable
 
 - **Trigger:** user is about to create an outward-facing deliverable — a paper, memo, bill response, briefing, essay, testimony, or any artifact leaving the repo for an external audience ("start a paper," "let's draft the memo," "cut a target for the bill response"). Creates `deliverables/<target>/` with a seeded `LINEAGE.md` capturing which research lines fed the deliverable (pinning merge-commit SHAs, not branch HEADs) and where citable numbers came from. Tiered rigor: light claim+source+SHA default, upgrade to fuller Method-column format for numbers that will be defended externally.
