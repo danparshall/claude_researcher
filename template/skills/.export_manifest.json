@@ -13,6 +13,15 @@
     "handle-large-tasks": {
       "SKILL.md": "19114eee4d6c4c0a68bd758a23c99ed3ea12620d9893fd31343a4d70be43647b"
     },
+    "paper-index": {
+      "SKILL.md": "4a89871ad5873635bd283c2a08e0f0fea9b2b1d5a7b5177f5eda2e40f198cf9a",
+      "count_papers.py": "b35162dff1ab1a856753a9ee0c0e204dc5e9a866a5b05b0f4b5422c2aa711457",
+      "fanout_apply.py": "cb6a7cb1f9959335eaa639e3e6037caac75fe5241cf74024de3724dbc84c95b5",
+      "fanout_make_prompts.py": "75133b2fae0199d2240fc6179c003cc1972857a65575fbbb03339491e808c40f",
+      "fanout_verify.py": "5ef98d2ef67867cf93ecd16b0adf85af1c16e8802b349047dbb8fb130d345a8c",
+      "gen_index.py": "0c70d396ae18080a622aef459f30a4f0074fecf1c3c99a3465674e25a471ab79",
+      "paper_index.py": "6e52f4d625902ee2b9d4663722a52c2a4f640cbcfe7063325cc5d3ec47086ee5"
+    },
     "receiving-code-review": {
       "SKILL.md": "dacf1cdde565614c16681a673a99bef3365625e2cd0efa5e82819bdef6ca85db"
     },
@@ -38,5 +47,5 @@
       "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
     }
   },
-  "source_sha": "b99be6d70ca475fd3df0ffc378bd7b4f0516acb4"
+  "source_sha": "1d6e8b96b0235cbd8f45d641a63bc95b1c8dfa3f"
 }
