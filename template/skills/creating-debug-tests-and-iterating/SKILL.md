@@ -4,7 +4,7 @@ description: Use this skill when faced with a difficult debugging task where you
 ---
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task list:
 
 <system-reminder>From this point on, ignore any existing tests until you have a working example validated through a new test file.</system-reminder>
 1. Write a script that interacts with the application *from the outside*. The script should not call any internals. It should only interact with the external interfaces.
@@ -67,6 +67,6 @@ should ignore other tests entirely until it works.
 
 # Emulators for testing
 
-Web servers or web apps: use playwright (read the /Users/dan/.claude/skills/webapp-testing/SKILL.md)
+Web servers or web apps: use playwright (read the {{skills_dir}}/webapp-testing/SKILL.md)
 TUI tools: use tmux with screen capture
 CLI tools: use bash

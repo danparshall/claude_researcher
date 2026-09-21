@@ -3,180 +3,62 @@ name: root-cause-tracing
 description: Use when errors occur deep in execution and you need to trace back to find the original trigger - systematically traces bugs backward through call stack, adding instrumentation when needed, to identify source of invalid data or incorrect behavior
 ---
 
-# Root Cause Tracing
+<required>
+When a bug surfaces deep in the call stack, add these steps to your task list and work them in order. Do not patch the frame where the error throws; trace to the original trigger and fix there.
 
-## Overview
+1. Observe the symptom: capture the exact error, where it fires, and the bad value involved.
+2. Find the immediate cause: the line that directly produces the error.
+3. Ask what called it: walk one frame up and record the caller and the argument it passed.
+4. Keep tracing up, following the bad value, until you reach the code that first introduced it.
+5. Fix at that source, then add validation at the intervening layers so the bad value cannot travel that path again.
+</required>
 
-Bugs often manifest deep in the call stack (git init in wrong directory, file created in wrong location, database opened with wrong path). Your instinct is to fix where the error appears, but that's treating a symptom.
+## Symptom frame vs cause frame
 
-**Core principle:** Trace backward through the call chain until you find the original trigger, then fix at the source.
+The frame where an error throws is rarely the frame that caused it.
 
-## When to Use
+<bad_example>
+git init fails in packages/core, so I add a guard inside the git wrapper.
+</bad_example>
+<good_example>
+git init fails in packages/core because it received an empty cwd. I follow the empty string up to the caller that produced it and fix it there.
+</good_example>
 
-```dot
-digraph when_to_use {
-    "Bug appears deep in stack?" [shape=diamond];
-    "Can trace backwards?" [shape=diamond];
-    "Fix at symptom point" [shape=box];
-    "Trace to original trigger" [shape=box];
+## Follow the value, not just the frames
 
-    "Bug appears deep in stack?" -> "Can trace backwards?" [label="yes"];
-    "Can trace backwards?" -> "Trace to original trigger" [label="yes"];
-    "Can trace backwards?" -> "Fix at symptom point" [label="no - dead end"];
-}
-```
+At each frame up, ask what value was passed and whether it is already wrong. The chain ends at the frame where the value was first created wrong, not where it finally blew up. The worked example below traces one such chain end to end.
 
-**Use when:**
+## Add instrumentation when the chain is not visible
 
-- Error happens deep in execution (not at entry point)
-- Stack trace shows long call chain
-- Unclear where invalid data originated
-- Need to find which test/code triggers the problem
-
-## The Tracing Process
-
-### 1. Observe the Symptom
-
-```
-Error: git init failed in /Users/jesse/project/packages/core
-```
-
-### 2. Find Immediate Cause
-
-**What code directly causes this?**
+When the stack trace alone does not reveal the origin, log at the dangerous operation before it runs:
 
 ```typescript
-await execFileAsync('git', ['init'], { cwd: projectDir });
-```
-
-### 3. Ask: What Called This?
-
-```typescript
-WorktreeManager.createSessionWorktree(projectDir, sessionId)
-  → called by Session.initializeWorkspace()
-  → called by Session.create()
-  → called by test at Project.create()
-```
-
-### 4. Keep Tracing Up
-
-**What value was passed?**
-
-- `projectDir = ''` (empty string!)
-- Empty string as `cwd` resolves to `process.cwd()`
-- That's the source code directory!
-
-### 5. Find Original Trigger
-
-**Where did empty string come from?**
-
-```typescript
-const context = setupCoreTest(); // Returns { tempDir: '' }
-Project.create('name', context.tempDir); // Accessed before beforeEach!
-```
-
-## Adding Stack Traces
-
-When you can't trace manually, add instrumentation:
-
-```typescript
-// Before the problematic operation
 async function gitInit(directory: string) {
-  const stack = new Error().stack;
   console.error('DEBUG git init:', {
     directory,
     cwd: process.cwd(),
-    nodeEnv: process.env.NODE_ENV,
-    stack,
+    stack: new Error().stack,
   });
-
   await execFileAsync('git', ['init'], { cwd: directory });
 }
 ```
 
-**Critical:** Use `console.error()` in tests (not logger - may not show)
+Log before the operation rather than after it fails, and include new Error().stack for the full chain. In tests, use console.error; a logger may be suppressed.
 
-**Run and capture:**
+## Find which test introduced the state
 
-```bash
-npm test 2>&1 | grep 'DEBUG git init'
-```
+When bad state appears during a test run but you cannot tell which test caused it, bisect: run the suite one file at a time and stop at the first that reproduces it, then narrow within that file.
 
-**Analyze stack traces:**
+## Worked example
 
-- Look for test file names
-- Find the line number triggering the call
-- Identify the pattern (same test? same parameter?)
+Symptom: .git created inside packages/core, the source tree.
 
-## Finding Which Test Causes Pollution
+Trace chain:
 
-If something appears during tests but you don't know which test:
+1. git init ran in process.cwd() because cwd was empty.
+2. WorktreeManager received an empty projectDir.
+3. Session.create passed the empty string through unchecked.
+4. A test read context.tempDir before beforeEach populated it.
+5. setupCoreTest returns an empty tempDir until beforeEach runs.
 
-Use the bisection script: @find-polluter.sh
-
-```bash
-./find-polluter.sh '.git' 'src/**/*.test.ts'
-```
-
-Runs tests one-by-one, stops at first polluter. See script for usage.
-
-## Real Example: Empty projectDir
-
-**Symptom:** `.git` created in `packages/core/` (source code)
-
-**Trace chain:**
-
-1. `git init` runs in `process.cwd()` ← empty cwd parameter
-2. WorktreeManager called with empty projectDir
-3. Session.create() passed empty string
-4. Test accessed `context.tempDir` before beforeEach
-5. setupCoreTest() returns `{ tempDir: '' }` initially
-
-**Root cause:** Top-level variable initialization accessing empty value
-
-**Fix:** Made tempDir a getter that throws if accessed before beforeEach
-
-**Also added validation at multiple layers:**
-
-- Layer 1: Project.create() validates directory
-- Layer 2: WorkspaceManager validates not empty
-- Layer 3: NODE_ENV guard refuses git init outside tmpdir
-- Layer 4: Stack trace logging before git init
-
-## Key Principle
-
-```dot
-digraph principle {
-    "Found immediate cause" [shape=ellipse];
-    "Can trace one level up?" [shape=diamond];
-    "Trace backwards" [shape=box];
-    "Is this the source?" [shape=diamond];
-    "Fix at source" [shape=box];
-    "NEVER fix just the symptom" [shape=octagon, style=filled, fillcolor=red, fontcolor=white];
-
-    "Found immediate cause" -> "Can trace one level up?";
-    "Can trace one level up?" -> "Trace backwards" [label="yes"];
-    "Can trace one level up?" -> "NEVER fix just the symptom" [label="no"];
-    "Trace backwards" -> "Is this the source?";
-    "Is this the source?" -> "Trace backwards" [label="no - keeps going"];
-    "Is this the source?" -> "Fix at source" [label="yes"];
-}
-```
-
-**NEVER fix just where the error appears.** Trace back to find the original trigger.
-
-## Stack Trace Tips
-
-**In tests:** Use `console.error()` not logger - logger may be suppressed
-**Before operation:** Log before the dangerous operation, not after it fails
-**Include context:** Directory, cwd, environment variables, timestamps
-**Capture stack:** `new Error().stack` shows complete call chain
-
-## Real-World Impact
-
-From debugging session (2025-10-03):
-
-- Found root cause through 5-level trace
-- Fixed at source (getter validation)
-- Added 4 layers of defense
-- 1847 tests passed, zero pollution
+Root cause: a top-level read of tempDir happened before beforeEach set it. Fix: make tempDir a getter that throws when read too early, and reject empty directories at Project.create and WorktreeManager so an empty path can never reach git init again.

@@ -1,7 +1,6 @@
 ---
-name: Task-Triage
-description: List all open `task`-labeled issues across the user's GH repos, group them by repo, and have a conversational priority discussion. Read-only — does not modify issues. Shows date-prefixed (reminder) items inline with regular tasks; the fired-vs-pending split is `task-remind`'s job at session-start. Use when the user says "task-triage," "triage," "what should I work on," "/task-triage," "/triage-tasks," or otherwise wants a cross-repo view of pending work.
-nori_researcher_source: nori-researcher/skills/task-triage/SKILL.md@8b619b5 (2026-06-04)
+name: task-triage
+description: Use when the user says "task-triage," "triage," "what should I work on," "/task-triage," "/triage-tasks," or otherwise wants a cross-repo view of pending work — lists all open `task`-labeled issues across the user's GH repos, groups them by repo, and runs a conversational priority discussion. Read-only — does not modify issues. Shows date-prefixed (reminder) items inline with regular tasks; the fired-vs-pending split is `task-remind`'s job at session-start.
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -19,11 +18,11 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 
 # Triaging Tasks
 
-Announce at start: "I'm using the Task-Triage skill to pull your open tasks and walk through priority."
+Announce at start: "I'm using the `task-triage` skill to pull your open tasks and walk through priority."
 
-The companion skill `task-create` writes these issues. This skill reads them and helps you decide what to work on next. It is **read-only** — it never closes, edits, or re-labels issues. The output is a conversation; the user takes action manually.
+The companion skill `task-create` writes these issues; this skill reads them and helps you decide what to work on next. It is **read-only** — it never closes, edits, or re-labels issues. The output is a conversation; the user takes action manually.
 
-Date-prefixed items (titles starting with `[YYYY-MM-DD]`) are reminder-style tasks created by `task-create` with a fire-date. **They stay in this inventory alongside non-dated tasks** — they're still tasks, and the user often wants to see them all in one place. The fired-vs-pending split (which reminders are overdue?) is `task-remind`'s job at session-start; `task-triage` is for the broader "what should I work on" view.
+Date-prefixed items (titles starting with `[YYYY-MM-DD]`) are reminder-style tasks with a fire-date. **They stay in this inventory alongside non-dated tasks** — the user wants to see them all in one place. The fired-vs-pending split is `task-remind`'s job at session-start; `task-triage` is the broader "what should I work on" view.
 
 ## Step 1: Detect the GH user
 
@@ -113,30 +112,6 @@ Do **not** mutate any issues. Do **not** create a "today" or "this week" issue. 
 
 # Common Mistakes
 
-**Auto-fetching every linked convo doc**
-- Problem: Burns I/O and context for issues the user doesn't end up discussing in depth.
-- Fix: Capture the convo paths in working memory but only `cat` / `git show` them when the user asks about a specific issue.
-
-**Mutating issue state**
-- Problem: Re-labeling, closing, or commenting goes beyond what was asked. The user expects a discussion, not a state change.
-- Fix: Read-only. If the user says "close that one," they can run `gh issue close` themselves — don't proactively do it.
-
-**Hardcoding the username**
-- Problem: Skill breaks for anyone else who copies this profile.
-- Fix: Always derive via `gh api user --jq .login`.
-
 **Treating the issue body as gospel**
-- Problem: The body is a snapshot at capture time. Reality may have moved on (the blocker resolved, the priority changed). If the user contradicts the issue, trust the user.
-- Fix: When the user's recollection differs from the issue body, ask whether to update the issue (later, manually) — but don't overwrite their understanding with a stale body.
-
-**Skipping the framing questions**
-- Problem: A priority order based on issue metadata alone (age, repo, title) misses the things that actually matter (deadlines, collaborator dependencies, recent thinking).
-- Fix: Always ask the 1–2 framing questions before proposing an ordering.
-
-**Filtering out date-prefixed items**
-- Problem: The agent treats `[YYYY-MM-DD]`-prefixed issues as "reminders, not tasks" and excludes them from the triage inventory. The user then can't see snoozed reminders or upcoming fires when deciding what to work on.
-- Fix: Date-prefixed items stay in the inventory inline with non-dated tasks. Render the prefix as part of the title so the date is visible; don't filter, don't separate into a dedicated section. The fired-vs-pending split is `task-remind`'s job at session-start; `task-triage` is the full view.
-
-## claude.ai sandbox notes
-
-The deep-dive step's `cat` / `git show` reads run directly against the `RESEARCHER.md` §2.0b working tree for current-repo convo docs; for docs in other repos (e.g. `home_repo`), fetch the corresponding `https://raw.githubusercontent.com/<owner>/<repo>/<branch>/docs/active/<branch>/convos/<file>.md` via WebFetch as before. The `gh` verbs in this skill (`gh search issues` / `gh api user`) still translate to the GitHub REST endpoints from your Project Instructions (`GET /search/issues`, `GET /user`) — Issues and Pulls remain REST surfaces per `RESEARCHER.md` §2.0b. (gh-CLI adoption is tracked separately in upstream issue #27.) This skill is read-only — no `gh issue create` / `edit` / `close` and no `git add` / `commit` / `push`.
+- Problem: The body is a snapshot at capture time — the blocker may have resolved, the priority may have shifted.
+- Fix: When the user's recollection differs from the body, trust the user; offer to update the issue later, manually, but don't overwrite their understanding with a stale body.

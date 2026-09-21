@@ -1,7 +1,6 @@
 ---
-name: Task-Remind
-description: Session-start check for fired reminders. Queries the current repo + `home_repo` for open issues with a `[YYYY-MM-DD]` title prefix, filters to those whose date is `<= today`, and presents them in two labeled sections. Reads metadata only (no body fetches). Offers close / snooze / skip / strip-prefix (last one only if the user signals uncertainty about when to revisit). Use at session-start, or when the user says "check reminders," "what's pending," "session-start reminders," "any reminders?", "/task-remind," or similar.
-nori_researcher_source: nori-researcher/skills/task-remind/SKILL.md@8b619b5 (2026-06-04)
+name: task-remind
+description: Use when starting a session, or when the user says "check reminders," "what's pending," "session-start reminders," "any reminders?", "/task-remind," or similar. Session-start check for fired reminders — queries the current repo + `home_repo` for open issues with a `[YYYY-MM-DD]` title prefix, filters to those whose date is `<= today`, and presents them in two labeled sections. Reads metadata only (no body fetches). Offers close / snooze / skip / strip-prefix (last one only if the user signals uncertainty about when to revisit).
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -20,144 +19,69 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 
 # Checking Reminders
 
-Announce at start: "I'm using the Task-Remind skill to check for any pending reminders before we get going."
+Announce at start: "I'm using the `task-remind` skill to check for any pending reminders before we get going."
 
-This is a **once-per-session** pre-flight check, not a heartbeat. It surfaces date-prefixed reminders that have fired (prefix date `<= today`) from the current repo plus the user's personal `home_repo`. Fired items get an interactive close / snooze / skip menu. For the full cross-repo open-task inventory, see the companion skill `task-triage`.
-
-Companion skills:
-- `task-create` writes the issues this skill reads. The `[YYYY-MM-DD]` title prefix is what makes a task a "reminder" — without the prefix, the issue is a plain task and never fires here.
-- `task-triage` is the on-demand cross-repo view (includes non-dated tasks too).
+A **once-per-session** pre-flight check, not a heartbeat. It surfaces date-prefixed reminders that have fired (prefix date `<= today`) from the current repo plus the user's `home_repo`. Companion skills: `task-create` writes these issues (the `[YYYY-MM-DD]` prefix is what makes a task a reminder); `task-triage` is the on-demand cross-repo view, including non-dated tasks.
 
 ## Step 1: Detect GH user and `home_repo`
 
-Run in parallel:
-
 ```bash
 gh api user --jq .login                                # current GH user
-gh repo view --json nameWithOwner -q .nameWithOwner    # current repo (or fails if no remote)
+gh repo view --json nameWithOwner -q .nameWithOwner    # current repo, or fails if no remote
 ```
 
-Read `home_repo` from `personal_info.md` (typically `~/code/claude_research_config/personal_info.md` or wherever the user's config repo is cloned). Look for the `Home repo:` field under `## Operating preferences` — formatted as `- **Home repo:** <owner>/<repo>`, matching sibling fields like `Git fluency` and `Mode`. If the file is missing or the field is absent, default to `<gh-user>/claude_research_config` derived from the GH user.
-
-If the current repo and `home_repo` are the same (the user is *in* their config repo), query once and present one section instead of two. Don't double-fetch the same repo.
+Resolve `home_repo` as in `{{skills_dir}}/task-create/SKILL.md` Step 1. If the current repo and `home_repo` are the same, query once and present one section instead of two — don't double-fetch.
 
 ## Step 2: Query both repos (metadata only)
 
-Two `gh issue list` calls, one per repo, with `--state open --label task` and a metadata-only field set. **Do not fetch issue bodies** — the title prefix is the entire filter signal.
+One `gh issue list` per repo. **Do not fetch issue bodies** — the title prefix is the entire filter signal.
 
 ```bash
 gh issue list \
-  --repo <current-repo> \
-  --state open \
-  --label task \
-  --json number,title,url,updatedAt \
-  --limit 200
-
-gh issue list \
-  --repo <home-repo> \
+  --repo <repo> \
   --state open \
   --label task \
   --json number,title,url,updatedAt \
   --limit 200
 ```
 
-If either call fails (404, no access, network), report the failure for that repo and continue with the one that worked. Don't block the session on a single repo being unavailable.
+If a call fails (404, no access, network), report that repo's failure and continue with the one that worked — don't block the session.
 
 ## Step 3: Filter to fired items
 
-For each returned issue, parse the title against the regex:
+Parse each title against `^\[(\d{4}-\d{2}-\d{2})\] (.*)$`. No match → a plain task, which `task-remind` ignores (that's `task-triage`'s job). On a match, the captured date is the fire-date.
 
-```
-^\[(\d{4}-\d{2}-\d{2})\] (.*)$
-```
-
-If it matches, the date capture group is the fire-date. Otherwise the issue is a plain (non-reminder) task and **`task-remind` ignores it** — that's `task-triage`'s job.
-
-Compute today's date:
-
-```bash
-date -u +%Y-%m-%d
-```
-
-A reminder has **fired** if its prefix date is lexicographically `<=` today (ISO-8601 dates sort correctly as strings, so a plain string compare is fine — no date library needed). Pending reminders (prefix `>` today) are silently skipped at this step; the user doesn't need to see them at session-start.
+Compute today with `date -u +%Y-%m-%d`. A reminder has **fired** if its prefix date is `<=` today (ISO dates sort correctly as strings — plain string compare, no date library). Pending reminders (prefix `>` today) are silently skipped here.
 
 ## Step 4: Present fired reminders
-
-Format:
 
 ```
 == In <current-repo> ==
   #<N>  <title without prefix>     (fired YYYY-MM-DD, <K days ago>)
-  ...
 
 == In <home-repo> ==
   #<N>  <title without prefix>     (fired YYYY-MM-DD, <K days ago>)
-  ...
 ```
 
-- Strip the `[YYYY-MM-DD] ` prefix from the displayed title (it's redundant with the parenthetical).
-- Compute "K days ago" from today's date and the prefix date. "Today" if K=0; "yesterday" if K=1; "N days ago" otherwise.
-- If a section is empty, **omit the section header entirely** — don't print "== In <repo> == (nothing)".
-- If **both** sections are empty after filtering, output a single line and stop:
-
-  > *"No reminders pending. Continuing with session-start."*
-
-  Don't print empty headers, don't add commentary, don't ask "want me to triage?" — that's noise when there's nothing to surface.
+- Strip the `[YYYY-MM-DD] ` prefix from the displayed title (redundant with the parenthetical).
+- "K days ago": "Today" if K=0, "yesterday" if K=1, else "N days ago".
+- Omit an empty section's header entirely.
+- If **both** sections are empty, output one line and stop: *"No reminders pending. Continuing with session-start."* No empty headers, no commentary, no "want me to triage?".
 
 ## Step 5: Per-fired-item action menu
 
-For each fired item, offer the following actions (interactive, one at a time, smallest menu by default):
+Interactive, one item at a time, smallest menu by default — *"close, snooze, or skip?"*:
 
-- **Close** — the reminder is done. Run `gh issue close <N> --comment "Done"` against the appropriate repo (use `--repo <owner>/<repo>`).
-- **Snooze N days** — the user picks `N`. Mutate the title's date prefix to today + N. Use `gh issue edit <N> --repo <owner>/<repo> --title "[<new-date>] <rest>"`. **Don't default to a specific N** — ask the user. Common phrasing: *"How long? (e.g., '3 days', 'next Monday')."* Use the same BSD/GNU `date` fallback as `task-create`'s Step 2.5.
-- **Skip** — no action this session. The reminder stays in the current state and fires again next session.
+- **Close** — done. `gh issue close <N> --repo <owner>/<repo> --comment "Done"`.
+- **Snooze N days** — ask the user for `N`, don't default one (*"How long? (e.g., '3 days', 'next Monday')"*). Mutate the prefix to today + N: `gh issue edit <N> --repo <owner>/<repo> --title "[<new-date>] <rest>"`. Use the same BSD/GNU `date` fallback as `task-create` Step 3.
+- **Skip** — no action; fires again next session.
 
-**Strip-prefix is conditional.** Only offer it if the user signals uncertainty about when to revisit — phrases like *"ugh, I don't know,"* *"not sure when,"* *"someday,"* *"open-ended."* When the signal fires, offer:
+**Strip-prefix is conditional.** Offer it only if the user signals uncertainty about when to revisit (*"ugh, I don't know," "not sure when," "someday," "open-ended"*) — offering it unprompted suggests giving up on the reminder, which most users don't want. When it fires: `gh issue edit <N> --repo <owner>/<repo> --title "<rest without prefix>"`. The item then drops out of `task-remind`'s view and lives on `task-triage`'s open-task list.
 
-- **Strip prefix** — convert the reminder back into an open-ended task. `gh issue edit <N> --repo <owner>/<repo> --title "<rest without prefix>"`. The item then moves out of `task-remind`'s view (no prefix → no fire date) and lives on `task-triage`'s open-task list until the user comes back to it.
-
-Don't menu-dump every option upfront. The default presentation is *"close, snooze, or skip?"*. Strip-prefix shows up only when the user's reaction earns it.
-
-When mutating an issue (snooze or strip), briefly say what the mutation was — e.g., *"Snoozed to 2026-06-11"* or *"Stripped prefix — this is now an open-ended task in `task-triage`."* That's the LIGHT-explanation discipline (see `RESEARCHER.md` §0); the user might want to know what just changed on the back-end.
+When you mutate an issue (snooze or strip), briefly say what changed — e.g., *"Snoozed to 2026-06-11"* — so the user knows what happened on the back-end.
 
 ## Step 6: Cross-repo escape valve
 
-After processing all fired items (or after the bail-early empty-both-sections case if the user wants to dig deeper anyway), close with a single line:
+After processing all fired items (or after the empty-both-sections bail, if the user wants to dig deeper anyway), close with one line, and don't auto-run it:
 
 > *"Want a full view of every open task across all your repos? Run `task-triage`."*
-
-Don't auto-run `task-triage` — it's the user's call. The escape valve is just a pointer.
-
-# Common Mistakes
-
-**Fetching issue bodies**
-- Problem: Wastes I/O and context. The `[YYYY-MM-DD]` title prefix is the entire filter signal at session-start; the body is irrelevant until the user wants to dig into a specific item.
-- Fix: Always use `--json number,title,url,updatedAt` — no `body`, no `labels`. The `task` label is already implied by `--label task`.
-
-**Auto-snoozing on the user's behalf**
-- Problem: The agent picks "+7 days" because it seems reasonable, but the user actually wanted "+3 days" or "tomorrow." The user has context the agent doesn't.
-- Fix: Always ask. The user picks the new date. This matches the "don't infer — ask" rule in `RESEARCHER.md` §5.
-
-**Running on every turn instead of only session-start**
-- Problem: `task-remind` is a one-shot pre-flight check. Re-running it every turn floods the session with the same list and breaks the "background subagent" framing.
-- Fix: Once per session. If the user wants to re-check mid-session (e.g., after creating a new reminder), they can invoke it explicitly.
-
-**Showing non-fired (future-dated) reminders**
-- Problem: The user sees a long list at session-start, most of which is "fires in 5 days" / "fires in 3 weeks" — noise they didn't ask for.
-- Fix: Filter strictly to `prefix <= today`. Future reminders silently skip. They'll surface on the day they fire.
-
-**Showing non-dated tasks**
-- Problem: `task-remind` and `task-triage` overlap if `task-remind` shows tasks without a `[YYYY-MM-DD]` prefix. The session-start surface becomes a full task inventory, defeating the point of the date encoding.
-- Fix: Only items with the prefix regex are reminders. Non-prefixed open tasks belong to `task-triage`, not here.
-
-**Menu-dumping all four actions upfront**
-- Problem: "Close, snooze, skip, or strip prefix?" presents four options when most reminders only need three (close/snooze/skip). The fourth signals "you can give up on this whole reminder," which isn't what most users want — but offering it suggests it.
-- Fix: Default menu is three options. Strip-prefix only surfaces if the user's reaction signals uncertainty (e.g., "ugh, I don't know when").
-
-**Hardcoding the home repo name**
-- Problem: The skill breaks for users who set `home_repo` to a non-default value.
-- Fix: Always read `home_repo` from `personal_info.md` first; fall back to `<gh-user>/claude_research_config` only if unset.
-
-## claude.ai sandbox notes
-
-The `gh` verbs in this skill (`gh issue list` / `gh issue edit` / `gh issue close` / `gh repo view` / `gh api user`) still translate to the GitHub REST endpoints from your Project Instructions (`GET /repos/{owner}/{repo}/issues`, `PATCH /repos/{owner}/{repo}/issues/{number}`, `GET /user`) — Issues and Pulls remain REST surfaces per `RESEARCHER.md` §2.0b. (gh-CLI adoption is tracked separately in upstream issue #27.)

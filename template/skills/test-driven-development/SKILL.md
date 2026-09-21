@@ -4,7 +4,7 @@ description: Use when implementing any feature or bugfix, before writing impleme
 ---
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task list:
 
 1. Write failing tests (RED phase)
 
@@ -19,7 +19,7 @@ description: Use when implementing any feature or bugfix, before writing impleme
 <system-reminder>If you have more than one test that you need to write, you should write all of them before moving to the GREEN phase.</system-reminder>
 4. Write the minimal amount of code necessary to make the test pass (GREEN phase)
 5. Verify the test now passes due to the behavior of the application.
-    - If you go through three loops without making progress, switch to running `/Users/dan/.claude/skills/creating-debug-tests-and-iterating`
+    - If you go through three loops without making progress, switch to running `{{skills_dir}}/creating-debug-tests-and-iterating`
 6. Refactor the code to clean it up.
 7. Verify tests still pass.
 </required>

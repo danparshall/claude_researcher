@@ -1,0 +1,42 @@
+{
+  "nori_version": "1.0.26",
+  "skills": {
+    "audit-docs": {
+      "SKILL.md": "e557458bbad80fba611115a9d1b549a378373c3d3ca2d6f033929901debb9983"
+    },
+    "brainstorming": {
+      "SKILL.md": "6fc284f830bc66e024e5074e2499314f77d5d9a5c5b4bd3187fa588cae322f6d"
+    },
+    "creating-debug-tests-and-iterating": {
+      "SKILL.md": "617eac405ed7f321239dfc99a1ab037557674f1fe4596cae22a15da46f324576"
+    },
+    "handle-large-tasks": {
+      "SKILL.md": "19114eee4d6c4c0a68bd758a23c99ed3ea12620d9893fd31343a4d70be43647b"
+    },
+    "receiving-code-review": {
+      "SKILL.md": "dacf1cdde565614c16681a673a99bef3365625e2cd0efa5e82819bdef6ca85db"
+    },
+    "root-cause-tracing": {
+      "SKILL.md": "6c2a28cfcec6fe8a24a4e23dbe3a20a93f6c7e9d4ee437d9981fc7b19a4d9bc7"
+    },
+    "systematic-debugging": {
+      "SKILL.md": "4a480f9604d14be2a3dc3ce36ef9bbf8628a6b72a82721f6344bb368a776a860"
+    },
+    "task-remind": {
+      "SKILL.md": "f298f7c9e36f362a7a2cfeaf6af0960fe0ff776d9844c7fd00b525779100e227"
+    },
+    "task-triage": {
+      "SKILL.md": "5963efbb07451c18c30472d57dcce7c2261faed2177ca2f376a8a3c5091f7482"
+    },
+    "test-driven-development": {
+      "SKILL.md": "0cb17de5019dcdcfbaa353df830e1986a0bd2c6c922977852be57e8192dc9f08"
+    },
+    "testing-anti-patterns": {
+      "SKILL.md": "703a681838d1adb4a36c8ae15508166de76e2b4d3311211ecc05e4baa51bf1db"
+    },
+    "write-a-plan": {
+      "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
+    }
+  },
+  "source_sha": "b99be6d70ca475fd3df0ffc378bd7b4f0516acb4"
+}

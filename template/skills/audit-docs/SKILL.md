@@ -1,6 +1,6 @@
 ---
 name: audit-docs
-description: Check docs/active/ structure for consistency — every convo indexed in RESEARCH_LOG, every plan linked to a convo, no orphaned files. Prompts the user for discrepancies rather than auto-fixing.
+description: Use when auditing docs/active/ structure for consistency — checks that every convo is indexed in RESEARCH_LOG, every plan is linked to a convo, and no files are orphaned. Prompts the user for discrepancies rather than auto-fixing.
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -48,7 +48,7 @@ For each active branch, check:
 
 ## Step 3: Report and prompt
 
-**CRITICAL: Do NOT auto-fix discrepancies.** The user may be running multiple sessions in parallel. A "missing" convo might still be open in another tab.
+<system-reminder>Do NOT auto-fix discrepancies. The user may be running sessions in parallel — a "missing" convo might still be open in another tab.</system-reminder>
 
 Present findings grouped by severity:
 
@@ -61,7 +61,6 @@ Present findings grouped by severity:
 **Possible orphans (check with user):**
 ```
 - convos/20260315_pilot_analysis.md is not in RESEARCH_LOG.md
-  (Could be an open session in another tab — want me to add it to the log?)
 ```
 
 **Structural issues:**
@@ -70,7 +69,7 @@ Present findings grouped by severity:
 - convo 20260312_exploration.md is missing the Summary section
 ```
 
-Ask: "Want me to fix any of these? (Note: some may be from sessions still in progress.)"
+Ask: "Want me to fix any of these?"
 
 ## Step 4: Fix approved items only
 
