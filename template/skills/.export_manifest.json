@@ -20,9 +20,17 @@
     "handle-large-tasks": {
       "SKILL.md": "19114eee4d6c4c0a68bd758a23c99ed3ea12620d9893fd31343a4d70be43647b"
     },
+    "init-research-repo": {
+      "SKILL.md": "299bc5f572dc41c448df02d3dac1ec7882ed19505816993b5fc90b82ed7dc39e",
+      "templates/data_readme.md.tmpl": "6fb94357da4838968074e27c3e0d45bb19c696a93fbee8b24ac9a803bef28fb8",
+      "templates/gitignore.tmpl": "e28c9de552eff9e0f0a90ad310c3b28b090de9a2b6a717adf02f20a145138596",
+      "templates/history_seed.md.tmpl": "c0ee517d213d0469c4470b750d3eab27f03e28c12b3c07d2306e3423d2cf135f",
+      "templates/research_log_seed.md.tmpl": "3fab18546b99504bab708b07d6276bd5e02065a8cc68ddab8d141dea016c8c20",
+      "templates/status_seed.md.tmpl": "0cd5e73f09f55b605aaba77a81faca19713b343d449b143f43f9c04647ad9df1"
+    },
     "paper-index": {
-      "SKILL.md": "4a89871ad5873635bd283c2a08e0f0fea9b2b1d5a7b5177f5eda2e40f198cf9a",
-      "count_papers.py": "b35162dff1ab1a856753a9ee0c0e204dc5e9a866a5b05b0f4b5422c2aa711457",
+      "SKILL.md": "d801f9ee863eb0e6dbd8198c92ebf8c339ef86276a0cc70323035aa998dd767e",
+      "count_papers.py": "05d5339883c92bc38e8515e8234e4917fe0b7b372e18ca7e65c8b67a51a33c63",
       "fanout_apply.py": "cb6a7cb1f9959335eaa639e3e6037caac75fe5241cf74024de3724dbc84c95b5",
       "fanout_make_prompts.py": "75133b2fae0199d2240fc6179c003cc1972857a65575fbbb03339491e808c40f",
       "fanout_verify.py": "5ef98d2ef67867cf93ecd16b0adf85af1c16e8802b349047dbb8fb130d345a8c",
@@ -57,5 +65,5 @@
       "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
     }
   },
-  "source_sha": "4d349a1ecf43ee42ba93b1ab0fbccaf8a730ff6d"
+  "source_sha": "56b3f5071d090934ec9146f2cbaaa442ccb68dc2"
 }

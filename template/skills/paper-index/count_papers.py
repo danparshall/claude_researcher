@@ -582,6 +582,8 @@ def _check_section_list(
         return problems
 
     row_matches = INDEX_SECTION_ROW_RE.findall(index_text)
+    if not row_matches and not sections:
+        return problems
     if not row_matches:
         problems.append(
             "PAPER_INDEX.md: **papers/** bullet has no section list rows — "

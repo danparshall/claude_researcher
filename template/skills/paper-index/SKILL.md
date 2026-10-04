@@ -74,7 +74,7 @@ pending_index = "papers/pending_index.txt"  # PDFs awaiting summaries; stale lin
 2. Hook: `mkdir -p .githooks && python3 {{skills_dir}}/paper-index/paper_index.py --print-hook > .githooks/pre-commit && chmod +x .githooks/pre-commit && git config core.hooksPath .githooks`. The hook is tracked; `core.hooksPath` is per-clone, so every fresh clone (web sessions included) runs the `git config` line once. It is check-only: it refuses a commit whose staged PAPER_SUMMARIES.md disagrees with the generated files, and a commit whose regenerated files are fresh on disk but unstaged.
 3. `index`, then `check`; commit the three files together.
 
-`init-research-repo` does 1–2 for a new repo.
+`init-paper-collection` does 1–3 for a new repo.
 
 ## Condense fan-out (many entries at once)
 
