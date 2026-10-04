@@ -307,7 +307,7 @@ The research repo has a specific documentation structure. Each file has a define
 |------|------|-------------|
 | **STATUS.md** | Where everything is. Complete line inventory (active and archived), current focus, per-line detail. Sessions never write STATUS — only `start-research-line` and `finishing-a-research-branch` do (no exceptions by mode). | Every session start (partial per §2c), every line switch |
 | **README.md** | What this repo does and why. Overview of archived research lines. Updated when something merges. Stable between merges. | Every session start |
-| **PAPER_INDEX.md** | One-sentence summary of each paper in `papers/`. Entry point for literature lookup. | When you need to find a paper on a topic (repos with `papers/`) |
+| **PAPER_INDEX.md** | One-sentence summary of each paper in `papers/`. Entry point for literature lookup. Its generated blocks come from `paper_index.py index`; edit entries in PAPER_SUMMARIES.md, not rows. | When you need to find a paper on a topic (repos with `papers/`) |
 | **PAPER_SUMMARIES.md** | Key conclusions per paper, with numerical findings. Too long for every session — reach for it after the index points you somewhere. | On demand, after PAPER_INDEX identifies a paper |
 | **papers/** | Raw PDFs of source literature. | On demand |
 
@@ -479,7 +479,7 @@ When writing experiment collection scripts:
 
 ### Knowledge management
 
-- **`add-paper`** — user wants to ingest a paper. Triages to `paper-processing-academic` or `paper-processing-institutional`.
+- **`add-paper`** — user wants to ingest a paper. One flow: entry in PAPER_SUMMARIES.md, then `paper-index` regenerates and checks the index.
 - **`audit-papers`** — hygiene check on `papers/`.
 - **`audit-docs`** — hygiene check on `docs/`.
 - **`audit-status`** — hygiene check on STATUS.md.

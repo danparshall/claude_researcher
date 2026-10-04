@@ -1,8 +1,8 @@
 ---
 name: paper-processing-academic
-description: Protocol A workflow for academic-style papers — rename → extract → index → dual-protocol summary (Protocol A shape) → BibTeX → stage. Triage by `add-paper` Step 0 routes here.
+description: Protocol A workflow for academic-style papers — rename → extract → dual-protocol summary (Protocol A shape) → BibTeX → generate + check the index → stage. Invoke directly when a project uses Protocol A summaries; the header follows the paper-index metadata contract.
 nori_researcher_source: nori-skillsets add-paper v1.0.0 (ported to claude_researcher in 0bbd419, 2026-05-10)
-aitaxbid_source: ~/code/AITaxBID/skills/paper_processing.md@e0a736d (2026-05-02)
+fork_origin: forked from AITaxBID `paper_processing.md`@e0a736d, 2026-05-02; maintained here
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -13,19 +13,19 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 
 1. Obtain the PDF (Step 1)
 2. Extract text (Step 2)
-3. Add entry to the master index (Step 3)
+3. Note that the index is generated (Step 3)
 4. Read the paper and write a Protocol A summary entry (Step 4)
 5. Update BibTeX if `BIB_FILE` is defined (Step 5)
-6. Stage all new files (Step 6)
+6. Generate and check the index; stage all new files (Step 6)
 </required>
 
 # Adding an Academic Paper
 
 Announce at start: "I'm using the paper-processing-academic skill (Protocol A — academic paper)."
 
-This skill handles the Protocol A workflow for academic-style papers. Triage to Protocol A was already done by `add-paper` Step 0 — if you're reading this skill directly without going through `add-paper`, confirm the document is academic-style before proceeding (abstract present, research question/hypothesis, original empirical or theoretical contribution from data the authors analyzed).
+This skill handles the Protocol A workflow for academic-style papers. Confirm the document is academic-style before proceeding (abstract present, research question/hypothesis, original empirical or theoretical contribution from data the authors analyzed).
 
-**Configuration keys.** `PROJECT_QUESTION`, `CONDITIONAL_SECTION`, `BIB_FILE`, `PAPERS_INDEX`, `paper_summaries.structure` live in the research repo's `STATUS.md` under `## Project parameters`. The filename format key `paper_naming.academic_format` lives in the user's `personal_info.md` under "Operating preferences". See `add-paper/SKILL.md` Scope section for the full schema split.
+**Configuration keys.** `PROJECT_QUESTION`, `CONDITIONAL_SECTION`, `BIB_FILE`, `paper_summaries.structure` live in the research repo's `STATUS.md` under `## Project parameters`. The filename format key `paper_naming.academic_format` lives in the user's `personal_info.md` under "Operating preferences".
 
 ## Step 1: Obtain the PDF
 
@@ -60,25 +60,9 @@ If neither tool works, read the PDF directly using the Read tool and write the e
 
 Verify the extraction is reasonable: check the first ~20 lines to confirm it's not garbled.
 
-## Step 3: Add to the master index
+## Step 3: The index is generated
 
-The index filename is `PAPERS_INDEX` from `STATUS.md` `## Project parameters` (default `PAPER_INDEX.md`).
-
-Add a one-line entry in the appropriate section (or create a section if needed):
-
-```markdown
-| Author (Year) | One-sentence description of what the paper contributes | `filename.pdf` |
-```
-
-Keep entries sorted by author within each section. If the index file doesn't exist yet, create it:
-
-```markdown
-# Paper Index
-
-| Paper | Description | File |
-|-------|-------------|------|
-| Author (Year) | One-sentence description | `filename.pdf` |
-```
+`PAPER_INDEX.md`'s rows and `PAPER_RELATED.md` are generated from the `PAPER_SUMMARIES.md` entry you write in Step 4 — do not add a row by hand. Step 6 runs the generator.
 
 ## Step 4: Add to PAPER_SUMMARIES.md
 
@@ -90,12 +74,18 @@ Read the paper (use the extracted text from `papers/text/`). Write a summary ent
 Use the Protocol A summary template:
 
 ```markdown
-### Paper Title
+### <slug>
 
-- Authors: Names (Affiliations)
-- Date: Month Year
-- File: `filename.pdf`
-- Source: [URL or DOI if available]
+**Title:** <Paper title> (<Authors>, <Year> — <Org>)
+
+- **Authors:** Names (Affiliations)
+- **Date:** Month Year
+- **File:** `<filename>.pdf`
+- **Source:** <URL or DOI>
+- **Focus:** <2–5 words>
+- **One-liner:** <≤50-word thesis with the one number that carries it>
+- **Related:** `slug-a`, `slug-b`
+- **Summarized:** <model name>, YYYY-MM-DD
 
 **(a) What the paper argues** — Main thesis, research question, and contribution to the literature.
 
@@ -113,6 +103,8 @@ The description must be specific enough that someone can understand the methodol
 **(d) Relevance to the project** — How this paper connects to `PROJECT_QUESTION` (from `STATUS.md` project parameters). Why it matters, what it contributes, what gaps it fills.
 ```
 
+The header — `### <slug>`, the `**Title:**` line, the bold metadata bullets — is the metadata contract the `paper-index` tool parses; slug rules are in `add-paper` Step 3. Write the One-liner last, from the finished entry, per `condense-summary`. (b) must carry at least one number — the One-liner is condensed from it; (d) plays the role of the Relevance paragraph.
+
 **Summary evolution principle.** The (a)–(d) structure above is a **floor, not a ceiling**. As the user works with a paper over time (asking questions, requesting explanations, cross-referencing with other papers), the summary should grow. Expanded summaries with worked examples, accessible explanations of technical concepts, cross-references, and the user's own notes are expected and desirable. Do not trim or reorganize expanded summaries back to the minimal format.
 
 **Important:**
@@ -129,10 +121,17 @@ Add a new entry to the project's `.bib` file. The cite key follows the filename 
 
 Use `@article` for published work or `@unpublished` for working papers. Required fields: `title`, `author`, `year`, plus `journal` / `note` / `institution` as appropriate. Always include an `abstract = {}` field — copy the paper's abstract verbatim, do not paraphrase.
 
-## Step 6: Stage files
+## Step 6: Generate, check, stage
 
 ```bash
-git add papers/<filename>.pdf papers/text/<filename>.txt PAPER_INDEX.md PAPER_SUMMARIES.md
+python3 {{skills_dir}}/paper-index/paper_index.py index .
+python3 {{skills_dir}}/paper-index/paper_index.py check .
+```
+
+Never hand-edit between `GENERATED` markers; fix what `check` reports in the entry, then run `index` again.
+
+```bash
+git add papers/<filename>.pdf papers/text/<filename>.txt PAPER_SUMMARIES.md PAPER_INDEX.md PAPER_RELATED.md
 # If BIB_FILE was updated in Step 5, also add it:
 git add <BIB_FILE>
 ```
@@ -143,7 +142,7 @@ Do NOT commit — the user may be adding multiple papers or may want to review f
 
 If the user asks to add several academic papers at once:
 
-- Process each paper through all 6 steps (after `add-paper` Step 0 triage routes each one here) before moving to the next.
+- Process each paper through all 6 steps before moving to the next.
 - This ensures each paper is fully integrated before context moves on.
 - For bulk additions (5+), consider using subagents in parallel for text extraction and summary writing.
 
@@ -157,6 +156,6 @@ If the user asks to add several academic papers at once:
 - Problem: "The model achieved 0.73" means nothing without knowing what was measured, on what data, and what the baseline was.
 - Fix: Always include metric name, dataset, and comparison point.
 
-**Forgetting to update PAPER_INDEX when updating PAPER_SUMMARIES**
-- Problem: Index and summaries get out of sync.
-- Fix: Always update both in the same operation.
+**Hand-editing a generated block**
+- Problem: `PAPER_INDEX.md`'s rows are generated from the entries; a hand edit is overwritten by the next `index` and fails `check` until then.
+- Fix: Edit the entry in `PAPER_SUMMARIES.md`, then run Step 6.

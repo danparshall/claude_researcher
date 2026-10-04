@@ -42,8 +42,13 @@ Skills are grouped by lifecycle role.
 
 ### init-research-repo
 
-- **Trigger:** an existing repo (or one created outside bootstrap) needs the research doc structure — not normally invoked at runtime. `BOOTSTRAP.md` Step 7 seeds new repos with its own inline files and does not call this skill. Scaffolds `docs/active/`, `docs/historical/`, `data/{raw,interim,processed,reference}/` with a README, a sensible `.gitignore` (Python + Cookiecutter-DS data pattern), STATUS.md's Project parameters + Active/Archived Research Lines sections, an empty HISTORY.md, and README.md if absent. Seed files live in its `templates/`. For a repo that will hold papers it hands off to `init-paper-collection` (not yet in this profile — arrives with the paper-cluster export).
+- **Trigger:** an existing repo (or one created outside bootstrap) needs the research doc structure — not normally invoked at runtime. `BOOTSTRAP.md` Step 7 seeds new repos with its own inline files and does not call this skill. Scaffolds `docs/active/`, `docs/historical/`, `data/{raw,interim,processed,reference}/` with a README, a sensible `.gitignore` (Python + Cookiecutter-DS data pattern), STATUS.md's Project parameters + Active/Archived Research Lines sections, an empty HISTORY.md, and README.md if absent. Seed files live in its `templates/`. For a repo that will hold papers it hands off to `init-paper-collection`.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/init-research-repo/SKILL.md`
+
+### init-paper-collection
+
+- **Trigger:** a research repo will hold papers and has no `PAPER_SUMMARIES.md` yet — usually reached from `init-research-repo`. Creates `papers/` and `papers/text/`, seeds `PAPER_INDEX.md` and `PAPER_SUMMARIES.md` with the generated-block markers and an empty `paper_index.toml` from its `templates/`, installs the check-only pre-commit hook and sets `core.hooksPath`, then runs `paper-index` `index` + `check`. Never overwrites an existing file; a legacy-format collection is a migration, not a seed.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/init-paper-collection/SKILL.md`
 
 ### init-code-scaffold
 
@@ -56,17 +61,17 @@ Skills are grouped by lifecycle role.
 
 ### add-paper
 
-- **Trigger:** user asks to add a paper to the collection ("add this paper", "save this PDF", "ingest these papers from `papers/`"). Triage skill: routes academic-style papers to `paper-processing-academic`, institutional-style reports to `paper-processing-institutional`, non-paper documents to `document-processing` (deferred). Run Step 0 here; the routed per-protocol skill handles Steps 1-6.
+- **Trigger:** user asks to add a paper to the collection ("add this paper", "save this PDF", "ingest these papers from `papers/`"), or a blog post / thread worth keeping. One flow: obtain the source (filename per the user's `Paper naming format`, else the default), extract text, write the `PAPER_SUMMARIES.md` entry in the metadata contract (`### <slug>`, `**Title:**`, bold bullets incl. `Focus` / `One-liner` / `Related` / `Summarized`), then `paper-index` `index` + `check` — rows are generated, never hand-written. Non-PDF sources get a `Text extraction` bullet. Institutional reports may follow `paper-processing-institutional`'s fuller body. Bulk (4+): per-paper subagents write entry fragments; the orchestrator inserts them serially.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/add-paper/SKILL.md`
 
 ### paper-processing-academic
 
-- **Trigger:** Protocol A workflow for academic-style papers (research with hypothesis + original data analysis). Usually invoked via `add-paper`'s Step 0 dispatch; can be invoked directly when the protocol is already known.
+- **Trigger:** Protocol A workflow for academic-style papers (research with hypothesis + original data analysis): the (a)–(d) summary body plus BibTeX, under the same metadata-contract header `add-paper` writes. Invoke directly when a project uses Protocol A summaries. Andrea's fork, maintained here.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-processing-academic/SKILL.md`
 
 ### paper-processing-institutional
 
-- **Trigger:** Protocol B workflow for institutional-style reports (synthesis/policy documents from multilaterals, governments, working groups). Usually invoked via `add-paper`'s Step 0 dispatch; can be invoked directly when the protocol is already known. Step 2 carries institutional-specific extraction rules (preserve acronyms, preserve boxes/figure captions, strip decorative front matter).
+- **Trigger:** Protocol B workflow for institutional-style reports (synthesis/policy documents from multilaterals, governments, working groups), under the same metadata-contract header `add-paper` writes. `add-paper` points institutional reports here. Andrea's fork, maintained here. Step 2 carries institutional-specific extraction rules (preserve acronyms, preserve boxes/figure captions, strip decorative front matter).
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-processing-institutional/SKILL.md`
 
 ### audit-docs
@@ -76,13 +81,28 @@ Skills are grouped by lifecycle role.
 
 ### audit-papers
 
-- **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries.
+- **Trigger:** user asks to audit `papers/`, or you notice PDFs without text extraction or summaries. Structure via `paper-index` `check`; then a scoped accuracy pass that verifies entries against `papers/text/` (numbers checked against the source tables). Fixes go in entries, then `index` + `check`.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/audit-papers/SKILL.md`
 
 ### paper-index
 
 - **Trigger:** user asks to regenerate `PAPER_INDEX.md` / `PAPER_RELATED.md` or check them against `PAPER_SUMMARIES.md` ("regen the index", "run paper-index check", "the counts are stale"), or wants to add the check-only pre-commit hook to a paper-collection repo. Bundles the stdlib-only `paper_index.py` dispatcher with `index` / `check` / `counts` subcommands; PAPER_SUMMARIES.md is the source of truth and everything else (INDEX marker blocks, RELATED reverse index, the SUMMARIES header count) is derived from it. Python 3.9+.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-index/SKILL.md`
+
+### condense-summary
+
+- **Trigger:** user asks to condense a summary, write or shorten an entry's one-liner / index row ("condense this summary", "the index row for X is too long", "backfill one-liners for section Y"). Brings the `PAPER_SUMMARIES.md` entry up to complete first (reads the source if the entry lacks numbers or a Relevance paragraph), then writes `Focus` and the ≤50-word `One-liner`, renames the related-entries field to `Related`, and regenerates the row with `paper-index`. Bundles `condense_check.py` (stdlib, Python 3.9+).
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/condense-summary/SKILL.md`
+
+### add-to-reading-list
+
+- **Trigger:** user says "add to reading list", "save this for later", "queue this", "read later". Appends an entry with a short "why" to `READING_LIST.md` at repo root; a paper not yet in the collection goes through `add-paper` first.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/add-to-reading-list/SKILL.md`
+
+### review-reading-list
+
+- **Trigger:** user says "what's on my reading list", "review the reading list", "let's look at X from my list". Pulls an item off `READING_LIST.md`, discusses it in depth, appends the discussion notes to the paper's `PAPER_SUMMARIES.md` entry (or the RESEARCH_LOG for non-paper items), and removes it from the list.
+- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/review-reading-list/SKILL.md`
 
 ### add-deliverable
 
