@@ -46,6 +46,9 @@
     "systematic-debugging": {
       "SKILL.md": "4a480f9604d14be2a3dc3ce36ef9bbf8628a6b72a82721f6344bb368a776a860"
     },
+    "task-create": {
+      "SKILL.md": "7cf793d00c74275e249cc356b0057ebe9944224ace35d431f105843f1aa5ebdd"
+    },
     "task-remind": {
       "SKILL.md": "f298f7c9e36f362a7a2cfeaf6af0960fe0ff776d9844c7fd00b525779100e227"
     },
@@ -65,5 +68,5 @@
       "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
     }
   },
-  "source_sha": "56b3f5071d090934ec9146f2cbaaa442ccb68dc2"
+  "source_sha": "d43b5d3aa9645866cb81e677460c8d36ead76225"
 }
