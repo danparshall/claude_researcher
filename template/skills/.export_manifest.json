@@ -10,6 +10,10 @@
     "creating-debug-tests-and-iterating": {
       "SKILL.md": "617eac405ed7f321239dfc99a1ab037557674f1fe4596cae22a15da46f324576"
     },
+    "finish-convo": {
+      "SKILL.md": "c4db1a28fee0c669e6d56675158586957034a8163e0d232a2ebc8fb83a6f4902",
+      "resolve_append_conflict.py": "24ea0e1157ce66d6686a205ed730478ca00afdd5e43cdff83d952daaf786426d"
+    },
     "handle-large-tasks": {
       "SKILL.md": "19114eee4d6c4c0a68bd758a23c99ed3ea12620d9893fd31343a4d70be43647b"
     },
@@ -50,5 +54,5 @@
       "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
     }
   },
-  "source_sha": "ea7a479ea005679d96cc3a3ca2def93218caae60"
+  "source_sha": "20a42d1dfdaf163597ef955801feda6da5d00ae0"
 }
