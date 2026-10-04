@@ -1,8 +1,8 @@
 ---
 name: paper-processing-institutional
-description: Protocol B workflow for institutional-style reports — rename → extract (institutional rules: preserve acronyms / boxes / figure captions) → index → dual-protocol summary (Protocol B shape) → BibTeX → stage. Triage by `add-paper` Step 0 routes here.
+description: Protocol B workflow for institutional-style reports — rename → extract (institutional rules: preserve acronyms / boxes / figure captions) → dual-protocol summary (Protocol B shape) → BibTeX → generate + check the index → stage. `add-paper` points institutional reports here; the header follows the paper-index metadata contract.
 nori_researcher_source: nori-skillsets add-paper v1.0.0 (ported to claude_researcher in 0bbd419, 2026-05-10)
-aitaxbid_source: ~/code/AITaxBID/skills/paper_processing.md@e0a736d (2026-05-02)
+fork_origin: forked from AITaxBID `paper_processing.md`@e0a736d, 2026-05-02; maintained here
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -13,19 +13,19 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 
 1. Obtain the PDF (Step 1)
 2. Extract text — apply institutional front-matter rules (Step 2)
-3. Add entry to the master index (Step 3)
+3. Note that the index is generated (Step 3)
 4. Read the report and write a Protocol B summary entry (Step 4)
 5. Update BibTeX if `BIB_FILE` is defined (Step 5)
-6. Stage all new files (Step 6)
+6. Generate and check the index; stage all new files (Step 6)
 </required>
 
 # Adding an Institutional Report
 
 Announce at start: "I'm using the institutional report skill (Protocol B — institutional report)."
 
-This skill handles the Protocol B workflow for institutional-style reports. Triage to Protocol B was already done by `add-paper` Step 0 — if you're reading this skill directly without going through `add-paper`, confirm the document is institutional-style before proceeding (no abstract / executive summary instead; no own hypothesis; synthesis or position document from a multilateral, government, or working-group publisher).
+This skill handles the Protocol B workflow for institutional-style reports. `add-paper` points institutional reports here; confirm the document is institutional-style before proceeding (no abstract / executive summary instead; no own hypothesis; synthesis or position document from a multilateral, government, or working-group publisher).
 
-**Configuration keys.** `PROJECT_QUESTION`, `CONDITIONAL_SECTION`, `BIB_FILE`, `PAPERS_INDEX`, `paper_summaries.structure` live in the research repo's `STATUS.md` under `## Project parameters`. The filename format key `paper_naming.institutional_format` lives in the user's `personal_info.md` under "Operating preferences". See `add-paper/SKILL.md` Scope section for the full schema split.
+**Configuration keys.** `PROJECT_QUESTION`, `CONDITIONAL_SECTION`, `BIB_FILE`, `paper_summaries.structure` live in the research repo's `STATUS.md` under `## Project parameters`. The filename format key `paper_naming.institutional_format` lives in the user's `personal_info.md` under "Operating preferences".
 
 ## Step 1: Obtain the PDF
 
@@ -68,27 +68,9 @@ If neither tool works, read the PDF directly using the Read tool and write the e
 
 Verify the extraction is reasonable: check the first ~20 lines to confirm it's not garbled.
 
-## Step 3: Add to the master index
+## Step 3: The index is generated
 
-The index filename is `PAPERS_INDEX` from `STATUS.md` `## Project parameters` (default `PAPER_INDEX.md`).
-
-Add a one-line entry in the appropriate section (or create a section if needed):
-
-```markdown
-| Institution (Year) | One-sentence description of what the report contributes | `filename.pdf` |
-```
-
-If the project's index format has an "Outlet" column (or similar), describe the document type rather than a journal — examples: "IMF G20 background note", "World Bank Policy Research Working Paper", "OECD policy paper", "IDB Technical Note IDB-TN-XXXX", "UN flagship report".
-
-Keep entries sorted by institution within each section. If the index file doesn't exist yet, create it:
-
-```markdown
-# Paper Index
-
-| Paper | Description | File |
-|-------|-------------|------|
-| Institution (Year) | One-sentence description | `filename.pdf` |
-```
+`PAPER_INDEX.md`'s rows and `PAPER_RELATED.md` are generated from the `PAPER_SUMMARIES.md` entry you write in Step 4 — do not add a row by hand. Step 6 runs the generator.
 
 ## Step 4: Add to PAPER_SUMMARIES.md
 
@@ -100,12 +82,18 @@ Read the report (use the extracted text from `papers/text/`). Write a summary en
 Use the Protocol B summary template:
 
 ```markdown
-### Report Title
+### <slug>
 
-- Institution: Name(s)
-- Date: Month Year
-- File: `filename.pdf`
-- Source: [URL or DOI if available]
+**Title:** <Report title> (<Institution>, <Year>)
+
+- **Institution:** Name(s)
+- **Date:** Month Year
+- **File:** `<filename>.pdf`
+- **Source:** <URL or DOI>
+- **Focus:** <2–5 words>
+- **One-liner:** <≤50-word thesis with the one number that carries it>
+- **Related:** `slug-a`, `slug-b`
+- **Summarized:** <model name>, YYYY-MM-DD
 
 **(a) What the report argues** — Purpose of the document, who commissioned it (or the request context — G20 ask, presidency mandate, board request), the principal thesis or position, and how it relates to prior or companion reports from the same institution. The "argues" framing applies even when the report seems neutral — institutional reports always carry a position, even if implicit.
 
@@ -125,6 +113,8 @@ The precision principle still applies: name the tools, name the countries, name 
 - **What position does this report represent?** ("This is the IMF's authoritative public statement on X as of 2025"; "This is the OECD Inclusive Framework's framing of pillar 2 implementation"). Readers want to know what position they are implicitly endorsing or arguing against if they cite it.
 - **Cross-references in the existing library.** Institutional reports almost always cite papers already in the project's `papers/` collection. List the matches with relative paths to the existing summaries — this knits the library together and saves future readers a step.
 ```
+
+The header — `### <slug>`, the `**Title:**` line, the bold metadata bullets — is the metadata contract the `paper-index` tool parses; slug rules are in `add-paper` Step 3. Write the One-liner last, from the finished entry, per `condense-summary`. (b) must carry at least one number — the One-liner is condensed from it; (d) plays the role of the Relevance paragraph.
 
 **Summary evolution principle.** The (a)–(d) structure above is a **floor, not a ceiling**. As the user works with a report over time (asking questions, requesting explanations, cross-referencing with other reports), the summary should grow. Expanded summaries with worked examples, accessible explanations of technical concepts, cross-references, and the user's own notes are expected and desirable. Do not trim or reorganize expanded summaries back to the minimal format.
 
@@ -151,10 +141,17 @@ Use `@techreport` for institutional reports. Required fields:
 
 For **monographs published as books**, use `@book` with `publisher`, `address`, and `isbn` if available. For **chapters within institutional monographs**, use `@inbook` referring back to the parent `@book` entry.
 
-## Step 6: Stage files
+## Step 6: Generate, check, stage
 
 ```bash
-git add papers/<filename>.pdf papers/text/<filename>.txt PAPER_INDEX.md PAPER_SUMMARIES.md
+python3 {{skills_dir}}/paper-index/paper_index.py index .
+python3 {{skills_dir}}/paper-index/paper_index.py check .
+```
+
+Never hand-edit between `GENERATED` markers; fix what `check` reports in the entry, then run `index` again.
+
+```bash
+git add papers/<filename>.pdf papers/text/<filename>.txt PAPER_SUMMARIES.md PAPER_INDEX.md PAPER_RELATED.md
 # If BIB_FILE was updated in Step 5, also add it:
 git add <BIB_FILE>
 ```
@@ -165,7 +162,7 @@ Do NOT commit — the user may be adding multiple reports or may want to review 
 
 If the user asks to add several institutional reports at once:
 
-- Process each report through all 6 steps (after `add-paper` Step 0 triage routes each one here) before moving to the next.
+- Process each report through all 6 steps before moving to the next.
 - This ensures each report is fully integrated before context moves on.
 - For bulk additions (5+), consider using subagents in parallel for text extraction and summary writing.
 
@@ -183,6 +180,6 @@ If the user asks to add several institutional reports at once:
 - Problem: "67% of countries" means nothing without knowing which countries, what they were measured on, and what the comparison group is.
 - Fix: Always include the cohort, the measurement, and the comparison point.
 
-**Forgetting to update PAPER_INDEX when updating PAPER_SUMMARIES**
-- Problem: Index and summaries get out of sync.
-- Fix: Always update both in the same operation.
+**Hand-editing a generated block**
+- Problem: `PAPER_INDEX.md`'s rows are generated from the entries; a hand edit is overwritten by the next `index` and fails `check` until then.
+- Fix: Edit the entry in `PAPER_SUMMARIES.md`, then run Step 6.
