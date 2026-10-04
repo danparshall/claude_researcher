@@ -27,17 +27,17 @@ Skills are grouped by lifecycle role.
 
 ### finish-convo
 
-- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than `finishing-a-research-branch`. Writes convo doc + RESEARCH_LOG; touches STATUS only in `main_only` mode (capped one-liner) — never in `branches` mode. Branch stays open.
+- **Trigger:** user signals end of session ("good stopping point", "let's wrap", "save and stop"). Lighter wrap-up than `finishing-a-research-branch`. Writes convo doc + a one-line RESEARCH_LOG entry (never STATUS.md, except a LITE repo's `## Sessions` entry), commits, pushes, confirms the push, and ends with the close-out sentinel line. Branch stays open.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/finish-convo/SKILL.md`
 
 ### finishing-a-research-branch
 
-- **Trigger:** user signals the research line is done and ready to merge ("done", "ready to ship", "let's merge it"). Full close-out ceremony: finish-convo checkpoint + audit-docs on the still-open line, then PR + merge (branches mode) or archive-only (main_only mode), then move `docs/active/<branch>/` → `docs/historical/<branch>/`, then move the STATUS row Active → Archived, then optionally delete the branch. Use `finish-convo` instead for mid- or end-of-session checkpoints that keep the branch open.
+- **Trigger:** user signals the research line is done and ready to merge ("done", "ready to ship", "let's merge it"). Full close-out ceremony: confirmation gate, finish-convo checkpoint + audit-docs on the still-open line, move `docs/active/<branch>/` → `docs/historical/<branch>/`, move the STATUS row Active → Archived (rolling Archived rows beyond the newest 10 into `HISTORY.md`), then PR + merge — or, for a main-direct line, push `main` with no PR. Use `finish-convo` instead for mid- or end-of-session checkpoints that keep the branch open.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/finishing-a-research-branch/SKILL.md`
 
 ### update-docs
 
-- **Trigger:** mid-session checkpoint ("save what we've got"). Same writes as finish-convo without the "session is ending" framing (STATUS untouched in `branches` mode; capped one-liner in `main_only`).
+- **Trigger:** mid-session checkpoint ("save what we've got"). Same writes as finish-convo without the "session is ending" framing: convo doc (with a `**Session:**` header line) + one-line RESEARCH_LOG entry; STATUS.md untouched (LITE `## Sessions` excepted).
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/update-docs/SKILL.md`
 
 ### init-research-repo
