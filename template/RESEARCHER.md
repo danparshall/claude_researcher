@@ -167,12 +167,15 @@ cd /home/claude/${REPO}
 ```bash
 SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442 — used for git codename
 SESSION_DATE=$(date -u +%Y%m%d)          # e.g., 20260810   — used for convo filenames
-CODENAME="${USER_DISPLAY_NAME} (web, ${REPO}, ${SESSION_TS})"
+MODEL=<short form of the model you are running as, e.g. fable-5.1>
+CODENAME="${USER_DISPLAY_NAME} (web, ${REPO}, ${SESSION_TS}, ${MODEL})"
 git config user.email "${COMMIT_EMAIL}"
 git config user.name  "${CODENAME}"
 ```
 
-Example: `Dan (web, canary-policy, 20260810T1442)`. The whole point of the codename format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session each commit came from. Convo filenames use the date-only `SESSION_DATE` (§2e); the codename's HHMM fragment is what disambiguates concurrent sessions in the git log.
+Example: `Dan (web, canary-policy, 20260810T1442, fable-5.1)`. The whole point of the codename format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session, and which model, each commit came from. Convo filenames use the date-only `SESSION_DATE` (§2e); the codename's HHMM fragment is what disambiguates concurrent sessions in the git log.
+
+`MODEL` is filled in by you, not computed: the short form of your model's display name — lowercase, spaces → `-`, no context-window tag (`Fable 5.1` → `fable-5.1`, `Opus 4.7 (1M)` → `opus-4.7`).
 
 If `User display name` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
 
@@ -284,7 +287,7 @@ Also propose a human-readable **chat title** derived from the slug so the WebUI 
 
 **Slug → title mapping:** drop the `SESSION_DATE` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
 
-Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930)`. Sound right?"*
+Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930, fable-5.1)`. Sound right?"*
 
 The user can accept, counter-propose, or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without a user-confirmed name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
 
