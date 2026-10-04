@@ -1,168 +1,131 @@
 ---
 name: finishing-a-research-branch
-description: Merge a completed research line into main and archive its docs. Use when the user says the line is "done", "ready to ship", "let's merge it", or equivalent. Runs finish-convo + audit-docs on the still-open line before anything merges. Handles both `branches` mode (checkpoint + audit + open PR + merge + archive) and `main_only` mode (checkpoint + audit + archive). This is the full research-line close ceremony; for a mid-session or end-of-session checkpoint that keeps the branch open, use `finish-convo` instead.
+description: Use when a research line has answered its questions and the user says it is done — "ready to ship", "let's merge it". After a confirmation gate, runs finish-convo and audit-docs on the still-open line, archives docs/active → docs/historical, moves the STATUS.md row Active → Archived (rolling old rows into HISTORY.md), then opens the PR and asks before merging. Main-direct lines archive on main with no PR.
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
+*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+
 1. Confirmation gate
-1.5. Run finish-convo, then audit-docs, on the still-open line (both modes) — nothing merges or archives before these pass
-2. `branches` mode: open PR (Pulls API)
-3. `branches` mode: merge PR (Pulls API); on 405/422 stop and hand off to user
-4. On `main`: `git mv docs/active/<branch> docs/historical/<branch>` + commit + push (single atomic commit)
-5. On `main`: move STATUS.md row Active → Archived + commit + push (separate commit)
-6. Optional: delete merged branch
-</required>
+2. Sync main and verify branch state
+3. Run test suite IF one exists
+4. Run finish-convo to checkpoint the final session
+5. Run audit-docs
+6. Run maintaining-decision-docs IF docs/DOCS_INDEX.md exists
+7. Archive: git mv docs/active/<branch> docs/historical/<branch>; commit
+8. STATUS.md: move row Active → Archived; commit. Roll over old rows; commit
+9. Push branch
+10. Create the PR
+11. Resolve conflicts; wait for CI
+12. Ask the user whether to merge
+13. Merge if user said yes
+14. End with the sentinel line (merged or left open)
 
-# Finishing a Research Branch
+A research line is "finished" when the investigation has answered its questions (or hit a clear stopping point) and the user has explicitly said to wrap and merge. Archiving is **preservation**, not disposal — `docs/historical/<branch>/` keeps everything accessible.
 
-Announce at start: "I'm using the finishing-a-research-branch skill to close out `<branch-name>`."
+**Two paths, keyed per line.** Find the line's row in STATUS.md's Active table. If its branch column says `(no branch — main-direct)` — or, failing a branch column, STATUS.md's header declares `workflow_mode: main_only` — this is a **main-direct line**: work on `main`, skip Steps 9–13, and push `main` after Step 8. Otherwise it is a **branch line** and every step runs.
 
-Two paths, keyed off STATUS.md's `workflow_mode`:
+### Step 1: Confirmation gate
 
-- `workflow_mode: branches` (default) — steps 1 through 6, PR ceremony included.
-- `workflow_mode: main_only` — skip steps 2, 3, and 6; the directory move + STATUS update happen directly on `main`. Step 1's gate still applies.
+Say: *"I'm about to close out `<branch-name>`: checkpoint the final session (finish-convo), audit the docs, archive `docs/active/<branch-name>/` to `docs/historical/<branch-name>/`, move its STATUS row to Archived, then open a PR to merge into `main` (main-direct line: no PR). Confirm."* For a novice user, add that nothing is deleted — the line moves to the "done" shelf. Do not proceed without an explicit yes.
 
-## Step 1: Confirmation gate
-
-**CONFIRMATION GATE.** *"I'm about to close out `<branch-name>`: checkpoint the final session (finish-convo), audit the docs, then open a PR to merge into `main`. After merge, I'll move `docs/active/<branch-name>/` to `docs/historical/<branch-name>/` and update STATUS.md's archived-lines table. Confirm."*
-
-> **(novice:** explain that this is "finalizing your research line into the permanent record. After this, the work is part of `main` — the canonical version of the repo — and the active directory moves to `historical` so future sessions know it's complete. The work isn't deleted; just relocated to the 'done' shelf.") **(fluent:** just do it.)
-
-Do not proceed past this step without the user's explicit "yes" (or equivalent).
-
-## Step 1.5: Checkpoint and audit the line before anything merges (both modes)
-
-The merge is the one-way door; whatever isn't on the branch when it swings shut needs a second PR to fix. Two sub-steps, in order, while the line is still open:
-
-**1.5a — finish-convo.** Read and follow `{{skills_dir}}/finish-convo/SKILL.md`. This captures the final session — convo doc + RESEARCH_LOG entry — into `docs/active/<branch-name>/`, committed on the branch. The PR then carries the line's complete record, including its own close-out session.
-
-**1.5b — audit-docs.** Read and follow `{{skills_dir}}/audit-docs/SKILL.md`. Fix whatever it flags and commit the fixes on the branch — don't ship a broken doc tree to `historical/`. If a flagged problem needs the user (orphaned file of unclear provenance, missing convo that can't be reconstructed), surface it and wait; the ceremony pauses here, not after merge.
-
-Skipping either sub-step and merging anyway defeats the ceremony — see Common mistakes. In `main_only` mode both sub-steps still run; they just commit to `main` directly before the Step 4 archive move.
-
-## Step 2: Open the PR (branches mode only)
-
-No native-git equivalent — `git push` publishes commits but does not open a pull request.
+### Step 2: Sync main and verify branch state
 
 ```bash
-curl -sX POST -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/pulls" \
-  -d "{\"title\":\"<branch-name>: <one-line summary>\",\"head\":\"<branch-name>\",\"base\":\"main\",\"body\":\"<short summary of what was learned>\"}"
+git fetch origin
+git rev-parse main origin/main    # must be equal; if not, git pull --ff-only origin main
+git rev-parse --abbrev-ref HEAD   # branch line: must NOT be main; main-direct line: must be main
+ls docs/active/<branch-name>/     # must exist
 ```
 
-The response includes `number` (PR number) and `html_url` (link the user can visit). Capture both.
+If `docs/active/<branch-name>/` does not exist, this was not tracked as a research line; STOP and ask the user how to proceed.
 
-## Step 3: Merge the PR (branches mode only)
+### Step 3: Run test suite IF one exists
 
-Also no native-git equivalent — a local `git merge` + `git push` would bypass GitHub's PR machinery and lose the PR record.
+Detect: `pyproject.toml` with `[tool.pytest]`, `pytest.ini`, `package.json` with a test script, `Cargo.toml`, `go.mod`, or a `tests/` directory with discoverable tests. If detected, run it. If tests fail, STOP — surface to the user; don't merge a failing research branch. If no test suite exists, skip silently.
 
-This PUT is the **only** merge affordance in the whole workflow. If Step 1.5 (finish-convo + audit-docs) has not run this session, stop and go back — do not merge a line whose final session is uncaptured.
+### Step 4: Run finish-convo
 
-```bash
-curl -sX PUT -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/$REPO/pulls/<number>/merge" \
-  -d "{\"merge_method\":\"merge\"}"
-```
+Read and follow `{{skills_dir}}/finish-convo/SKILL.md`. This MUST run before Step 7 — finish-convo writes to `docs/active/<branch-name>/`, which must still exist. Skip finish-convo's sentinel step here; Step 14 prints it at the end.
 
-Outcomes:
+### Step 5: Run audit-docs
 
-- **200 success** → continue to Step 4.
-- **405 Method Not Allowed** or **422 Unprocessable Entity** → the merge is blocked. Most common cause: branch protection requires review before merge. This is the **collaborator-mode case** (see RESEARCHER.md "Known v1 limitations"). **Stop here.** Surface the PR URL to the user; tell them the owner needs to review and merge in the GitHub web UI. Steps 4–5 wait for a future session — typically the owner will do them after merging.
-- Other 4xx/5xx → surface the response body to the user; don't retry blindly.
+Read and follow `{{skills_dir}}/audit-docs/SKILL.md`. Fix whatever is flagged — don't ship a broken doc tree to `historical/`. If a flagged problem needs the user (an orphan of unclear provenance, a convo that can't be reconstructed), surface it and wait.
 
-## Step 4: Move `docs/active/<branch>/` to `docs/historical/<branch>/` on main
+### Step 6: Run maintaining-decision-docs IF DOCS_INDEX exists
 
-Single atomic commit — the `git mv` preserves history so `git log --follow` traces files across the move:
+If `docs/DOCS_INDEX.md` exists and `{{skills_dir}}/maintaining-decision-docs/SKILL.md` is installed, read and follow it. Otherwise skip silently.
+
+### Step 7: Archive the line's docs (one commit)
 
 ```bash
-cd /home/claude/${REPO}
-git checkout main
-git pull --ff-only origin main            # pull in the just-merged PR
 git mv docs/active/<branch-name> docs/historical/<branch-name>
-git commit -m "Archive <branch-name>: <one-line summary>"
-git push origin main
+git add docs/            # also picks up Step 5/6 fixes (audit, DOCS_INDEX)
+git commit -m "archive: <branch-name> — <one-line summary>"
 ```
 
-If you want to inspect what's about to move first: `git ls-tree -r HEAD docs/active/<branch-name>/`.
+### Step 8: Move the STATUS.md row, then roll over (separate commits)
 
-**In `main_only` mode:** you're already on `main` and there's no just-merged PR to pull — the `git pull --ff-only` step is still a good idea (another session may have pushed), but the branch checkout and PR-pull framing don't apply.
-
-## Step 5: Move the STATUS.md row Active → Archived
-
-Separate commit from Step 4 — the directory move and the index update are different concerns; keeping them separate makes history readable.
-
-Edit STATUS.md on `main`:
-
-- **Delete** the `<branch-name>` row from the `## Active Research Lines` table.
-- **Add** a row to the `## Archived Research Lines` table with:
-  - **Summary** — written *fresh at close* (1 sentence, ≤2 if needed): what was *learned*, not what was attempted. **Do not** copy the Active row's Purpose — Purpose says what the line set out to do and is usually stale by merge time.
-  - **Archived** — today, `YYYY-MM-DD`.
-  - **Material** — a reference that *resolves*: `docs/historical/<branch-name>/`, a shared/consolidated dir, a results path, or the merged PR URL. One row per research line even when dirs are consolidated.
-
-If the branch carried content edits that were relocated during a STATUS migration or take-main conflict resolution, grep-verify they survived somewhere reachable before committing.
+Delete the line's row from the Active table ("Active Research Lines" or "Active Work-lines") and add one to the Archived table: branch name; date archived (UTC today); **Summary written fresh at close** — what was *learned*, in one sentence, not the Active row's Purpose (Purpose is usually stale by now); material path (`docs/historical/<branch-name>/`, or the merged PR URL).
 
 ```bash
 git add STATUS.md
-git commit -m "STATUS: archive <branch-name> (merge ceremony)"
-git push origin main
+git commit -m "STATUS: archive <branch-name>"
 ```
 
-This ceremony and `start-research-line` are the **only** writers of STATUS.md in `branches` mode — sessions never touch it (see RESEARCHER.md §2c boundary).
-
-**Push race.** Steps 4 and 5 both push `main`, and STATUS.md is the shared choke point between `start-research-line` and this skill. If a concurrent ceremony lands between your pull and your push, either push comes back rejected (non-fast-forward). Recover per the `resolve-runtime-issue` skill's entry for rejected pushes: `git pull --rebase origin main`; if the only conflicts are both-sides-appended rows in lifecycle tables, resolve with `{{skills_dir}}/finish-convo/resolve_append_conflict.py` (keeps both rows — row order in these tables doesn't encode precedence); any conflict involving your Active-row *deletion* goes to the user (keep-both would resurrect the deleted row).
-
-## Step 6: (Optional) delete the merged branch
-
-Default to deleting to keep the branch list tidy; ask if the user has a reason to keep it.
+**Rollover.** `KEEP_ARCHIVED = 10`. If the Archived table now has more than `KEEP_ARCHIVED` rows, move the oldest ones to `HISTORY.md`, newest first, keeping the table header. If `HISTORY.md` is absent, create it with `# HISTORY` and the line "Archived research lines rolled out of STATUS.md by `finishing-a-research-branch`, which keeps the newest 10 there. Newest first." This is the only place rows leave STATUS.md.
 
 ```bash
-git push origin --delete <branch-name>
-git branch -D <branch-name>          # also clean up the local ref
+git add STATUS.md HISTORY.md
+git commit -m "STATUS: roll <N> archived rows into HISTORY.md"
 ```
 
-GitHub's merged-PR UI also exposes a "Delete branch" button — either works.
+**Main-direct line:** `git push origin main` now, then go to Step 14. If the push is rejected, follow Step 11's conflict rules after `git pull --rebase origin main`.
 
-## Report
+### Step 9: Push
 
-Tell the user briefly:
-
-```
-Research line closed:
-  PR:       #<number> merged into main       (branches mode; omit for main_only)
-  Docs:     docs/historical/<branch-name>/   (moved from active)
-  STATUS:   row moved Active → Archived
-  Branch:   deleted                          (or "kept" per user preference; omit for main_only)
+```bash
+git push -u origin <branch-name>
 ```
 
-# Common mistakes
+### Step 10: Create the PR
 
-**Merging without running Step 1.5 first**
-- Problem: The merge lands, then finish-convo has nowhere to write — `docs/active/<branch>/` is being archived, the branch is closing, and the final session's record either dies with the sandbox or needs a second PR. The line's permanent history is missing its own conclusion.
-- Fix: Step 1.5 is not optional and its order is load-bearing: checkpoint + audit happen while the line is still open. The Step 3 merge call is the workflow's only merge affordance — treat "1.5 ran this session" as its precondition.
+<system-note> Do NOT wait for user approval. The user invoked this skill — opening the PR is part of the contract. </system-note>
 
-**Skipping the STATUS row move**
-- Problem: `docs/active/<branch>/` becomes `docs/historical/<branch>/` on disk, but STATUS's Active table still lists it. Future sessions read STATUS, think the line is live, and get confused when the docs aren't in `active/`.
-- Fix: Step 5 is not optional. It's the closing half of the lifecycle ceremony that `start-research-line` opened.
+Compose the PR body from the RESEARCH_LOG, recent convo summaries, and results/ — don't make findings up. Three sections: a 2-3 paragraph `## Summary` (what the line investigated, found, decided); `## Key Findings` (bullets, each with a provenance link to a results/ or convos/ file where relevant); `## Documentation` (`docs/historical/<branch-name>/` — RESEARCH_LOG.md, convos/, plans/, results/). End the body with `🤖 Generated with [Nori](https://noriagentic.com/)`. Title: `<branch-name>: <one-line summary>`. Create it with `gh pr create --title … --body …` (claude.ai: see sandbox notes).
 
-**Combining Step 4 and Step 5 into one commit**
-- Problem: A `git mv` diff and a STATUS index update in the same commit is hard to read six months later. If Step 5 has a mistake and you want to revert just the STATUS update, you can't cleanly.
-- Fix: Two commits, as scripted.
+### Step 11: Resolve conflicts and wait for CI
 
-**Copying the Active row's Purpose into the Archived row's Summary**
-- Problem: Purpose says what the line set out to investigate; Summary says what was learned. They're rarely the same by merge time. A copy-forward gives future sessions a stale story.
-- Fix: Write Summary fresh at close, in one sentence.
+```bash
+git fetch
+git merge main      # resolve conflicts if any
+gh pr checks        # poll in foreground
+```
 
-**Merging without the confirmation gate**
-- Problem: Merging is the one-way door of the research workflow. An accidental early merge means the branch is closed before the user is done thinking.
-- Fix: Step 1's gate is not optional. `finish-convo` (which does NOT merge) is the right skill when the user just wants to save and stop.
+**Merge conflicts on the running ledgers.** STATUS.md and RESEARCH_LOG.md routinely conflict when other lines merged or opened first. If both sides only *added* rows or entries, resolve with `python3 {{skills_dir}}/finish-convo/resolve_append_conflict.py <file>` then `git add <file>` (read its docstring gate first). Any conflict involving your Active-row *deletion* or a moved row goes to the user — keep-both would resurrect or duplicate the row.
+
+<system-reminder> Poll `gh pr checks` in the foreground — do NOT background-watch or 'check in later'. No CI showing usually means merge conflicts (go back and resolve); some research repos have no CI at all, in which case this step is a no-op. </system-reminder>
+
+<system-reminder> It is *critical* that you fix any CI issues, EVEN IF YOU DID NOT CAUSE THEM. </system-reminder>
+
+### Step 12: Ask the user whether to merge
+
+Research branches are higher-stakes than feature branches — their merge becomes permanent main history. Default expectation is yes, but ask explicitly: "PR <URL> is open and CI is green. Merge now, or leave open for further review?"
+
+### Step 13: Merge if user said yes
+
+`gh pr merge` with the repo's normal merge style, then bring local `main` up to date (`git pull --ff-only origin main` wherever `main` is checked out). If the merge is refused (branch protection; the owner must review), stop and give the user the PR URL — the archive is already in the PR, so merging it completes the ceremony. Optional, ask first: delete the merged branch (`git push origin --delete <branch-name>`). If the user said leave open, skip to Step 14.
+
+Announce: **"finishing-a-research-branch complete — <branch-name> archived and merged."**
+
+### Step 14: Sentinel line
+
+End your final message with the sentinel line from finish-convo step 6 (Step 4 skipped it, so it lands here, after the last push). Same shape and rules: confirm the commit is on the remote first, and print no sentinel if it isn't. `<convo-name>` is the convo file from Step 4; `<short-sha>` is the merge commit on `main` if merged, the head of `<branch-name>` pushed in Step 9 if left open, or `main`'s head for a main-direct line.
+</required>
 
 ## claude.ai sandbox notes
 
-The PR open/merge steps use the Pulls REST API because there's no plain-git equivalent — use the `curl` recipes above with the PAT from Project Instructions. On Claude Code, substitute `gh pr create` / `gh pr merge` for the `curl` calls if `gh` is available. If the §2.0b clone failed (degraded REST fallback), translate the directory move into per-file Contents API PUTs and surface degraded mode.
+No `gh` in the sandbox: open and merge the PR with the Pulls API, using the PAT from Project Instructions. Open: `curl -sX POST -H "Authorization: token $TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/$USERNAME/$REPO/pulls -d '{"title":"…","head":"<branch-name>","base":"main","body":"…"}'` — capture `number` and `html_url`. Merge: `curl -sX PUT` (same headers) to `…/pulls/<number>/merge` with `-d '{"merge_method":"merge"}'`. A 405 or 422 means the merge is blocked (usually branch protection — collaborator mode): stop and hand the PR URL to the user. CI: skip `gh pr checks` and tell the user to check the PR page. If the session-start clone failed (degraded REST fallback), translate the directory move into per-file Contents API PUTs and say you're in degraded mode.
