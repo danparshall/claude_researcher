@@ -248,7 +248,7 @@ view /home/claude/<REPO>/README.md
 
 Read further only when the task requires it (archived-line lookups, `## Project parameters` consumers, audits). Fallback if the §2.0b clone failed: Contents API GET at `/repos/$USERNAME/$REPO/contents/STATUS.md`.
 
-**STATUS ↔ RESEARCH_LOG boundary.** STATUS records research-line *lifecycle* + repo-level state only: a row when a line starts (Purpose: 1 sentence, amendable at milestones), a row moved to Archived when it merges (Summary: fresh at close, 1 sentence, ≤2). Everything session-shaped — what you did today, findings, dead ends, next steps — belongs in the line's `RESEARCH_LOG.md`. **In `branches` mode, sessions never write STATUS.md; only `start-research-line` and `finishing-a-research-branch` do.** No `## Recent Sessions` section in branches mode; recency comes from git. In `main_only` mode, a capped `## Recent Sessions` survives.
+**STATUS ↔ RESEARCH_LOG boundary.** STATUS records research-line *lifecycle* + repo-level state only: a row when a line starts (Purpose: 1 sentence, amendable at milestones), a row moved to Archived when it merges (Summary: fresh at close, 1 sentence, ≤2). Everything session-shaped — what you did today, findings, dead ends, next steps — belongs in the line's `RESEARCH_LOG.md`. **Sessions never write STATUS.md, in either mode; only `start-research-line` and `finishing-a-research-branch` do.** No `## Recent Sessions` section; a session's record is its one-line RESEARCH_LOG entry linking the convo doc. `finishing-a-research-branch` keeps the newest 10 Archived rows in STATUS.md and rolls older ones into `HISTORY.md`. (LITE repos keep their own `## Sessions` rule per `LITE.md`.)
 
 **`workflow_mode` field** (top-of-file):
 
@@ -305,7 +305,7 @@ The research repo has a specific documentation structure. Each file has a define
 
 | File | Role | When to read |
 |------|------|-------------|
-| **STATUS.md** | Where everything is. Complete line inventory (active and archived), current focus, per-line detail. In `branches` mode, sessions never write STATUS mid-session — only `start-research-line` and `finishing-a-research-branch` do; in `main_only` mode, a capped `## Recent Sessions` survives. | Every session start (partial per §2c), every line switch |
+| **STATUS.md** | Where everything is. Complete line inventory (active and archived), current focus, per-line detail. Sessions never write STATUS — only `start-research-line` and `finishing-a-research-branch` do (no exceptions by mode). | Every session start (partial per §2c), every line switch |
 | **README.md** | What this repo does and why. Overview of archived research lines. Updated when something merges. Stable between merges. | Every session start |
 | **PAPER_INDEX.md** | One-sentence summary of each paper in `papers/`. Entry point for literature lookup. | When you need to find a paper on a topic (repos with `papers/`) |
 | **PAPER_SUMMARIES.md** | Key conclusions per paper, with numerical findings. Too long for every session — reach for it after the index points you somewhere. | On demand, after PAPER_INDEX identifies a paper |
@@ -326,7 +326,7 @@ The research repo has a specific documentation structure. Each file has a define
 
 Archiving is **preservation**, not disposal. Moving docs to `docs/historical/` means "this line answered its questions and the results are safely on `main`." Everything is kept — code, results, docs. Only the user decides when to archive.
 
-`finishing-a-research-branch` handles the close-out ceremony (both modes: finish-convo + audit-docs on the still-open line first; branches mode: then PR + merge, then `git mv docs/active/<line> docs/historical/<line>` + STATUS row Active → Archived; main_only mode: skip the PR, do the doc move + STATUS update). Do not archive by hand, and do not merge outside the skill — it bundles the required steps.
+`finishing-a-research-branch` handles the close-out ceremony (both modes: finish-convo + audit-docs on the still-open line, then `git mv docs/active/<line> docs/historical/<line>` + STATUS row Active → Archived + rollover of old Archived rows into `HISTORY.md`; branches mode: these land on the branch, then PR + merge; main_only mode: they land on `main`, no PR). Do not archive by hand, and do not merge outside the skill — it bundles the required steps.
 
 Historical docs are **never deleted** — always recoverable when you need to revisit prior reasoning. But they're not loaded into session context by default. The STATUS.md Archived table tells agents what's there and why, so they know it exists without reading it. Skip `docs/historical/` unless the user asks to revisit an archived line.
 
@@ -475,7 +475,7 @@ When writing experiment collection scripts:
 
 - **`update-docs`** — mid-session checkpoint. Same writes as `finish-convo` without the "session ending" framing.
 - **`finish-convo`** — end of session. Convo doc + RESEARCH_LOG + commit + push. Branch stays open.
-- **`finishing-a-research-branch`** — line is done and ready to merge. Full close-out: finish-convo + audit-docs on the still-open line, then PR + merge (branches mode) or archive-only (main_only), then move docs/active → docs/historical, then move STATUS row Active → Archived. **Use this instead of `finish-convo` only when the user explicitly says "merge it" / "we're done with this line."**
+- **`finishing-a-research-branch`** — line is done and ready to merge. Full close-out: finish-convo + audit-docs on the still-open line, then move docs/active → docs/historical and the STATUS row Active → Archived, then PR + merge (branches mode) or push `main` (main_only). **Use this instead of `finish-convo` only when the user explicitly says "merge it" / "we're done with this line."**
 
 ### Knowledge management
 
