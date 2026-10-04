@@ -1,5 +1,5 @@
 {
-  "nori_version": "1.0.26",
+  "nori_version": "1.0.28",
   "skills": {
     "audit-docs": {
       "SKILL.md": "e557458bbad80fba611115a9d1b549a378373c3d3ca2d6f033929901debb9983"
@@ -43,9 +43,12 @@
     "testing-anti-patterns": {
       "SKILL.md": "703a681838d1adb4a36c8ae15508166de76e2b4d3311211ecc05e4baa51bf1db"
     },
+    "update-docs": {
+      "SKILL.md": "56d66ee78c006917e8cb4f75601478ba864cbd78fa758284c639e9f75ab71b97"
+    },
     "write-a-plan": {
       "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
     }
   },
-  "source_sha": "1d6e8b96b0235cbd8f45d641a63bc95b1c8dfa3f"
+  "source_sha": "ea7a479ea005679d96cc3a3ca2def93218caae60"
 }
