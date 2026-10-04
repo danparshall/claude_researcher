@@ -1,6 +1,6 @@
 ---
 name: audit-papers
-description: Check papers/ structure for completeness and accuracy — every PDF has text extraction, every paper is indexed in PAPER_INDEX.md and summarized in PAPER_SUMMARIES.md, summaries are factually accurate. Prompts the user for discrepancies.
+description: Use when auditing the papers/ collection — runs the paper-index check for structure, then verifies a sample of PAPER_SUMMARIES.md entries against their source text. Prompts the user for discrepancies.
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -9,129 +9,91 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 <required>
 CRITICAL: Add the following steps to your Todo list using TodoWrite:
 
-1. Check papers/ structure: every PDF has a text extraction, every paper is indexed
-2. Run format audit script to identify summary gaps
-3. Determine scope (full audit, recent additions, or specific entries)
-4. For each entry in scope, read the paper and verify the summary
-5. Fix factual errors, add missing numerical findings
-6. Fix formatting issues flagged by the script
-7. Report results and prompt user for any structural fixes
+1. Run the paper-index check; report structural problems and fix only what the user approves
+2. Agree the scope of the accuracy pass with the user
+3. For each entry in scope, verify the summary against the source text
+4. Fix errors in the entries, then regenerate and re-check
+5. Report results
 </required>
 
 # Auditing Papers
 
-Checks the papers/ structure for completeness, then verifies that summaries accurately represent their source papers.
-
 Announce at start: "I'm using the Audit Papers skill to check the papers structure and verify summary accuracy."
 
-## The Process
+Structure is the tool's job; accuracy is yours. The entry format is the metadata contract in the `add-paper` skill — this skill does not restate it.
 
-### Step 0: Check Papers Structure
+## Step 0: Structure
 
-Before auditing content, check structural completeness:
-
-- [ ] Every PDF in `papers/` has a corresponding `.txt` in `papers/text/`
-- [ ] Every paper in `papers/` has a one-line entry in `PAPER_INDEX.md`
-- [ ] Every paper in `PAPER_INDEX.md` has a full entry in `PAPER_SUMMARIES.md`
-- [ ] No phantom entries (indexed in PAPER_INDEX but PDF missing)
-
-**Report structural issues first and prompt the user:**
-```
-Found 3 structural issues:
-- papers/Smith_2025_deployment.pdf has no text extraction in papers/text/
-- papers/Jones_2024_scaling.pdf is not in PAPER_INDEX.md
-- PAPER_INDEX.md lists "Chen 2025" but no PDF exists
-
-Want me to fix these? (I can extract text and add index entries, but missing PDFs need to be downloaded.)
+```bash
+python3 {{skills_dir}}/paper-index/paper_index.py check .
 ```
 
-Fix only what the user approves. Then proceed to content audit.
+`check` covers what this skill used to list by hand: every top-level `papers/*.pdf` has a `papers/text/` extraction, every `File`/`Text extraction` ref resolves, no PDF is unreferenced, every entry has Focus and One-liner, no `Related` slug dangles, and the generated files are current. If the repo has no generated-block markers it is not on the format yet — say so and stop; converting it is a migration, not an audit.
 
-### Step 1: Run Format Audit Script
-
-Run the bundled script to get the full picture:
+Report the problems first and ask before fixing:
 
 ```
-python3 SKILLS_DIR/auditing-paper-summaries/audit_paper_summaries.py REPO_ROOT
+check reports 3 problems:
+- papers/Smith_2025_deployment.pdf has no text extraction
+- papers/Jones_2024_scaling.pdf is not referenced by any entry
+- `chen-25-agents`: One-liner missing
+
+Want me to fix these? (I can extract text, write an entry for Jones via add-paper, and condense Chen; missing PDFs need downloading.)
 ```
 
-This identifies: missing metadata fields, entries without numerical findings, missing Key findings sections, missing PDFs or text extractions, and reference-only entries.
+Missing Focus/One-liner fields are the `condense-summary` skill's job. A PDF with no entry goes through `add-paper`.
 
-### Step 2: Determine Scope
+## Step 1: Scope
 
 Ask the user which scope to use:
 
-- Recent additions: entries added since last audit (check git log for PAPER_SUMMARIES.md)
-- Specific section: a category like "Agent Evaluation" or specific papers by name
-- Priority list: entries flagged by the script as lacking numerical findings
-- Full audit: every entry (expensive — 100+ papers)
+- Recent additions: entries changed since the last audit (`git log -p -- PAPER_SUMMARIES.md`)
+- A section, or named papers
+- Priority: entries whose Key findings carry no number — most likely to be incomplete
+- Full audit: every entry (expensive at 100+ papers; use parallel subagents, 5–10 entries each, writing findings to scratch files — never to PAPER_SUMMARIES.md)
 
-For full audits, use parallel subagents to verify multiple papers simultaneously.
+One entry takes 2–5 minutes to verify properly. Reference-only entries (no local source) are flagged, not verified, unless the user asks.
 
-### Step 3: Verify Each Entry Against Source Paper
+## Step 2: Verify each entry against the source
 
-For each entry in scope:
-
-- [ ] Read the extracted text from papers/text/ARXIV_ID.txt
-- [ ] If no text extraction exists, read the PDF directly
-- [ ] Compare the summary against the paper, checking:
+Read `papers/text/<file>.txt` (or the PDF if there is no extraction) and check:
 
 Factual accuracy:
 - Do cited numbers match the paper? (percentages, counts, ratios)
 - Are benchmark names and results correct?
-- Are author attributions and affiliations accurate?
+- Are authors, affiliations, date, and identifiers (arXiv ID, DOI) correct?
 - Are method names and architectural claims correct?
-- Are date and arXiv ID correct?
+- Does the One-liner claim only what the entry body supports?
 
-Completeness of core findings:
-- Are the paper's main quantitative results included?
-- Are range estimates provided where the paper gives them?
-- Are key comparisons to baselines captured?
-- Is the central contribution accurately described?
+Completeness:
+- Are the main quantitative results in Key findings, with metric, dataset, and baseline?
+- Are ranges given where the paper gives them?
+- Is the central contribution described accurately?
+- Is there a Relevance paragraph?
 
-### Step 4: Fix Errors
+<system-reminder>Verify against the source text, not the abstract — and against the original table or figure for any number. Key findings are often in results tables the abstract omits.</system-reminder>
 
-For each issue found:
+## Step 3: Fix
 
-- Factual errors: correct the claim to match the paper, noting the source section
-- Missing numerical findings: extract key numbers with context (not raw numbers in isolation — always include what was measured, the baseline, and the result)
-- Formatting: ensure consistent structure (arXiv, Authors, Date, File, Summary, Key findings, Relevance)
+- Factual errors: correct the claim in the entry, noting the source section.
+- Missing numbers: add them with context (what was measured, the baseline, the result).
+- A One-liner the corrected body no longer supports: rewrite it per `condense-summary`.
 
-Reference-only entries (no local PDF) should be flagged but not audited for factual accuracy unless the user specifically requests it.
+Edit entries only — never a generated block. Then:
 
-### Step 5: Report Results
-
-Present findings per entry: what was verified, what was corrected, what was added. Flag any entries where the summary substantially misrepresents the paper.
-
-## Required Format for Each Entry
-
-```
-### Paper Title
-
-- arXiv: [ID](URL)
-- Authors: Names (Affiliations)
-- Date: Month Year
-- File: `filename.pdf`
-
-Summary: [Core contribution and approach]
-
-Key findings:
-- [Finding with numerical result and context]
-- [Finding with range estimate if available]
-- [Comparison to baseline/prior work]
-
-Relevance: [Why this paper matters for this research collection]
+```bash
+python3 {{skills_dir}}/paper-index/paper_index.py index .
+python3 {{skills_dir}}/paper-index/paper_index.py check .
 ```
 
-## Scoping Guidance
+Stage `PAPER_SUMMARIES.md PAPER_INDEX.md PAPER_RELATED.md` by name.
 
-- A single entry takes 2-5 minutes to verify thoroughly
-- For full audits of 100+ papers, use parallel subagents (batch of 5-10 papers each)
-- Prioritize entries flagged as "no numerical findings" — these are most likely to be incomplete
-- Reference-only entries (imported from other repos without local PDFs) are lower priority
+## Step 4: Report
 
-## Common Mistakes
+Per entry: what was verified, what was corrected, what was added. Flag any entry that substantially misrepresents its paper.
 
-- Correcting numbers without checking the original table/figure in the paper
-- Adding numbers out of context (e.g., "67%" without saying what was measured or what the baseline was)
-- Trusting the abstract alone — key findings are often in results tables, not the abstract
+# Common Mistakes
+
+- **Correcting a number from memory or the abstract.** Check the paper's table or figure.
+- **A number with no context** ("67%" with no metric or baseline). Always say what was measured.
+- **Hand-editing PAPER_INDEX.md to fix a row.** Rows are generated; fix the entry and run `index`.

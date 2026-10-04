@@ -1,8 +1,6 @@
 ---
 name: add-paper
-description: Triage skill — routes academic-style papers to `paper-processing-academic`, institutional-style reports to `paper-processing-institutional`, non-paper documents to `document-processing` (deferred). Step 0 triage runs here; the routed per-protocol skill handles Steps 1-6.
-nori_researcher_source: nori-skillsets add-paper v1.0.0 (ported to claude_researcher in 0bbd419, 2026-05-10)
-aitaxbid_source: ~/code/AITaxBID/skills/paper_processing.md@e0a736d (2026-05-02)
+description: Use when adding a paper (or a blog post or thread worth keeping) to the research collection — obtain the source, extract text, write its PAPER_SUMMARIES.md entry in the metadata contract, then regenerate and check the index with paper-index.
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -11,72 +9,119 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 <required>
 *CRITICAL* Add the following steps to your Todo list using TodoWrite:
 
-0. Triage — Protocol A or Protocol B (Step 0)
-1. Load and follow the routed per-protocol skill (Dispatch at end of Step 0)
+1. Obtain the source
+2. Extract text
+3. Write the PAPER_SUMMARIES.md entry (check slug uniqueness first)
+4. Generate and check the index
+5. Stage all new files
 </required>
-
-## Scope
-
-This skill is a **triage dispatcher**. It runs Step 0, then routes to one of three target skills that do the actual work:
-
-- **Academic-style papers** — research-oriented documents with original empirical or theoretical contribution (journal articles, working papers, dissertations, white papers structured as research). Routed to **`paper-processing-academic`** by Step 0 triage.
-- **Institutional-style reports** — substantive analytical documents that synthesize evidence, position a framework, or advise on policy, but do not present the authors' own original research with a stated hypothesis (G20 background notes, IMF/World Bank/OECD/UN flagship reports, multilateral working-group papers, regional development bank policy reports). Routed to **`paper-processing-institutional`** by Step 0 triage.
-- **Legislation, government regulatory documents, terms of reference, and consultant deliverables tied to a single project** — routed to **`document-processing`**. (Note: `document-processing` is deferred per Plan 02 Wave 5; the pointer is currently aspirational — if you hit this branch, fall back to manual handling and surface to the user.)
-
-**Where config keys live.** The four `PROJECT_QUESTION` / `CONDITIONAL_SECTION` / `BIB_FILE` / `PAPERS_INDEX` keys live in the research repo's `STATUS.md` under `## Project parameters`. The two `paper_naming` keys (`paper_naming.academic_format`, `paper_naming.institutional_format`) live in the user's `personal_info.md` under "Operating preferences". The `paper_summaries.structure` knob also lives in `STATUS.md` project parameters. The per-protocol skills each reference back to this section for the full schema.
 
 # Adding a Paper
 
-Announce at start: "I'm using the Add Paper skill — first I'll triage the document, then dispatch to the appropriate per-protocol skill."
+PAPER_SUMMARIES.md is the source of truth. PAPER_INDEX.md and PAPER_RELATED.md are generated from it by the `paper-index` tool — you write the entry, the tool writes the rows. A repo with no generated-block markers in PAPER_INDEX.md is not set up yet: run `init-paper-collection` first (new collection) or stop and tell the user (legacy format — that is a migration).
 
-## Step 0: Triage — academic-style or institutional-style?
+## Step 1: Obtain the source
 
-Open the document and answer three quick questions:
+- URL: `curl -L -o papers/<filename>.pdf <url>`
+- Local path: copy to `papers/`
+- Named only: search, confirm the URL before downloading
 
-1. Does it have an **abstract** (vs. an *executive summary*)?
-2. Does it pose a **research question or hypothesis**?
-3. Does it report **new estimates the authors produced from data they analyzed** (rather than synthesizing others' findings)?
+**Filename.** If the user's personal info (`personal_info.md`, or the user section of CLAUDE.md on Claude Code) sets **`Paper naming format`** under Operating preferences, use it. Otherwise the default: `AuthorLast_Year__short_description.pdf` — double underscore, snake_case description (`Acemoglu_2024__simple_macroeconomics_AI.pdf`). If the user has no format set, ask once and offer to save their answer there.
 
-- **Two or more "yes"** → **Protocol A** (academic-style).
-- **Two or more "no"** → **Protocol B** (institutional-style).
+**Not a PDF** (blog post, X thread): print it to PDF where you can and treat it as a paper. Otherwise save the text as `papers/text/<filename>.md` and use a `- **Text extraction:**` bullet in place of `File:` in Step 3; the tool classifies the entry as text-only.
 
-For borderline cases, exercise judgment and flag the call to the user in the conversation. Common borderline cases:
+## Step 2: Extract text
 
-- Multilateral working papers that have abstracts and methods sections but lean heavily on policy framing — usually Protocol A.
-- Institutional monographs with chapter-level empirical work — usually Protocol B at the document level (the value is the synthesis); if a chapter is heavily reused on its own, consider creating a separate Protocol A summary for that chapter and cross-linking.
-- Country case studies with descriptive but not causal analysis — usually Protocol B.
-- IDB Discussion Papers, Technical Notes, and Working Papers — most have research-paper structure and are Protocol A; monographs and synthesis pieces are Protocol B. Triage on structure, not on the publisher.
-- Reports without named individual authors (e.g., OECD secretariat reports, UN agency reports) are unambiguously Protocol B.
-- Reports with named authors but commissioned by an institution (e.g., "Prepared by Smith and Jones for the G20") — the cover usually names the institution as the publisher and the individuals as the production team. Treat as Protocol B.
+```bash
+pdftotext papers/<filename>.pdf papers/text/<filename>.txt
+# or, without pdftotext:
+python3 -m pymupdf convert -output papers/text/<filename>.txt papers/<filename>.pdf
+```
 
-The pipeline shape is identical across protocols. What differs:
+If neither works, read the PDF directly and write the text yourself. Check the first ~20 lines aren't garbled.
 
-| Step | Protocol A | Protocol B |
-|---|---|---|
-| Filename | `paper_naming.academic_format` | `paper_naming.institutional_format` |
-| Summary section (a) | Thesis, research question, contribution | Purpose, commissioning context, position |
-| Summary section (b) | Data, sample, identification, effect sizes | Document type, frameworks/databases, headline findings, policy framework |
-| Summary section (d) | Standard "relevance" framing | Same plus "what position does this represent" + cross-references |
-| BibTeX entry type | `@article` / `@unpublished` | `@techreport` / `@book` / `@inbook` |
+<system-reminder>Always extract, even when the current task doesn't need the text — `check` fails on a PDF with no extraction, and future sessions can't search the paper without it.</system-reminder>
 
-For **legislation, government regulatory documents, terms of reference, and consultant deliverables**, route to `document-processing` instead — not the paper-processing skills.
+## Step 3: Write the entry
 
-**Dispatch:**
+### Slug rules
 
-- **Protocol A → academic** → Read `{{skills_dir}}/paper-processing-academic/SKILL.md` and follow it from Step 1 onward. Step 0 (this skill) is already complete.
-- **Protocol B → institutional** → Read `{{skills_dir}}/paper-processing-institutional/SKILL.md` and follow it from Step 1 onward. Step 0 (this skill) is already complete.
-- **Non-paper document** (legislation, regulatory docs, ToRs, consultant deliverables) → use `document-processing` (currently deferred per Plan 02 Wave 5; if you hit this branch, fall back to manual handling and surface to the user).
+The slug is the entry's `### ` heading and the key everything generated hangs off.
+
+1. **Format:** kebab-case, lowercase, `[a-z0-9-]+` (`sleeper-agents`, `emergent-misalignment`).
+2. **Uniqueness (mandatory):** `grep -n '^### <slug>$' PAPER_SUMMARIES.md` must print nothing.
+3. **Source of the name:** the paper's common name; if none, `<authorlast>-<yearsuffix>-<topic>` (`hubinger-24-sleepers`). Not the filename.
+4. **Stable after commit.** Other entries' `Related` bullets point at it; see Common Mistakes before renaming.
+5. **On removal:** delete the entry, run Step 4. The rows go with it.
+
+### The entry
+
+Read the paper from `papers/text/`. Put the entry in the `## ` section where it belongs (create one if needed), closed by a `---` line like its neighbours:
+
+```markdown
+### <slug>
+
+**Title:** <Paper title> (<Authors>, <Year> — <Org>)
+
+- **Authors:** Names (Affiliations)
+- **Date:** Month Year
+- **File:** `<filename>.pdf`
+- **Source:** <URL or DOI>
+- **Focus:** <2–5 words, in the vocabulary the repo's Focus column already uses>
+- **One-liner:** <≤50-word thesis with the one number that carries it>
+- **Related:** `slug-a`, `slug-b`
+- **Summarized:** <model name>, YYYY-MM-DD
+
+**Summary:** 2–3 sentences on the core contribution and approach.
+
+**Key findings:**
+- Finding with its number and context — what was measured, on what, against what baseline
+- Range estimate where the paper gives one
+
+**Relevance:** 1–2 sentences on why this paper matters for this collection.
+
+---
+```
+
+- The Title parenthetical is what the tool turns into the index's Paper cell. If it can't take the `(<Authors>, <Year> — <Org>)` shape, add `- **Index label:** Surname (Org) (Year)` after the One-liner — only then.
+- `Related` names only slugs that exist in this file; omit the bullet if there are none.
+- Write the One-liner last, from the entry, per the `condense-summary` skill. Empirical papers need at least one number in Key findings.
+- `Summarized:` is the model that wrote the summary (a subagent's own model when it writes) and the date. Re-summarizing replaces it.
+- Institutional reports (no abstract, no research question, synthesis rather than new estimates): if your profile has `paper-processing-institutional`, follow its fuller (a)–(d) body and extraction rules; the header above still applies.
+
+## Step 4: Generate and check
+
+```bash
+python3 {{skills_dir}}/paper-index/paper_index.py index .
+python3 {{skills_dir}}/paper-index/paper_index.py check .
+```
+
+Never hand-edit between `GENERATED` markers. Fix what `check` reports in the entry, then run `index` again.
+
+## Step 5: Stage
+
+```bash
+git add papers/<filename>.pdf papers/text/<filename>.txt PAPER_SUMMARIES.md PAPER_INDEX.md PAPER_RELATED.md
+```
+
+Do NOT commit — the user may be adding several papers or want to review first. The repo's pre-commit hook re-runs the check.
+
+# Adding Several Papers
+
+For 1–3 papers, take each through Steps 1–3 in turn, then run Step 4 once. For 4 or more, use fragments: parallel agents must never write PAPER_SUMMARIES.md, because concurrent writes clobber each other.
+
+1. **One subagent per paper.** It obtains the source, extracts text, reads it, and writes the complete entry to `<slug>.summary.md` in a gitignored scratch dir (e.g. `data/summaries-frag/`). Give each agent this skill's Step 3 and one existing entry as a style reference; have it check its slug against PAPER_SUMMARIES.md.
+2. **The orchestrator inserts serially.** One pass, Edit tool, each fragment into its section, rejecting duplicate slugs. (`paper-index`'s `fanout_apply.py` replaces existing entries only — it is for condense waves, not new papers.)
+3. **Index once.** Run Step 4.
+4. **Verify hunks before staging.** Confirm every hunk in the shared files is yours — other sessions may edit them too — and stage by name (a filtered `git apply --cached` patch if needed).
+5. **Fragments are scratch.** Leave them for re-runs; never stage them.
 
 # Common Mistakes
 
-**Forgetting Step 0 triage**
-- Problem: Skipping triage routes the document through the wrong protocol — wrong filename convention, wrong section emphasis in the summary, wrong BibTeX entry type.
-- Fix: Always start with Step 0. If borderline, flag the call to the user before proceeding rather than silently picking a branch.
+**Writing from the abstract only.** Abstracts omit the numbers, edge cases and limitations; read the results and check tables and figures.
 
-**Trying to do the full workflow in `add-paper`**
-- Problem: After Step 0, the agent ignores the Dispatch instruction and tries to execute Steps 1-6 from this file. Those steps no longer live here — they're in the per-protocol skills.
-- Fix: After Step 0, read and follow the routed per-protocol skill (`paper-processing-academic` or `paper-processing-institutional`). This skill is intentionally thin; the real work is in the routed file.
+**Numbers without context.** "The model achieved 0.73" means nothing without the metric, dataset and baseline.
 
-**Reading config keys from the wrong file**
-- Problem: Schema is split per Tier C — user-level `paper_naming.*` lives in `personal_info.md`; per-project `PROJECT_QUESTION` / `CONDITIONAL_SECTION` / `BIB_FILE` / `PAPERS_INDEX` / `paper_summaries.structure` live in `STATUS.md` `## Project parameters`. The per-protocol skills each point back to this Scope section rather than duplicating the schema.
-- Fix: Read user-level keys from `personal_info.md`; read per-project keys from the research repo's `STATUS.md`.
+**Hand-editing a generated block.** The next `index` overwrites it and `check` fails until then. Edit the entry; run `index`.
+
+**Renaming a slug after commit.** `grep -rn "<old-slug>" .`, update every `Related` bullet that names it in the same commit, then run Step 4.

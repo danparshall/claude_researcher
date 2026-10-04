@@ -1,11 +1,24 @@
 {
   "nori_version": "1.0.28",
   "skills": {
+    "add-paper": {
+      "SKILL.md": "36a428635dd61992c54c6d31e174147f558f10d9661e115d538b1dfb8eb85f26"
+    },
+    "add-to-reading-list": {
+      "SKILL.md": "4b6759b66d570acb91e54b0a80d2a7c6d40b512498cfcc5cc4393f4f55a73e6d"
+    },
     "audit-docs": {
       "SKILL.md": "e557458bbad80fba611115a9d1b549a378373c3d3ca2d6f033929901debb9983"
     },
+    "audit-papers": {
+      "SKILL.md": "972df78d0d6ee73bd895c5f20d7700980bd8962b09a33700ac640f9966da5d05"
+    },
     "brainstorming": {
       "SKILL.md": "6fc284f830bc66e024e5074e2499314f77d5d9a5c5b4bd3187fa588cae322f6d"
+    },
+    "condense-summary": {
+      "SKILL.md": "7b7e08b468f593446432c4626fd3a4166c2559af6d13e0bfebd5725b04ebbb86",
+      "condense_check.py": "4ba1aaf0e8e769e91257cbcd7cbcfc91ff72be55a28f329b2fb21738b31cbe95"
     },
     "creating-debug-tests-and-iterating": {
       "SKILL.md": "617eac405ed7f321239dfc99a1ab037557674f1fe4596cae22a15da46f324576"
@@ -19,6 +32,12 @@
     },
     "handle-large-tasks": {
       "SKILL.md": "19114eee4d6c4c0a68bd758a23c99ed3ea12620d9893fd31343a4d70be43647b"
+    },
+    "init-paper-collection": {
+      "SKILL.md": "9ab62b107fbd003f522c344bf1497f352895c53e1ffd96f678317fc958bd5932",
+      "templates/PAPER_INDEX.md.tmpl": "0c8efa4bc9f11564cefa21b1045c8bc33ef34fdf1907557922dc9c1df3b68c84",
+      "templates/PAPER_SUMMARIES.md.tmpl": "5171ca019bad1e48c226472d54a6af9ac876d1ade15a879e5b9601135b479bae",
+      "templates/paper_index.toml.tmpl": "f46431fac55359533dc91a800ca25994fedd2e08e2105b700aec993cfc7da4b1"
     },
     "init-research-repo": {
       "SKILL.md": "299bc5f572dc41c448df02d3dac1ec7882ed19505816993b5fc90b82ed7dc39e",
@@ -39,6 +58,9 @@
     },
     "receiving-code-review": {
       "SKILL.md": "dacf1cdde565614c16681a673a99bef3365625e2cd0efa5e82819bdef6ca85db"
+    },
+    "review-reading-list": {
+      "SKILL.md": "7be363806bb07c87e3c1772187b78c61fc652dc769666d486d1bbaa31a97eff9"
     },
     "root-cause-tracing": {
       "SKILL.md": "6c2a28cfcec6fe8a24a4e23dbe3a20a93f6c7e9d4ee437d9981fc7b19a4d9bc7"
@@ -68,5 +90,5 @@
       "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
     }
   },
-  "source_sha": "d43b5d3aa9645866cb81e677460c8d36ead76225"
+  "source_sha": "a6bdeb3821aeb1fdef1dfbfed1283f6a993650a8"
 }
