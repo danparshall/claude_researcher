@@ -42,7 +42,7 @@ Skills are grouped by lifecycle role.
 
 ### init-research-repo
 
-- **Trigger:** during bootstrap only — not normally invoked at runtime. Used by `BOOTSTRAP.md` Step 9 to seed a fresh research repo. Scaffolds `docs/active/`, `docs/historical/`, `data/{raw,interim,processed,reference}/` with a README, a sensible `.gitignore` (Python + Cookiecutter-DS data pattern), and STATUS.md's Project parameters + Active/Archived Research Lines + Recent Sessions sections.
+- **Trigger:** an existing repo (or one created outside bootstrap) needs the research doc structure — not normally invoked at runtime. `BOOTSTRAP.md` Step 7 seeds new repos with its own inline files and does not call this skill. Scaffolds `docs/active/`, `docs/historical/`, `data/{raw,interim,processed,reference}/` with a README, a sensible `.gitignore` (Python + Cookiecutter-DS data pattern), STATUS.md's Project parameters + Active/Archived Research Lines sections, an empty HISTORY.md, and README.md if absent. Seed files live in its `templates/`. For a repo that will hold papers it hands off to `init-paper-collection` (not yet in this profile — arrives with the paper-cluster export).
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/init-research-repo/SKILL.md`
 
 ### init-code-scaffold
