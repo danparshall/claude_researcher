@@ -505,7 +505,7 @@ When writing experiment collection scripts:
 
 ### Bootstrap only
 
-- **`init-research-repo`** — used by `BOOTSTRAP.md` to seed a fresh research repo; not normally invoked at runtime.
+- **`init-research-repo`** — sets up the research doc structure in an existing repo (`BOOTSTRAP.md` seeds new repos itself); not normally invoked at runtime.
 
 ---
 
