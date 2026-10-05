@@ -45,7 +45,7 @@ An entry is `### <slug>` (kebab-case, stable once merged), then `**Title:** <tit
 - **File:** `<name>.pdf`            # or **Files:** + indented sub-bullets; or **Text extraction:** `papers/text/<name>.md` for web captures
 - **Source:** ...
 - **Focus:** 2-5 words
-- **One-liner:** ≤50-word thesis with the number that carries it (warn >50, fail >60)
+- **One-liner:** ≤50-word thesis with the number that carries it, if any (warn >50, fail >60)
 - **Related:** `slug-a`, `slug-b`   # only slugs that exist in this repo
 - **Index label:** Surname (Org) (Year)   # ONLY when the Title parenthetical does not parse
 - **Summarized:** YYYY-MM-DD

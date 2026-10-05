@@ -2,7 +2,7 @@
   "nori_version": "1.0.28",
   "skills": {
     "add-paper": {
-      "SKILL.md": "36a428635dd61992c54c6d31e174147f558f10d9661e115d538b1dfb8eb85f26"
+      "SKILL.md": "9cfe528a14b884214fc0dfa3b0f806b1bcb9ab64c532ab52bfbd6dd6a8645a10"
     },
     "add-to-reading-list": {
       "SKILL.md": "4b6759b66d570acb91e54b0a80d2a7c6d40b512498cfcc5cc4393f4f55a73e6d"
@@ -17,7 +17,7 @@
       "SKILL.md": "6fc284f830bc66e024e5074e2499314f77d5d9a5c5b4bd3187fa588cae322f6d"
     },
     "condense-summary": {
-      "SKILL.md": "7b7e08b468f593446432c4626fd3a4166c2559af6d13e0bfebd5725b04ebbb86",
+      "SKILL.md": "64bbe9c4543e5ebec60ec789f6bfc90a8e8f4affb2b0309855d6d25811d2b084",
       "condense_check.py": "4ba1aaf0e8e769e91257cbcd7cbcfc91ff72be55a28f329b2fb21738b31cbe95"
     },
     "creating-debug-tests-and-iterating": {
@@ -48,7 +48,7 @@
       "templates/status_seed.md.tmpl": "0cd5e73f09f55b605aaba77a81faca19713b343d449b143f43f9c04647ad9df1"
     },
     "paper-index": {
-      "SKILL.md": "d801f9ee863eb0e6dbd8198c92ebf8c339ef86276a0cc70323035aa998dd767e",
+      "SKILL.md": "f856c299afa8a8789ae9afd131781ff052622969cb5f29d55cd5f01963e36bbe",
       "count_papers.py": "05d5339883c92bc38e8515e8234e4917fe0b7b372e18ca7e65c8b67a51a33c63",
       "fanout_apply.py": "cb6a7cb1f9959335eaa639e3e6037caac75fe5241cf74024de3724dbc84c95b5",
       "fanout_make_prompts.py": "75133b2fae0199d2240fc6179c003cc1972857a65575fbbb03339491e808c40f",
@@ -90,5 +90,5 @@
       "SKILL.md": "e74558c9775fbc33539af967cfb94fba4c6bf7fcd8fdad0f82602398a03a0662"
     }
   },
-  "source_sha": "a6bdeb3821aeb1fdef1dfbfed1283f6a993650a8"
+  "source_sha": "c9ed151b8cf52145b557850fc6b5c0b9edfd1afc"
 }

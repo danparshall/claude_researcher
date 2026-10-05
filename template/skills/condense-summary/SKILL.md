@@ -50,7 +50,7 @@ Add two bullets to the entry's metadata list, directly after the File / Files / 
 - **One-liner:** Verifying that no 10^25-FLOP run occurs anywhere within 30 days at 90% confidence needs ~232 inspectors — IAEA scale — via on-chip weight snapshots, proof-of-training transcripts, and chip tracking.
 ```
 
-Focus: 2–5 words naming the topic, in the vocabulary the repo's existing Focus column already uses. One-liner: ≤50 words, a thesis (the claim), with the single number that carries it; no hedging clauses, no "this paper examines", no second sentence of caveats. Count with the script (Step 6), not by eye. If the field already exists and is over 50 words, rewrite it; over 60 is a hard fail.
+Focus: 2–5 words naming the topic, in the vocabulary the repo's existing Focus column already uses. One-liner: ≤50 words, a thesis (the claim), with the number that carries it if the paper has one (pure theory with only illustrative parameters has none — do not quote those); no hedging clauses, no "this paper examines", no second sentence of caveats. Count with the script (Step 6), not by eye. If the field already exists and is over 50 words, rewrite it; over 60 is a hard fail.
 
 The index row's Paper column (authors, org, year) is derived from the trailing parenthetical of the `**Title:**` line, e.g. `(Shavit — OpenAI, 2023)`. If the Title has no such parenthetical and you are not going to add one, write `- **Index label:** Shavit (OpenAI) (2023)` after the One-liner bullet. Only then — do not add Index label to entries whose Title already parses.
 
