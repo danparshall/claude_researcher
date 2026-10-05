@@ -186,16 +186,30 @@ If `User display name` isn't set in `personal_info.md` (older schema, or the use
 **Install the auto-push post-commit hook.** The sandbox is ephemeral (§5.6); the §5 "Push early and often" rule shouldn't rely on agent memory. Install a hook that pushes after every commit automatically:
 
 ```bash
-if [ -f /home/claude/.claude_researcher_template/template/hooks/post-commit ]; then
-    cp /home/claude/.claude_researcher_template/template/hooks/post-commit .git/hooks/post-commit
+# Git reads hooks from core.hooksPath when it is set (paper-collection repos set
+# it to .githooks for the paper-index pre-commit check) — .git/hooks is then ignored.
+HOOKS_DIR=$(git rev-parse --git-path hooks)
+HOOK="$HOOKS_DIR/post-commit"
+if git ls-files --error-unmatch "$HOOK" >/dev/null 2>&1; then
+    echo "WARNING: $HOOK is tracked by this repo — not overwriting; push after each commit by hand."
 else
-    # §2.0a fell back to WebFetch — template not locally available. Inline the script.
-    printf '#!/bin/sh\ngit push -u origin HEAD 2>&1\n' > .git/hooks/post-commit
+    mkdir -p "$HOOKS_DIR"
+    if [ -f /home/claude/.claude_researcher_template/template/hooks/post-commit ]; then
+        cp /home/claude/.claude_researcher_template/template/hooks/post-commit "$HOOK"
+    else
+        # §2.0a fell back to WebFetch — template not locally available. Inline the script.
+        printf '#!/bin/sh\ngit push -u origin HEAD 2>&1\n' > "$HOOK"
+    fi
+    chmod +x "$HOOK"
+    # Inside the worktree (e.g. .githooks/): keep it out of commits via the clone-local exclude.
+    case "$HOOKS_DIR" in
+        .git/*|/*) ;;
+        *) grep -qxF "/$HOOK" .git/info/exclude 2>/dev/null || echo "/$HOOK" >> .git/info/exclude ;;
+    esac
 fi
-chmod +x .git/hooks/post-commit
 ```
 
-The hook is sandbox-local — `.git/hooks/` isn't versioned, so it re-installs each session. The tracked source at `template/hooks/post-commit` carries the full rationale + failure-handling notes; read it once if you want the details.
+The hook is sandbox-local — `.git/hooks/` isn't versioned and the `.githooks/` copy is excluded, so it re-installs each session. The tracked source at `template/hooks/post-commit` carries the full rationale + failure-handling notes; read it once if you want the details.
 
 **Failure handling.** The hook runs `git push -u origin HEAD 2>&1` — loud stderr, no retry, no force. If the push fails (network hiccup, non-fast-forward from a concurrent agent, branch protection on `main`), the commit is already local; the hook's exit code does NOT undo it. **Read the commit output tail every time.** Do not assume "committed = safe" — surface any push failure to the user.
 
