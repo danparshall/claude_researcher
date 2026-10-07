@@ -47,7 +47,7 @@ From reading, not run here:
 
 Later in the session, PR creation through the proxy worked (PR #73, opened over REST; view and check-runs calls also returned 200).
 
-Not tested: merging a PR; closing or commenting on an issue; deleting a branch.
+Not tested: closing or commenting on an issue; deleting a branch. (Merging a PR was tested at the end of the session; see Pull Request below.)
 
 ## Decisions Made
 
@@ -68,7 +68,7 @@ Not tested: merging a PR; closing or commenting on an issue; deleting a branch.
 ## Open Questions
 
 - **Rollout:** are all template users on the proxy sandbox, or only some? This decides when the token path can be retired.
-- **PR merge through the proxy** is untested. PR #73 (this branch) will be the first test, when Dan says merge.
+- ~~PR merge through the proxy is untested.~~ Resolved: PR #73 merged over REST from the proxy sandbox.
 - **`BOOTSTRAP.md` and `_PROJECT_INSTRUCTIONS.md.template`** still describe PAT setup only. A change to `BOOTSTRAP.md` also needs the README pin moved.
 - **Skills exported from dotfiles** carry sandbox notes that assume the PAT and omit the JSON content type on writes (`finishing-a-research-branch`). The fix belongs in the dotfiles source, then a re-export.
 - **`github-mcp-migration`:** the proxy does what the token dispenser (plan 13) was designed to do, without a token entering the chat. If that holds, the branch can be closed out as superseded.
@@ -89,4 +89,4 @@ Not tested: merging a PR; closing or commenting on an issue; deleting a branch.
 
 ## Pull Request
 
-- [#73: RESEARCHER.md: support the proxy sandbox (token-free GitHub access) alongside the token sandbox](https://github.com/danparshall/claude_researcher/pull/73) — open, not merged
+- [#73: RESEARCHER.md: support the proxy sandbox (token-free GitHub access) alongside the token sandbox](https://github.com/danparshall/claude_researcher/pull/73) — merged 2026-10-07 on Dan's go-ahead, real merge commit `079c0ab`, done over REST from the proxy sandbox (`PUT …/pulls/73/merge`)

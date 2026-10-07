@@ -303,7 +303,7 @@ What the replies mean:
 | `gh pr checks` | `GET /repos/{owner}/{repo}/commits/<sha>/check-runs` |
 | `gh pr merge <N>` | `PUT /repos/{owner}/{repo}/pulls/<N>/merge` with `{"merge_method"}` |
 
-Issue listing, creation and editing, the label lookup, the search refusal, and PR create, view and checks were exercised on the proxy sandbox on 2026-10-07. The comment, close, label-create and PR-merge rows are the standard REST calls but had not yet been run there when this was written.
+Issue listing, creation and editing, the label lookup, the search refusal, and PR create, view, checks and merge were exercised on the proxy sandbox on 2026-10-07. The comment, close and label-create rows are the standard REST calls but had not yet been run there when this was written.
 
 - **The proxy rejects branch deletions and tag pushes** (per Anthropic's cloud-environment docs; not exercised here). If a step calls for deleting a remote branch, ask the user to do it.
 
