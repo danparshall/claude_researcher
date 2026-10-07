@@ -45,7 +45,9 @@ From reading, not run here:
 - An issue thread (anthropics/claude-code#76248) reports an Anthropic engineer calling the block on pasted credentials "intended behavior". Read through a page summary, not first-hand.
 - Reports from 2026-09-22 to 09-25 describe chat-Project sessions with no add-repository tool at all. This session had one, so it may have shipped since; the rollout state for other users is unknown.
 
-Not tested: creating or merging a PR; closing or commenting on an issue; deleting a branch.
+Later in the session, PR creation through the proxy worked (PR #73, opened over REST; view and check-runs calls also returned 200).
+
+Not tested: merging a PR; closing or commenting on an issue; deleting a branch.
 
 ## Decisions Made
 
@@ -66,7 +68,7 @@ Not tested: creating or merging a PR; closing or commenting on an issue; deletin
 ## Open Questions
 
 - **Rollout:** are all template users on the proxy sandbox, or only some? This decides when the token path can be retired.
-- **PR create and merge through the proxy** are untested. This branch's own PR will be the first test.
+- **PR merge through the proxy** is untested. PR #73 (this branch) will be the first test, when Dan says merge.
 - **`BOOTSTRAP.md` and `_PROJECT_INSTRUCTIONS.md.template`** still describe PAT setup only. A change to `BOOTSTRAP.md` also needs the README pin moved.
 - **Skills exported from dotfiles** carry sandbox notes that assume the PAT and omit the JSON content type on writes (`finishing-a-research-branch`). The fix belongs in the dotfiles source, then a re-export.
 - **`github-mcp-migration`:** the proxy does what the token dispenser (plan 13) was designed to do, without a token entering the chat. If that holds, the branch can be closed out as superseded.
@@ -77,9 +79,14 @@ Not tested: creating or merging a PR; closing or commenting on an issue; deletin
 - **Old `IS_SANDBOX` value** on the token sandbox could not be re-checked from here; the template's `yes` test was left as it was.
 - **Review findings left open:**
   - The surface check tells the proxy sandbox from the CLI only by `/mnt/skills/public`. The proxy sandbox also sets `CLAUDE_CODE_REMOTE=true`, which could serve as a second test, but it is unknown what other cloud surfaces set it, so it was not added.
-  - The trailer rule lives in an upstream template file. The sandbox's instruction defers to "the user's own instructions"; a careful agent might not count a fetched template as that and keep `Co-Authored-By`. Putting the preference in `personal_info.md` as well would remove the doubt.
+  - The trailer rule lives in an upstream template file. The sandbox's instruction defers to "the user's own instructions"; a careful agent might not count a fetched template as that and keep `Co-Authored-By`. Putting the preference in `personal_info.md` as well would remove the doubt. Dan chose to wait and measure: #74 checks a week of web-session commits.
   - `_PROJECT_INSTRUCTIONS.md.template` says to stop on "missing values", which is read before `RESEARCHER.md` excuses a missing `TOKEN`. It only matters once someone removes the token from their Project Instructions; fix with the rest of that template.
 
 ## Captured Tasks
 
 - [#72: Migrate web workflow to the new sandbox's token-free GitHub access](https://github.com/danparshall/claude_researcher/issues/72) — captured 2026-10-07
+- [#74: [2026-10-14] Check whether web-session commits still carry Co-Authored-By](https://github.com/danparshall/claude_researcher/issues/74) — captured 2026-10-07
+
+## Pull Request
+
+- [#73: RESEARCHER.md: support the proxy sandbox (token-free GitHub access) alongside the token sandbox](https://github.com/danparshall/claude_researcher/pull/73) — open, not merged
