@@ -35,6 +35,7 @@ Verified by running it in this session:
 - **REST writes need `Content-Type: application/json`**; without it the proxy returns 415.
 - **GraphQL is blocked.** `gh issue list`, `gh issue create`, `gh issue edit`, `gh pr list`, `gh label list`, `gh repo view` all fail; `gh api <REST path>` works.
 - **Commits show as "Unverified" on GitHub** (`reason: unknown_key`): the sandbox signs with its own key.
+- **The search API is refused outright**, even scoped to one approved repo ("sessions are bound to their configured repositories"). `task-triage`'s cross-repo search has no equivalent there; it can only list issues repo by repo for approved repos.
 - **Environment markers observed:** `IS_SANDBOX=1` (the template checked for `yes`), `CLAUDECODE=1`, `GITHUB_TOKEN=proxy-injected`, `/mnt/skills/public` present. The old surface check passed only through the `/mnt/skills/public` test.
 - **Connecting GitHub mid-chat was picked up by the same chat.** The connection is tied to the Claude account; Dan did the linking from a different browser profile than the one running the chat.
 
@@ -60,6 +61,7 @@ Not tested: creating or merging a PR; closing or commenting on an issue; deletin
 - `d063b6b` — `template/RESEARCHER.md`: surface check, token-free clone, new section on proxy-sandbox GitHub access (setup, per-session approval, REST rules, `gh` → REST table), trailer rule, notes on the `personal_info.md` fetch and the reminder check
 - `4b2177c` — `template/skills/resolve-runtime-issue/SKILL.md` and `SKILL_INDEX.md`: four proxy-sandbox recovery entries
 - Each new command block in `RESEARCHER.md` was run as written in the proxy sandbox; the surface check was also run with the token-sandbox and CLI conditions simulated.
+- A second agent that had not seen the work read the edited files cold and reported 13 findings. Ten were fixed in a follow-up commit: the no-add-repository-tool fallback contradicted the "REST is blocked" finding; the Contents API fallback was offered where it cannot work; the `gh` → REST table was fenced off from token-sandbox agents who need it too; the shallow-clone deepening command would have left line branches unreachable; the label check could miss past 30 labels; `task-triage`'s search had no entry; and four smaller wording gaps. Three were left open (below).
 
 ## Open Questions
 
@@ -73,6 +75,10 @@ Not tested: creating or merging a PR; closing or commenting on an issue; deletin
 - **The old PAT** is now unused on the proxy sandbox. It still sits in the instructions of about ten Projects; revoke once none of them run on the token sandbox.
 - **Leftover:** branch `sandbox-push-probe-20261007T0753` on origin is a throwaway from the push test. The sandbox reportedly cannot delete branches, so it needs deleting by hand.
 - **Old `IS_SANDBOX` value** on the token sandbox could not be re-checked from here; the template's `yes` test was left as it was.
+- **Review findings left open:**
+  - The surface check tells the proxy sandbox from the CLI only by `/mnt/skills/public`. The proxy sandbox also sets `CLAUDE_CODE_REMOTE=true`, which could serve as a second test, but it is unknown what other cloud surfaces set it, so it was not added.
+  - The trailer rule lives in an upstream template file. The sandbox's instruction defers to "the user's own instructions"; a careful agent might not count a fetched template as that and keep `Co-Authored-By`. Putting the preference in `personal_info.md` as well would remove the doubt.
+  - `_PROJECT_INSTRUCTIONS.md.template` says to stop on "missing values", which is read before `RESEARCHER.md` excuses a missing `TOKEN`. It only matters once someone removes the token from their Project Instructions; fix with the rest of that template.
 
 ## Captured Tasks
 

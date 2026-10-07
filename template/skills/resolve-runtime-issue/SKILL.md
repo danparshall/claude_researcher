@@ -20,7 +20,7 @@ Symptom: `curl` returns 401/403 against `api.github.com`, or `git clone` / `git 
 
 Recovery: re-bootstrap RESEARCHER.md §2b — the user rotates the PAT and re-pastes Project Instructions. Most common cause of session-start failure.
 
-**Token sandbox only.** On the proxy sandbox (RESEARCHER.md §2.0a tells you which you are on) a 403 is almost never the PAT, and rotating it fixes nothing. Check the four proxy-sandbox entries below first.
+**Token sandbox only.** On the proxy sandbox (RESEARCHER.md §2.0a tells you which you are on) a 401, 403 or 404 is almost never the PAT, and rotating it fixes nothing. Check the four proxy-sandbox entries below first.
 
 ## Proxy sandbox: repo not approved for this session (403)
 
@@ -87,7 +87,7 @@ Recovery: don't push to `main`. Open a PR via the Pulls API (see `finishing-a-re
 
 Symptom: RESEARCHER.md §2.0b clone errors out.
 
-Recovery: surface to user. On the token sandbox, most likely PAT expiry (see above), second most likely a `<REPO>` mismatch in Project Instructions. On the proxy sandbox, most likely a private repo that is not yet approved for the session (see the proxy-sandbox entries above). As a **degraded fallback**, operate against the Contents API per-file using the legacy recipes still documented at RESEARCHER.md §2c, §3, and inside `finishing-a-research-branch`. Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
+Recovery: surface to user. On the token sandbox, most likely PAT expiry (see above), second most likely a `<REPO>` mismatch in Project Instructions. On the proxy sandbox, most likely a private repo that is not yet approved for the session (see the proxy-sandbox entries above); fix that first, because the Contents API fallback is refused for an unapproved repo too. As a **degraded fallback**, operate against the Contents API per-file using the legacy recipes still documented at RESEARCHER.md §2c, §3, and inside `finishing-a-research-branch`. Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
 
 ## Sandbox state lost between turns / `/home/claude/${REPO}/` gone
 

@@ -245,16 +245,16 @@ The hook is sandbox-local — `.git/hooks/` isn't versioned and the `.githooks/`
 **Failure handling.** The hook runs `git push -u origin HEAD 2>&1` — loud stderr, no retry, no force. If the push fails (network hiccup, non-fast-forward from a concurrent agent, branch protection on `main`), the commit is already local; the hook's exit code does NOT undo it. **Read the commit output tail every time.** Do not assume "committed = safe" — surface any push failure to the user.
 
 - **Not shallow** — `git log` / `git diff` lookups during a session (resumption, audit-docs, finish-convo) need full history.
-- **PAT hygiene (token sandbox).** The PAT lands in `.git/config`. Sandbox-local and resets per session — not a new exposure — **but do not echo URLs that include the token, do not paste `.git/config` contents back, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** If ever uncertain, ask before any operation that would print the remote URL.
+- **PAT hygiene (whenever a PAT is in the clone URL).** The PAT lands in `.git/config`. Sandbox-local and resets per session — not a new exposure — **but do not echo URLs that include the token, do not paste `.git/config` contents back, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** If ever uncertain, ask before any operation that would print the remote URL.
 - **Working directory.** `/home/claude/${REPO}/` is conventional; `cd` back if a sub-command leaves you elsewhere.
 
-**Fallback if the clone fails.** On the token sandbox, most likely PAT expiry or `<REPO>` mismatch. On the proxy sandbox, most likely the repo is not approved for this session, or the user's one-time setup is incomplete (§2.0c). Either way see `resolve-runtime-issue`. Degraded fallback operates against the Contents API per-file.
+**Fallback if the clone fails.** On the token sandbox, most likely PAT expiry or `<REPO>` mismatch. On the proxy sandbox, most likely the repo is not approved for this session, or the user's one-time setup is incomplete (§2.0c). Either way see `resolve-runtime-issue`. Degraded fallback operates against the Contents API per-file — on the proxy sandbox that only helps once the repo is approved, because an unapproved repo is refused over REST too.
 
 **Mid-session refresh.** If the user pushed from elsewhere, `git pull --ff-only` from inside `/home/claude/${REPO}/`. If rejected (divergent branches), surface — don't auto-rebase.
 
 ### 2.0c — GitHub access on the proxy sandbox
 
-Skip this section on the token sandbox.
+On the token sandbox, skip this section except the `gh` → REST table below. The token sandbox has no working `gh` either, so the same translations apply there, sent with the PAT header.
 
 On the proxy sandbox, Anthropic's GitHub proxy sits between the sandbox and GitHub. It attaches the user's GitHub credential to git and REST traffic, but only for repos approved for this session. A PAT in the clone URL does not get a push through, and the proxy replaces any `Authorization` header you send. Anthropic describes blocking pasted credentials as intended, so do not look for a way around it.
 
@@ -263,24 +263,24 @@ On the proxy sandbox, Anthropic's GitHub proxy sits between the sandbox and GitH
 1. **Connect GitHub to the Claude account:** claude.ai Settings → Connectors → GitHub.
 2. **Install the Claude GitHub App** on the GitHub account that owns the repos, at `https://github.com/apps/claude/installations/new`. Choose "Only select repositories" and pick the project repo(s), `claude_research_config`, and the home repo if the task skills are used. Connecting alone is not enough: a connected account with no installation can read but not push.
 
-**Per-session approval.** Ask for each repo with the session's add-repository tool (`add_repo`; if it is not in your tool list, search your deferred tools for it). Each request shows the user an approval box, so batch them: ask for the first two together before §2.0b, and the home repo straight after §2b tells you which repo it is.
+**Per-session approval.** Ask for each repo with the session's add-repository tool (`add_repo`; if it is not in your tool list, search your deferred tools for it). Each request shows the user an approval box, so batch them: make the first two requests in the same turn before §2.0b (the tool takes one repo per call), and the home-repo request straight after §2b tells you which repo it is.
 
 | Repo | Access to request | Used for |
 | --- | --- | --- |
 | `${USERNAME}/${REPO}` | push | clone, commit, push, Issues and Pulls |
 | `${USERNAME}/claude_research_config` | read | `personal_info.md` (§2b) |
-| home repo, if different from `${REPO}` | read | `task-remind` (§2d.5). Ask again with push when `task-create`, or a close or snooze, needs to write there. |
+| home repo, if it is neither of the two above | read | `task-remind` (§2d.5). Ask again with push when `task-create`, or a close or snooze, needs to write there. |
 
 The tool's reply carries its own instructions (clone now, shallow, then register the clone). Follow them, with two differences:
 
-- **Clone the project repo in full,** per §2.0b — resumption, `audit-docs` and `finish-convo` need history. Give the command a generous timeout (about 10 minutes). If a large repo will not finish, fall back to the shallow clone the tool suggests and deepen it with `git fetch --depth=1000 origin <branch>`.
+- **Clone the project repo in full,** per §2.0b — resumption, `audit-docs` and `finish-convo` need history. Give the command a generous timeout (about 10 minutes). If a large repo will not finish, fall back to the shallow clone the tool suggests, then fetch all branches with bounded history so §3 can check out a line's branch: `git remote set-branches origin '*' && git fetch --depth=1000 origin`.
 - **Do not clone the config or home repo.** §2b and the task skills read them over REST.
 
 What the replies mean:
 
 - **"link your GitHub account"** → setup step 1 is missing.
 - **"Claude doesn't have GitHub access to `<repo>`", or pushes "will be refused"** → setup step 2 is missing, or the installation does not include this repo. Reads still work.
-- **No add-repository tool at all** → surface it. The session can read (the token-sandbox clone recipe still works for reading if Project Instructions carry a PAT) but cannot push. Tell the user plainly that nothing written this session will reach GitHub.
+- **No add-repository tool at all** → surface it. Nothing written this session can reach GitHub, and REST is unavailable; tell the user both plainly. If Project Instructions carry a PAT, a read-only session is still possible, as the one exception to "leave the PAT out": clone the project repo with the token-sandbox recipe in §2.0b, and get `personal_info.md` by cloning `claude_research_config` the same way instead of the §2b REST call. The PAT hygiene rules in §2.0b apply. With no PAT either, stop.
 
 **REST on the proxy sandbox.**
 
@@ -292,17 +292,18 @@ What the replies mean:
 | --- | --- |
 | `gh api user --jq .login` | works as written |
 | `gh repo view --json nameWithOwner` | `${USERNAME}/${REPO}` from Project Instructions |
-| `gh issue list --label task --state open` | `GET /repos/{owner}/{repo}/issues?state=open&labels=task&per_page=100`, then drop entries that have a `pull_request` key |
+| `gh issue list --label task --state open` | `GET /repos/{owner}/{repo}/issues?state=open&labels=task&per_page=100`, then drop entries that have a `pull_request` key. If 100 come back, fetch `&page=2` and so on. |
+| `gh search issues --owner …` (`task-triage`) | No equivalent on the proxy sandbox: the search API is refused there ("sessions are bound to their configured repositories"). List issues repo by repo for the approved repos, and tell the user the cross-repo view is limited to those. |
 | `gh issue create` | `POST /repos/{owner}/{repo}/issues` with `{"title", "body", "labels"}` |
 | `gh issue edit <N> --title …` | `PATCH /repos/{owner}/{repo}/issues/<N>` with `{"title"}` |
 | `gh issue close <N> --comment …` | `POST …/issues/<N>/comments` with `{"body"}`, then `PATCH …/issues/<N>` with `{"state": "closed"}` |
-| `gh label list` / `gh label create` | `GET` / `POST /repos/{owner}/{repo}/labels` |
+| `gh label list … \| grep -qx task` / `gh label create` | `GET /repos/{owner}/{repo}/labels/task` (200 = exists, 404 = missing) / `POST /repos/{owner}/{repo}/labels` with `{"name", "description"}` |
 | `gh pr create` | `POST /repos/{owner}/{repo}/pulls` with `{"title", "head", "base", "body"}` |
 | `gh pr view <N>` | `GET /repos/{owner}/{repo}/pulls/<N>` |
 | `gh pr checks` | `GET /repos/{owner}/{repo}/commits/<sha>/check-runs` |
 | `gh pr merge <N>` | `PUT /repos/{owner}/{repo}/pulls/<N>/merge` with `{"merge_method"}` |
 
-Issue listing, creation and editing, and label listing, were exercised on this sandbox on 2026-10-07. The comment, close and Pulls rows are the standard REST calls but had not yet been run there when this was written.
+Issue listing, creation and editing, the label lookup, and the search refusal were exercised on the proxy sandbox on 2026-10-07. The comment, close, label-create and Pulls rows are the standard REST calls but had not yet been run there when this was written.
 
 - **The proxy rejects branch deletions and tag pushes** (per Anthropic's cloud-environment docs; not exercised here). If a step calls for deleting a remote branch, ask the user to do it.
 
@@ -338,9 +339,11 @@ curl -s -H "Authorization: token $TOKEN" \
 
 On the proxy sandbox the same command works once `claude_research_config` is approved for the session with read access (§2.0c); the `Authorization` header is ignored there and can be dropped.
 
+If the pipeline dies with a `KeyError`, GitHub or the proxy returned an error instead of the file. Re-run the `curl` on its own to read the message.
+
 Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `User display name`, `Git commit email`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks. `User display name` and `Git commit email` feed the git-identity construction in §2.0b — export them as `USER_DISPLAY_NAME` and `COMMIT_EMAIL` now if you haven't already run §2.0b's `git config` step.
 
-404 means the user's `claude_research_config` doesn't exist or the PAT lacks access — surface (`resolve-runtime-issue`). On the proxy sandbox, a 403 whose message mentions `add_repo` means the config repo is not yet approved for this session (§2.0c). Don't proceed without `personal_info.md`.
+404 means the user's `claude_research_config` doesn't exist or the PAT lacks access — surface (`resolve-runtime-issue`). On the proxy sandbox there is no PAT to blame: a 403 whose message mentions `add_repo` means the config repo is not yet approved for this session (§2.0c), and a 404 most likely means the repo does not exist under that name or the Claude GitHub App installation does not include it. Don't proceed without `personal_info.md`.
 
 ### 2c — Read `STATUS.md` (partial) and `README.md`
 
@@ -378,7 +381,7 @@ Read and follow `template/skills/task-remind/SKILL.md`. Once-per-session pre-fli
 
 No fired reminders → single line ("*No reminders pending*") and continue. Fired reminders → surface before the §2e first-message response so the user can decide whether to handle a reminder or proceed with the planned session.
 
-On the proxy sandbox, get the home repo approved first (read access) and use the `gh` → REST translations in §2.0c; the skill's `gh issue list` does not work there.
+On either web sandbox the skill's `gh` commands do not work as written; use the `gh` → REST translations in §2.0c. On the proxy sandbox, also get the home repo approved first (read access).
 
 Not a heartbeat — once per session.
 
