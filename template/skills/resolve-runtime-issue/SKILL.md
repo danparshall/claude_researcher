@@ -1,6 +1,6 @@
 ---
 name: resolve-runtime-issue
-description: Diagnose and recover from the common runtime failure modes of `claude_researcher`'s claude.ai runtime — expired PAT, network errors, non-fast-forward pushes (with the safe append-conflict recovery), protected-branch pushes, lost sandbox state, missing config, stale raw-CDN reads. Consult this skill when something in a session-start fetch, a git operation, or a REST call fails in a way that isn't self-explanatory.
+description: Diagnose and recover from the common runtime failure modes of `claude_researcher`'s claude.ai runtime — expired PAT, proxy-sandbox refusals (repo not approved for the session, GitHub not connected, app not installed, blocked `gh` commands), network errors, non-fast-forward pushes (with the safe append-conflict recovery), protected-branch pushes, lost sandbox state, missing config, stale raw-CDN reads. Consult this skill when something in a session-start fetch, a git operation, or a REST call fails in a way that isn't self-explanatory.
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -8,7 +8,7 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 
 ## When to use
 
-Fire on any of: a `curl` returning 401/403/404 from `api.github.com`; a `git clone` / `git push` / `git pull` failing; the sandbox filesystem coming back empty mid-session; a file WebFetched from `raw.githubusercontent.com` disagreeing with what a recent commit implies; STATUS.md missing a field the runtime expects; SKILL_INDEX.md unreachable.
+Fire on any of: a `curl` returning 401/403/404/415 from `api.github.com`; a `git clone` / `git push` / `git pull` failing; a `gh` command or the add-repository tool refusing; the sandbox filesystem coming back empty mid-session; a file WebFetched from `raw.githubusercontent.com` disagreeing with what a recent commit implies; STATUS.md missing a field the runtime expects; SKILL_INDEX.md unreachable.
 
 The workflow is: look up the failure signature below → apply the recovery → surface to the user if the recovery requires their action or if the failure is unfamiliar.
 
@@ -19,6 +19,36 @@ The workflow is: look up the failure signature below → apply the recovery → 
 Symptom: `curl` returns 401/403 against `api.github.com`, or `git clone` / `git push` errors with `fatal: Authentication failed`.
 
 Recovery: re-bootstrap RESEARCHER.md §2b — the user rotates the PAT and re-pastes Project Instructions. Most common cause of session-start failure.
+
+**Token sandbox only.** On the proxy sandbox (RESEARCHER.md §2.0a tells you which you are on) a 403 is almost never the PAT, and rotating it fixes nothing. Check the four proxy-sandbox entries below first.
+
+## Proxy sandbox: repo not approved for this session (403)
+
+Symptom: `git push` fails with `access denied by the git proxy: <owner>/<repo> is not in this session's authorized repository set`, or a REST call returns 403 with `GitHub access to this repository is not enabled for this session. Use add_repo to request access.` Clone and fetch may still succeed, so it can look like a push-only fault.
+
+Cause: the proxy only serves repos approved for this session. A PAT in the URL or a header does not change that.
+
+Recovery: RESEARCHER.md §2.0c — request the repo with the add-repository tool (push access for the project repo), the user approves, then retry. Commits made in the meantime are still local; push them with `git push -u origin HEAD`.
+
+## Proxy sandbox: GitHub not connected ("link your GitHub account")
+
+Symptom: the add-repository tool returns `permission_denied: link your GitHub account`, or a REST call returns 403 with `No linked GitHub account`.
+
+Recovery: the user connects GitHub to their Claude account (claude.ai Settings → Connectors → GitHub), then you request the repo again. The same chat picks the connection up; no fresh chat is needed.
+
+## Proxy sandbox: connected, but pushes refused ("Claude doesn't have GitHub access")
+
+Symptom: the add-repository reply says pushes "will be refused", or `git push` fails with `remote: Claude doesn't have GitHub access to <owner>/<repo>` and a link to install the Claude GitHub App. Clone, fetch and REST reads work.
+
+Cause: the account is connected but the Claude GitHub App is not installed on the account that owns the repo, or its "Only select repositories" list leaves this repo out.
+
+Recovery: the user installs the app from the link in the error (or adds the repo to the existing installation), then you retry the push. If it is still refused, the user reconnects GitHub from claude.ai settings, as the error suggests, to re-link the installation.
+
+## Proxy sandbox: `gh` fails with "GraphQL is not available" (403), or a REST write returns 415
+
+Symptom: `gh issue …`, `gh pr …`, `gh label list` or `gh repo view` returns `HTTP 403: GitHub GraphQL is not available from Claude Code sessions`; or a `curl -X POST` / `PATCH` / `PUT` returns 415 `Request bodies must declare Content-Type: application/json`.
+
+Recovery: neither is an access problem. Use the REST equivalent from the translation table in RESEARCHER.md §2.0c (`gh api <REST path>` or `curl`), and add `-H "Content-Type: application/json"` to every write.
 
 ## Connection error on `api.github.com` or `git clone`
 
@@ -57,7 +87,7 @@ Recovery: don't push to `main`. Open a PR via the Pulls API (see `finishing-a-re
 
 Symptom: RESEARCHER.md §2.0b clone errors out.
 
-Recovery: surface to user. Most likely PAT expiry (see above), second most likely a `<REPO>` mismatch in Project Instructions. As a **degraded fallback**, operate against the Contents API per-file using the legacy recipes still documented at RESEARCHER.md §2c, §3, and inside `finishing-a-research-branch`. Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
+Recovery: surface to user. On the token sandbox, most likely PAT expiry (see above), second most likely a `<REPO>` mismatch in Project Instructions. On the proxy sandbox, most likely a private repo that is not yet approved for the session (see the proxy-sandbox entries above). As a **degraded fallback**, operate against the Contents API per-file using the legacy recipes still documented at RESEARCHER.md §2c, §3, and inside `finishing-a-research-branch`. Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
 
 ## Sandbox state lost between turns / `/home/claude/${REPO}/` gone
 
@@ -90,6 +120,8 @@ Recovery: RESEARCHER.md §4. **Don't proceed.** State the mismatch; ask whether 
 Symptom: `TOKEN`, `USERNAME`, `REPO`, or the recipe blocks are missing from your context.
 
 Recovery: stop. The bootstrap may not have completed correctly. Walk the user through re-pasting Project Instructions per BOOTSTRAP Step 8.
+
+Exception: on the proxy sandbox a missing `TOKEN` is fine — it is not used there. `USERNAME` and `REPO` are still required.
 
 ## `main` protected and merge fails (405 / 422)
 

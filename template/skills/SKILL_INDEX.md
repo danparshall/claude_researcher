@@ -209,7 +209,7 @@ These three skills share a single GitHub-Issues backend (issues with the `task` 
 
 ### resolve-runtime-issue
 
-- **Trigger:** a session-start fetch, git operation, or REST call fails in a way that isn't self-explanatory — expired PAT, network error, non-fast-forward push (with the safe append-conflict recovery), protected-branch push, lost sandbox state, missing config, stale raw-CDN read. Contains the recovery table that used to live in RESEARCHER.md's Appendix.
+- **Trigger:** a session-start fetch, git operation, or REST call fails in a way that isn't self-explanatory — expired PAT, a proxy-sandbox refusal (repo not approved for the session, GitHub not connected, app not installed, `gh` blocked), network error, non-fast-forward push (with the safe append-conflict recovery), protected-branch push, lost sandbox state, missing config, stale raw-CDN read. Contains the recovery table that used to live in RESEARCHER.md's Appendix.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/resolve-runtime-issue/SKILL.md`
 
 ### report-upstream-issue
