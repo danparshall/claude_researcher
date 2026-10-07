@@ -26,6 +26,11 @@ You reached this file via the Project Instructions: they told you to clone the u
 - **The user's project repo** (`<USERNAME>/<REPO>`) → clone to `/home/claude/<REPO>/` at §2.0b and use native `git` for the rest of the session. Real commits pushed back. PR creation/merge still uses the Pulls REST API (no plain-git equivalent). Fallback: per-file Contents API (degraded — one commit per file).
 - **The user's config repo** (`<USERNAME>/claude_research_config`) and **other REST surfaces** (Pulls, Issues) → `curl` with the user's PAT against `api.github.com`. The PAT, curl recipes, and `<USERNAME>` / `<REPO>` values are in Project Instructions, already in your context.
 
+**Two kinds of web sandbox.** How the second and third mechanisms authenticate depends on which sandbox this session runs in; the check in §2.0a tells you which.
+
+- **Token sandbox** (the original): you authenticate with the PAT from Project Instructions, as written above.
+- **Proxy sandbox** (rolling out since mid-2026): Anthropic's GitHub proxy holds the user's GitHub credential outside the sandbox and attaches it for you. No token is needed, a PAT cannot push, and each repo must be approved for the session before use. §2.0c covers it; §2.0b and §2b give both variants of each command.
+
 **Confirmation gates** at sensitive boundaries are scripted below. You can add your own anywhere a step gives you pause — the user has been told to expect them.
 
 **Companion doc:** `HUMANS.md` at the upstream repo root covers the user-facing architecture. Not operational for you; useful cross-reference if a "where do instructions live" question comes up.
@@ -129,7 +134,11 @@ Run before responding to the user's first message. Order matters.
 
 ```bash
 if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
+  if [ "$GITHUB_TOKEN" = "proxy-injected" ]; then
+    echo "claude.ai sandbox — proxy sandbox (no token; see §2.0c)"
+  else
+    echo "claude.ai sandbox — token sandbox (PAT from Project Instructions)"
+  fi
 elif [ "$CLAUDECODE" = "1" ]; then
   echo "Claude Code"
 else
@@ -138,6 +147,8 @@ fi
 ```
 
 The probe checks each side affirmatively rather than inferring from absence. If neither fires, surface it to the user rather than guess — something is misconfigured (env vars stripped, custom shell), and a wrong guess means operating against the wrong working tree.
+
+**Keep the branch order.** The proxy sandbox also sets `CLAUDECODE=1`, and its `IS_SANDBOX` is `1` rather than `yes`, so the `/mnt/skills/public` test is what identifies claude.ai there (observed 2026-10-07). `GITHUB_TOKEN=proxy-injected` is the marker Anthropic documents for "the GitHub proxy authenticates for this session". It is set whether or not the user has connected GitHub yet, so it tells you which path to follow, not whether that path is ready.
 
 **`{{skills_dir}}` resolution.** Skills reference each other as `{{skills_dir}}/<skill>/<file>` and never expand the placeholder themselves. On Claude Code `{{skills_dir}}` is `~/.claude/skills`; in the claude.ai sandbox it is `/home/claude/.claude_researcher_template/template/skills` — the clone made just below. Each skill repeats that one resolution in a two-line surface note; sandbox-specific behavior (REST for Issues and Pulls, the post-commit push hook) lives here and in §2.0b, not in the skills.
 
@@ -161,10 +172,21 @@ Shallow — the agent never needs upstream history. Everything below assumes `/h
 
 After the template clone, clone the user's repo. Reads happen against the local working tree; writes are real `git commit`s pushed back.
 
+**Token sandbox:**
+
 ```bash
 git clone https://x-access-token:${TOKEN}@github.com/${USERNAME}/${REPO}.git /home/claude/${REPO}
 cd /home/claude/${REPO}
 ```
+
+**Proxy sandbox:** first get the repo approved for this session (§2.0c), then clone with no token:
+
+```bash
+git clone https://github.com/${USERNAME}/${REPO}.git /home/claude/${REPO}
+cd /home/claude/${REPO}
+```
+
+On the proxy sandbox, leave the PAT out of the URL even if Project Instructions still carry one. It does nothing for pushes there, and leaving it out keeps it out of `.git/config`.
 
 **Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Read `User display name` and `Git commit email` from `personal_info.md` (fetched in §2b — if you haven't yet, come back to this after that fetch).
 
@@ -182,6 +204,15 @@ Example: `Dan (web, canary-policy, 20260810T1442, fable-5.1)`. The whole point o
 `MODEL` is filled in by you, not computed: the short form of your model's display name — lowercase, spaces → `-`, no context-window tag (`Fable 5.1` → `fable-5.1`, `Opus 4.7 (1M)` → `opus-4.7`).
 
 If `User display name` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
+
+**Commit message trailers (proxy sandbox).** The proxy sandbox asks you to end every commit message with two lines, and says the user's own rules about them take precedence. This is that rule:
+
+- **Keep the `Claude-Session: <link>` line.** It links the commit to the chat that made it — the join the §2e convo-name handshake otherwise has to approximate.
+- **Leave out the `Co-Authored-By:` line.** The model is already in the author slot via the codename.
+
+`personal_info.md` `Interaction style` can override either choice.
+
+**"Unverified" badge (proxy sandbox).** The proxy sandbox signs each commit with its own key, which GitHub does not associate with the user, so GitHub labels these commits "Unverified". Expected; not a failed push.
 
 **Install the auto-push post-commit hook.** The sandbox is ephemeral (§5.6); the §5 "Push early and often" rule shouldn't rely on agent memory. Install a hook that pushes after every commit automatically:
 
@@ -214,12 +245,68 @@ The hook is sandbox-local — `.git/hooks/` isn't versioned and the `.githooks/`
 **Failure handling.** The hook runs `git push -u origin HEAD 2>&1` — loud stderr, no retry, no force. If the push fails (network hiccup, non-fast-forward from a concurrent agent, branch protection on `main`), the commit is already local; the hook's exit code does NOT undo it. **Read the commit output tail every time.** Do not assume "committed = safe" — surface any push failure to the user.
 
 - **Not shallow** — `git log` / `git diff` lookups during a session (resumption, audit-docs, finish-convo) need full history.
-- **PAT hygiene.** The PAT lands in `.git/config`. Sandbox-local and resets per session — not a new exposure — **but do not echo URLs that include the token, do not paste `.git/config` contents back, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** If ever uncertain, ask before any operation that would print the remote URL.
+- **PAT hygiene (token sandbox).** The PAT lands in `.git/config`. Sandbox-local and resets per session — not a new exposure — **but do not echo URLs that include the token, do not paste `.git/config` contents back, and do not include the remote URL in any artifact (commit message, issue body, plan file) you write.** If ever uncertain, ask before any operation that would print the remote URL.
 - **Working directory.** `/home/claude/${REPO}/` is conventional; `cd` back if a sub-command leaves you elsewhere.
 
-**Fallback if the clone fails.** Most likely PAT expiry or `<REPO>` mismatch — see `resolve-runtime-issue`. Degraded fallback operates against the Contents API per-file.
+**Fallback if the clone fails.** On the token sandbox, most likely PAT expiry or `<REPO>` mismatch. On the proxy sandbox, most likely the repo is not approved for this session, or the user's one-time setup is incomplete (§2.0c). Either way see `resolve-runtime-issue`. Degraded fallback operates against the Contents API per-file.
 
 **Mid-session refresh.** If the user pushed from elsewhere, `git pull --ff-only` from inside `/home/claude/${REPO}/`. If rejected (divergent branches), surface — don't auto-rebase.
+
+### 2.0c — GitHub access on the proxy sandbox
+
+Skip this section on the token sandbox.
+
+On the proxy sandbox, Anthropic's GitHub proxy sits between the sandbox and GitHub. It attaches the user's GitHub credential to git and REST traffic, but only for repos approved for this session. A PAT in the clone URL does not get a push through, and the proxy replaces any `Authorization` header you send. Anthropic describes blocking pasted credentials as intended, so do not look for a way around it.
+
+**One-time user setup.** The session cannot do these. If one is missing, the errors listed below name it.
+
+1. **Connect GitHub to the Claude account:** claude.ai Settings → Connectors → GitHub.
+2. **Install the Claude GitHub App** on the GitHub account that owns the repos, at `https://github.com/apps/claude/installations/new`. Choose "Only select repositories" and pick the project repo(s), `claude_research_config`, and the home repo if the task skills are used. Connecting alone is not enough: a connected account with no installation can read but not push.
+
+**Per-session approval.** Ask for each repo with the session's add-repository tool (`add_repo`; if it is not in your tool list, search your deferred tools for it). Each request shows the user an approval box, so batch them: ask for the first two together before §2.0b, and the home repo straight after §2b tells you which repo it is.
+
+| Repo | Access to request | Used for |
+| --- | --- | --- |
+| `${USERNAME}/${REPO}` | push | clone, commit, push, Issues and Pulls |
+| `${USERNAME}/claude_research_config` | read | `personal_info.md` (§2b) |
+| home repo, if different from `${REPO}` | read | `task-remind` (§2d.5). Ask again with push when `task-create`, or a close or snooze, needs to write there. |
+
+The tool's reply carries its own instructions (clone now, shallow, then register the clone). Follow them, with two differences:
+
+- **Clone the project repo in full,** per §2.0b — resumption, `audit-docs` and `finish-convo` need history. Give the command a generous timeout (about 10 minutes). If a large repo will not finish, fall back to the shallow clone the tool suggests and deepen it with `git fetch --depth=1000 origin <branch>`.
+- **Do not clone the config or home repo.** §2b and the task skills read them over REST.
+
+What the replies mean:
+
+- **"link your GitHub account"** → setup step 1 is missing.
+- **"Claude doesn't have GitHub access to `<repo>`", or pushes "will be refused"** → setup step 2 is missing, or the installation does not include this repo. Reads still work.
+- **No add-repository tool at all** → surface it. The session can read (the token-sandbox clone recipe still works for reading if Project Instructions carry a PAT) but cannot push. Tell the user plainly that nothing written this session will reach GitHub.
+
+**REST on the proxy sandbox.**
+
+- **No credentials needed.** The proxy adds them for approved repos. Recipes that show `-H "Authorization: token $TOKEN"` work unchanged, with `TOKEN` empty or stale, because the proxy replaces the header.
+- **Writes must declare JSON.** Add `-H "Content-Type: application/json"` to every `POST`, `PATCH` and `PUT`, including the recipes in skills' sandbox notes. Without it the proxy answers 415.
+- **GraphQL is blocked, and most `gh` subcommands use it.** `gh issue list`, `gh issue create`, `gh issue edit`, `gh pr list`, `gh label list` and `gh repo view` all fail with "GraphQL is not available" (verified 2026-10-07); assume the same for every other `gh issue …` and `gh pr …`. `gh api <REST path>` works. Skills are written with `gh` commands for the CLI, so translate:
+
+| Skill says | On the proxy sandbox |
+| --- | --- |
+| `gh api user --jq .login` | works as written |
+| `gh repo view --json nameWithOwner` | `${USERNAME}/${REPO}` from Project Instructions |
+| `gh issue list --label task --state open` | `GET /repos/{owner}/{repo}/issues?state=open&labels=task&per_page=100`, then drop entries that have a `pull_request` key |
+| `gh issue create` | `POST /repos/{owner}/{repo}/issues` with `{"title", "body", "labels"}` |
+| `gh issue edit <N> --title …` | `PATCH /repos/{owner}/{repo}/issues/<N>` with `{"title"}` |
+| `gh issue close <N> --comment …` | `POST …/issues/<N>/comments` with `{"body"}`, then `PATCH …/issues/<N>` with `{"state": "closed"}` |
+| `gh label list` / `gh label create` | `GET` / `POST /repos/{owner}/{repo}/labels` |
+| `gh pr create` | `POST /repos/{owner}/{repo}/pulls` with `{"title", "head", "base", "body"}` |
+| `gh pr view <N>` | `GET /repos/{owner}/{repo}/pulls/<N>` |
+| `gh pr checks` | `GET /repos/{owner}/{repo}/commits/<sha>/check-runs` |
+| `gh pr merge <N>` | `PUT /repos/{owner}/{repo}/pulls/<N>/merge` with `{"merge_method"}` |
+
+Issue listing, creation and editing, and label listing, were exercised on this sandbox on 2026-10-07. The comment, close and Pulls rows are the standard REST calls but had not yet been run there when this was written.
+
+- **The proxy rejects branch deletions and tag pushes** (per Anthropic's cloud-environment docs; not exercised here). If a step calls for deleting a remote branch, ask the user to do it.
+
+**Approval prompts.** Depending on the user's permission setting, the proxy sandbox may ask them to approve individual actions, including web fetches. Read from the local clones rather than the web wherever you can, and say so before a step that will raise several prompts.
 
 ### 2a — Read Project Instructions (already in context)
 
@@ -232,6 +319,8 @@ TOKEN="<the-PAT-from-Custom-Instructions>"
 USERNAME="<the-acting-user-from-Custom-Instructions>"
 REPO="<the-research-repo-name>"
 ```
+
+On the proxy sandbox `TOKEN` is not used and may be absent from Project Instructions. That is not a truncation; `USERNAME` and `REPO` are still required.
 
 In v1, the acting user owns the research repo, so OWNER == USERNAME (see §7 known limitations).
 
@@ -247,9 +336,11 @@ curl -s -H "Authorization: token $TOKEN" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
+On the proxy sandbox the same command works once `claude_research_config` is approved for the session with read access (§2.0c); the `Authorization` header is ignored there and can be dropped.
+
 Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `User display name`, `Git commit email`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks. `User display name` and `Git commit email` feed the git-identity construction in §2.0b — export them as `USER_DISPLAY_NAME` and `COMMIT_EMAIL` now if you haven't already run §2.0b's `git config` step.
 
-404 means the user's `claude_research_config` doesn't exist or the PAT lacks access — surface (`resolve-runtime-issue`). Don't proceed without `personal_info.md`.
+404 means the user's `claude_research_config` doesn't exist or the PAT lacks access — surface (`resolve-runtime-issue`). On the proxy sandbox, a 403 whose message mentions `add_repo` means the config repo is not yet approved for this session (§2.0c). Don't proceed without `personal_info.md`.
 
 ### 2c — Read `STATUS.md` (partial) and `README.md`
 
@@ -286,6 +377,8 @@ Fallback: WebFetch the same path. Don't read individual `SKILL.md` files upfront
 Read and follow `template/skills/task-remind/SKILL.md`. Once-per-session pre-flight check for open `task`-labeled issues with a `[YYYY-MM-DD]` title prefix `<= today` in current repo + `home_repo`. Reads metadata only.
 
 No fired reminders → single line ("*No reminders pending*") and continue. Fired reminders → surface before the §2e first-message response so the user can decide whether to handle a reminder or proceed with the planned session.
+
+On the proxy sandbox, get the home repo approved first (read access) and use the `gh` → REST translations in §2.0c; the skill's `gh issue list` does not work there.
 
 Not a heartbeat — once per session.
 
