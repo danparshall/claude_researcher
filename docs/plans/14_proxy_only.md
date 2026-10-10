@@ -86,13 +86,15 @@ The record of my work is the repo's `STATUS.md` and `RESEARCH_LOG.md`, not past 
 BOOTSTRAP is the onboarding script for new users; most of its token material is in Steps 2, 6, 7, 8 and the appendix.
 
 1. **Step 2b "Personal Access Token", "Token handling", "About PAT scope", "Why each permission":** replace with the two one-time steps from RESEARCHER.md §2.0c (connect GitHub in claude.ai Settings → Connectors; install the Claude GitHub App with "Only select repositories"). Point at §2.0c for the error each missing step produces rather than duplicating it.
-2. **Step 6 "Create the GitHub repos":** it creates repos via the REST API with the PAT's Administration permission. Whether the proxy allows repo creation is untested (see Questions). Until it is tested, rewrite Step 6 to have the user create both repos on github.com (exact settings: private, no template, no README so the seed commit is the first), then add them to the Claude GitHub App installation. Delete the "If you skipped Administration" and "If you skipped Pull requests or Issues" subsections.
+2. **Step 6 "Create the GitHub repos":** it creates repos via the REST API with the PAT's Administration permission. Whether the proxy allows repo creation is plan 15 T2. Until it is tested, rewrite Step 6 to have the user create both repos on github.com (exact settings: private, no template, no README so the seed commit is the first), then add them to the Claude GitHub App installation. Delete the "If you skipped Administration" and "If you skipped Pull requests or Issues" subsections.
 3. **Step 7 seeding:** the Contents API recipe still works through the proxy once the repo is attached (writes need `-H "Content-Type: application/json"`). Drop the `Authorization` header; add the content-type header to the recipe; note that bootstrap is a user-requested write, and that attaching with push is needed here. Bootstrap is the one place push is requested at the start, because seeding is the user's stated goal.
 4. **Step 8:** Project Instructions text = the Phase 2 target. Delete "PAT scope and lifecycle".
 5. **Step 10 egress-revisit reminder POST:** drop the token header, add the content-type header.
 6. **Appendix:** remove PAT rows; add one row pointing to RESEARCHER.md §2.0c "Permission checks" for a classifier refusal.
-7. **Step 1 egress:** leave unchanged unless Phase 6 shows it no longer applies (see Questions).
-8. **`README.md`:** replace "Create a GitHub fine-grained Personal Access Token" and its screenshot with the connect + install steps; drop "PAT handling" from the confirmation-gates sentence. `template/reference/screenshots/CAPTURED.md`: mark the PAT screenshot retired (don't delete the image; Dan decides).
+7. **Step 1 egress:** rewrite per plan 15 T3; leave unchanged until those results are in.
+8. **Recommend the auto permission mode** (Dan, 2026-10-10). Add a short subsection to the one-time setup in Step 2, worded from plan 15 T6's findings (where the setting lives, whether it persists). Content: auto is the recommended setting; in testing, its refusals fell on actions the agent chose for itself (asking itself for push access, closing issues nobody asked to close), so it catches most overreach without a click per action. It is a net, not a guarantee: it let one unrequested issue edit through. When it refuses something you did want, the agent will show you the refusal; a one-line go-ahead typed in chat ("I authorize push access to <repo>") has cleared it every time so far.
+9. **Steps 3 and 6** wait on plan 15 T1 and T2; the Step 6 text below is the fallback if T2 shows sessions can't create repos.
+10. **`README.md`:** replace "Create a GitHub fine-grained Personal Access Token" and its screenshot with the connect + install steps; drop "PAT handling" from the confirmation-gates sentence. `template/reference/screenshots/CAPTURED.md`: mark the PAT screenshot retired (don't delete the image; Dan decides).
 
 ## Phase 4 — Web-only skills (edit here)
 
@@ -150,9 +152,8 @@ No code, so no unit tests. The checks are a grep gate, the existing suites, and 
 - If the proxy allows repo creation, BOOTSTRAP Step 6 can go back to agent-created repos.
 
 **Questions**
-- Does the proxy allow creating repos (`POST /user/repos`)? Untested. Decides BOOTSTRAP Step 6.
-- Does BOOTSTRAP Step 1's egress configuration still apply on the proxy sandbox, or does the proxy cover GitHub egress on its own? Untested.
-- Is the claude.ai session permission mode worth mentioning in BOOTSTRAP (a mode that asks the user rather than letting the classifier decide)? Dan has not ruled on it; whether the setting persists across chats is unknown.
+- Repo creation, attaching a nonexistent repo, network egress, what a read attachment allows, the read-to-push reply, and where the auto mode is set: all go to [plan 15](15_proxy_unknowns_tests.md), which runs before Phase 3.
+- Settled 2026-10-10: BOOTSTRAP recommends the auto permission mode (Phase 3 item 8).
 - The convo-name handshake and §2e are unaffected, but the `Claude-Session:` trailer rule awaits #74's measurement (2026-10-14).
 
 ---

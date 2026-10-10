@@ -50,6 +50,8 @@ Other blocks seen:
 - **Issue and PR writes only when the user asked for them.**
 - **Keep `personal_info.md`.** The rename was ruled out as a cause; the test copies `researcher_profile.md` and `researcher_config.md` in Dan's config repo are to be deleted.
 - **Trim the Project Instructions.** Keep the workflow framing (what claude_researcher is, one repo per Project) for the agent's understanding; drop the token and the authorization wording.
+- **BOOTSTRAP recommends the auto permission mode.** Dan: "it's pretty safe (per our testing)". Caveat recorded: every refusal fell on agent-chosen actions, but auto let one unrequested issue edit (#77) through, so it is a net, not a guarantee.
+- **The unknowns get their own test plan** (plan 15), run before plan 14's BOOTSTRAP phase.
 - **The git-log identity inference** from the original incident: Dan judged it fine for his repos. No template change for it in this plan.
 
 ## Open Questions
@@ -61,6 +63,7 @@ Other blocks seen:
 ## Artifacts
 
 - Plan: `docs/plans/14_proxy_only.md`
+- Test plan for the unknowns: `docs/plans/15_proxy_unknowns_tests.md`
 - Issue: #72
 - Test copies (to delete): `danparshall/claude_research_config` commits `6fb03c4` (`researcher_profile.md`) and `912c28c` (`researcher_config.md`)
 - Run 5's own convo: `danparshall/dotfiles` `docs/convos/20261010_outstanding_triage.md` (commits `ea71f8a`, `8192e30`)
