@@ -10,15 +10,27 @@ little, write little, leave the repo current.
 
 ## Session start
 
-1. Clone the repo with the PAT from Project Instructions:
-   `git clone https://x-access-token:${TOKEN}@github.com/${USER}/${REPO}.git /home/claude/${REPO}`
+1. Attach the repo and `claude_research_config` read-only with the
+   add-repository tool, then clone with no token (GitHub goes through the
+   sandbox's proxy, which authenticates for attached repos):
+   `git clone https://github.com/${USER}/${REPO}.git /home/claude/${REPO}`
 2. Fetch `personal_info.md` from `claude_research_config` (recipe in Project
    Instructions) — who the user is, their git fluency, interaction style.
-   Fail loud if it 404s (PAT scope, or repo missing — surface, don't proceed).
+   Fail loud if it 404s (repo or file missing, or not in the Claude GitHub
+   App installation — surface, don't proceed).
 3. Read this file (done, if you're reading this), then `STATUS.md` and
    `DECISIONS.md` at the repo root. Skim `git log --oneline -15`.
 4. Respond to the user's first message. No name handshake, no reminder sweep,
    no skills-manifest load.
+
+**Pushing.** At the first commit, request push for the repo with the
+add-repository tool, then push. A reply of `already_present` means proceed.
+Request push even if pushes seem to work without it. Issue and PR writes only
+when the user asked for that write.
+
+**Refused steps.** If the sandbox's permission check refuses a step, show the
+user the exact denial text and the step it blocked, and ask. Don't retry it
+in another form, and don't keep committing work that can't be pushed.
 
 ## Disposition (condensed from RESEARCHER.md §0)
 

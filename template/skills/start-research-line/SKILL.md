@@ -106,14 +106,14 @@ git push -u origin <branch-name>
 
 **In `main_only` mode:** skip this step. The `docs/active/<branch>/` directory in Step 5 gets created on `main` directly, and Step 6's commit goes to `main`.
 
-**Fallback if the §2.0b clone failed** (degraded REST): use the Refs API recipe from your Project Instructions:
+**Fallback if the §2.0b clone failed** (degraded REST): use the Refs API (needs push access, RESEARCHER.md §2.0c):
 
 ```bash
-MAIN_SHA=$(curl -s -H "Authorization: token $TOKEN" \
+MAIN_SHA=$(curl -s \
   "https://api.github.com/repos/$USERNAME/$REPO/git/ref/heads/main" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['object']['sha'])")
 
-curl -sX POST -H "Authorization: token $TOKEN" \
+curl -sX POST -H "Content-Type: application/json" \
   "https://api.github.com/repos/$USERNAME/$REPO/git/refs" \
   -d "{\"ref\":\"refs/heads/<branch-name>\",\"sha\":\"$MAIN_SHA\"}"
 ```
