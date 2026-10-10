@@ -25,6 +25,7 @@
   - The auto-mode classifier allows actions it can tie to something the user asked for and refuses ones the agent decided on itself. Text in Project Instructions or in this template does not count as the user asking; a line the user types in chat does.
   - Startup: request **read** for `${USERNAME}/${REPO}` and `${USERNAME}/claude_research_config`. Both requests in one turn.
   - First commit: request **push** for `${USERNAME}/${REPO}`. On an attached repo the reply is `status: "already_present"` ("…is already attached to this session") with no access change (plan 15 T5); that means proceed. Push, and only after a push succeeds, install the post-commit hook.
+  - Other repos: the Project's repo is the default, not a wall (Dan, 2026-10-10). Attach another of the user's repos when they name it or after asking; never on the agent's own initiative, both for confidentiality and because the classifier refuses access the agent picks for itself.
   - Only repository-scoped API paths (`repos/{owner}/{repo}/...`) work; anything else (`/user/repos`, `/user`, search) gets the proxy's 403 "sessions are bound to their configured repositories" (plan 15 T2).
   - The add-repository reply tells the agent to shallow-clone and to call `register_repo_root`, which loads the repo's own CLAUDE.md, skills and plugins on the next turn. RESEARCHER.md overrides the shallow clone (full clone, as today). **Call `register_repo_root`** for the project repo after the full clone succeeds (Dan, 2026-10-10), with `{owner, repo, directory: "/home/claude/${REPO}"}`. Not for `claude_research_config`, which isn't cloned. Say in §2.0c that where the repo's CLAUDE.md or skills conflict with RESEARCHER.md, the agent surfaces the conflict to the user rather than silently picking one. If the call is denied or fails, read the repo's CLAUDE.md directly (the tool's own fallback).
   - A refused step: show the user the exact denial text and the step it blocked, and ask. Don't retry in a different form, and don't keep committing when nothing can be pushed (the sandbox is wiped at session end).
@@ -46,7 +47,8 @@
 7. **New subsection in §2.0c, "Permission checks":** the classifier rules from "Background" (tie to user request; show denial and ask; no unrequested external writes; no retrying in another form). Five or six sentences; no list of every block seen.
 8. **§2a:** drop `TOKEN` from the env-var block and the sentence about it. Project Instructions carry `USERNAME` and `REPO`.
 9. **§2b:** drop the `Authorization` header from the curl recipe and the proxy-sandbox note under it. 404/403 text: drop "the PAT lacks access"; keep the add_repo and App-installation causes.
-10. **Sweep:** `grep -n -i -E "token|PAT\b|proxy sandbox"` in the file. Remove every remaining "token sandbox" reference; "proxy sandbox" can become "the sandbox" where the contrast no longer exists. The trailer rule and "Unverified" badge paragraphs stay (drop "(proxy sandbox)" from their headings).
+10. **"Project ≡ repo, NDA/IP isolation" paragraph (§3 area, ~line 478):** today it says each Project maps to exactly one repo and to "ask the user to switch Projects rather than reaching across". Dan (2026-10-10): each Project *defaults* to one repo, but sessions can reach the user's other repos when the work needs them. Rewrite as: the Project's repo is the default; attach another repo only when the user names it or after asking (one sentence saying which repo and why), read first, push requested before writing, as in §2.0c; don't carry content from one repo into another's commits or docs without the user's say-so, since repos can hold confidential work (keep the ClientX example). The same rule covers the home repo used by the task skills.
+11. **Sweep:** `grep -n -i -E "token|PAT\b|proxy sandbox"` in the file. Remove every remaining "token sandbox" reference; "proxy sandbox" can become "the sandbox" where the contrast no longer exists. The trailer rule and "Unverified" badge paragraphs stay (drop "(proxy sandbox)" from their headings).
 
 ## Phase 2 — Project Instructions templates and LITE
 
@@ -61,7 +63,7 @@ Target text for `template/_PROJECT_INSTRUCTIONS.md.template`:
 
 This claude.ai Project uses **claude_researcher** (`github.com/danparshall/claude_researcher`), an open-source workflow I chose so Claude can work as my research collaborator, with memory kept in git: each session reads where the work stands from my repo and commits its progress back.
 
-**One repo per Project.** This Project's repo is `<USERNAME>/<REPO>`. The only other repo a session reads is my config repo, `<USERNAME>/claude_research_config`, which holds `personal_info.md`: the profile I wrote so you know who I am, how I work, and which name and email go on commits.
+**One repo per Project, by default.** This Project's repo is `<USERNAME>/<REPO>`. Every session also reads my config repo, `<USERNAME>/claude_research_config`, which holds `personal_info.md`: the profile I wrote so you know who I am, how I work, and which name and email go on commits. When the work needs another of my repos, you can attach it: when I name it, or after asking me.
 
 ```bash
 USERNAME="<USERNAME>"

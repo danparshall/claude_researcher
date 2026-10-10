@@ -70,6 +70,7 @@ Further decisions:
 - **Report the Project Instructions delivery to Anthropic** (Dan); a draft was handed to him in the session, not committed.
 - **Filename stays `personal_info.md`** (Dan: "if this comes up again we can rename"); plan 14 Phase 6 carries a watch item. The test copies stay in `claude_research_config` for now.
 - **Plan 14 goes to a fresh agent.**
+- **Each Project defaults to one repo, but can reach the user's other repos as needed** (Dan). Replaces RESEARCHER.md's "ask the user to switch Projects rather than reaching across". Safeguard kept: attach another repo only when the user names it or after asking, and don't carry content across repos without the user's say-so (confidentiality, and the classifier refuses self-chosen access).
 - Issue #72 commented with links to both plans.
 
 ## Artifacts
