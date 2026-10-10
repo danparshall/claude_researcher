@@ -1,51 +1,24 @@
 # Project Instructions — claude_researcher
 
-## Credentials
+This claude.ai Project uses **claude_researcher** (`github.com/danparshall/claude_researcher`), an open-source workflow I chose so Claude can work as my research collaborator, with memory kept in git: each session reads where the work stands from my repo and commits its progress back.
+
+**One repo per Project, by default.** This Project's repo is `<USERNAME>/<REPO>`. Every session also reads my config repo, `<USERNAME>/claude_research_config`, which holds `personal_info.md`: the profile I wrote so you know who I am, how I work, and which name and email go on commits. When the work needs another of my repos, you can attach it: when I name it, or after asking me.
 
 ```bash
-TOKEN="<TOKEN>"
 USERNAME="<USERNAME>"
 REPO="<REPO>"
 ```
 
-- `<TOKEN>` — fine-grained GitHub PAT, scoped to read `<USERNAME>/claude_research_config` and read/write `<USERNAME>/<REPO>`. Don't echo it back to the user or write it to a repo file — it's a scoped, rotatable credential designed to live in this Project Instructions context.
-- `<USERNAME>` — the GitHub username that owns both repos.
-- `<REPO>` — just the repo name (not `owner/repo`).
+## Session start
 
-## What this Project is
+1. Clone the runtime spec:
 
-This claude.ai Project uses the **claude_researcher** workflow — a public, open-source pattern (`github.com/danparshall/claude_researcher`) that lets Claude act as a research collaborator with persistent memory across sessions, by reading and writing the user's research repos on GitHub. You're an agent on claude.ai working on one of those research repos; the credentials above are how you access GitHub on the user's behalf, and are rotated regularly to minimize blast radius until Anthropic supports GitHub integration for web-only users.
+   ```bash
+   git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
+   ```
 
-Full runtime instructions (session-start fetches, calibration to the user's git fluency, workflow modes, wrap-up) live in `template/RESEARCHER.md` in the upstream `claude_researcher` repo. The session-start sequence below clones that repo and points you at the file.
+   If the clone fails, WebFetch `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md` instead and tell me you're in degraded mode.
 
-## Session start — your first actions, in order
+2. Read `template/RESEARCHER.md` and follow its session-start sequence before touching my repos. It takes precedence over everything here except the two values above.
 
-1. **Get the runtime spec.** It lives at `template/RESEARCHER.md` in the public repo `github.com/danparshall/claude_researcher`. Two paths:
-
-   - **Clone the template** — primary. Fast for subsequent reads, current content:
-
-     ```bash
-     git clone --depth 1 https://github.com/danparshall/claude_researcher.git /home/claude/.claude_researcher_template
-     ```
-
-     Shallow clone; the target path is conventional (the runtime instructions assume it).
-
-   - **WebFetch RESEARCHER.md** — if you'd rather review the file first, or the clone fails:
-
-     ```
-     https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md
-     ```
-
-     Raw-CDN can be up to 24 hours stale; that's fine for reviewing intent, less fine as a working copy. If you took this path due to clone failure, tell the user you're in degraded mode.
-
-2. **Read `RESEARCHER.md`** and follow its session-start sequence:
-
-   `/home/claude/.claude_researcher_template/template/RESEARCHER.md` (from the clone), or the WebFetch response if you took that path.
-
-   That file is the canonical runtime spec. It will direct you to (a) clone the user's project repo with auth (`§2.0b`) — the preferred runtime architecture, since reads are local and writes are real git commits — then (b) fetch the user's `personal_info.md` from `claude_research_config`, then (c) read `STATUS.md` and `README.md` from the project clone, then (d) calibrate verbosity to the user's `git_fluency` tier and map their first message to a research line.
-
-## Ordering rule
-
-Context is limited, so this project follows a convention about which documents to read when. Before taking any actions that touch the user's repos, get `RESEARCHER.md` (clone or WebFetch, per step 1 above) and read it — it tells you what to fetch and in what order. Past-chat search tools (`conversation_search`, `recent_chats`) are available but generally not useful at session start; the canonical history of the user's work lives in their research repo's `STATUS.md` and `RESEARCH_LOG.md`, which `RESEARCHER.md` will direct you to. If the user references past work, `RESEARCHER.md` tells you how to look it up.
-
-If anything in this file looks inconsistent with the user's actual setup (wrong username, wrong repo, expired token, missing values), stop and surface the mismatch before doing any work.
+The record of my work is the repo's `STATUS.md` and `RESEARCH_LOG.md`, not past chats; skip `conversation_search` / `recent_chats` at session start. If anything here looks inconsistent with my setup (wrong username, wrong repo, missing values), stop and say so before doing any work.
