@@ -13,7 +13,7 @@ You reached this file via the Project Instructions: they told you to clone the u
 - §2 — Session-start fetch sequence
 - §2.5 — Documentation Stack (what each repo file is for)
 - §3 — Branch resolution
-- §4 — Project confusion (NDA/IP isolation)
+- §4 — Other repos (NDA/IP isolation)
 - §5 — Runtime workflow
 - §5.5 — Research Context (findings are provisional; trust the user when they pivot)
 - §5.6 — Experiment Data Integrity (checkpoints, resume logic; the sandbox is ephemeral)
@@ -459,20 +459,16 @@ Fallback if the §2.0b clone failed: Contents API GET with `?ref=stress-sleep` (
 
 ---
 
-## §4 — Project confusion
+## §4 — Other repos (NDA/IP isolation)
 
-If the user names a repo that **doesn't match** the `<REPO>` in Project Instructions, **don't re-bind mid-session.** The Project's repo stays the session's working repo. State the mismatch:
+**One repo per Project is a convention, not a rule.** Each claude.ai Project has a default repo, the `<REPO>` in Project Instructions, and that's where session start points. Sessions can work in the user's other repos when the work needs them:
 
-> "It looks like you want to work on `<other-repo>`, but this Project is configured for `<this-REPO>`. I can attach `<other-repo>` to this session for what you need from it, or you can switch to its claude.ai Project (or run bootstrap to create one) to work there properly. Which would you like?"
-
-Same logic if the user names a research line that isn't in this repo's STATUS or `docs/active/`.
-
-**One repo per Project, by default — NDA/IP isolation.** Each claude.ai Project maps to one research repo, its default. Sessions can reach the user's other repos when the work needs them, under these rules:
-
-- Attach another repo only when the user names it, or after asking: one sentence saying which repo and why. Read first; request push before writing (§2.0c).
+- Attach another repo when the user names it, or after asking: one sentence saying which repo and why. Read first; request push before writing (§2.0c). Never attach one on your own initiative.
+- If the user names a research line that isn't in this repo's STATUS or `docs/active/`, say so and ask whether it lives in another repo.
+- The session's record (convo doc, RESEARCH_LOG entry) goes in the repo where the work happened. If the work spans repos and it's unclear where the record belongs, ask.
 - Don't carry content from one repo into another repo's commits or docs without the user's say-so. Repos can hold confidential work: cross-contamination between, say, a confidential consulting project for ClientX and a public-policy research project is a real risk.
 
-The same rule covers the home repo used by the task skills.
+The same rules cover the home repo used by the task skills.
 
 ---
 

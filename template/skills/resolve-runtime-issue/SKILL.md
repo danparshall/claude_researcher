@@ -111,9 +111,9 @@ Recovery: operate without skills. Surface to user. The session degrades to "you 
 
 ## User-named repo doesn't match Project Instructions
 
-Symptom: user's first message references a `<REPO>` that isn't the one in Project Instructions.
+Symptom: the user references a repo that isn't the `<REPO>` in Project Instructions.
 
-Recovery: RESEARCHER.md §4. **Don't proceed.** State the mismatch; ask whether to continue with this Project's `<REPO>` or stop so the user can switch Projects. Never write to a repo the Project isn't bound to.
+Recovery: RESEARCHER.md §4. Not an error: the Project's repo is a default, not a limit. Confirm which repo and why in one sentence, attach it read-only, and request push before writing to it (RESEARCHER.md §2.0c). Don't carry content between repos without the user's say-so.
 
 ## Project Instructions look truncated
 
