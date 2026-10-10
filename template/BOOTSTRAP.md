@@ -13,9 +13,11 @@ Each step tells you the next action and offers **verification affordances** — 
 **Two distinct fetch mechanisms appear in this flow:**
 
 - For **public upstream content** (this file, skill specs, scripts, reference docs at `danparshall/claude_researcher`) — use the WebFetch tool. No allow-list configuration needed. Returns content verbatim.
-- For **the user's own repos** (private, owned by the user) — use sandbox `curl` with the user's PAT in an `Authorization` header. This requires network egress to permit `api.github.com`, configured during Step 1 below.
+- For **the user's own repos** (private, owned by the user) — use sandbox `curl` against `api.github.com`, with no token. claude.ai's GitHub proxy holds the user's GitHub credential and authenticates for repos attached to this chat with the add-repository tool (Step 6). Send no `Authorization` header, and add `-H "Content-Type: application/json"` to every write.
 
-If you ever need a public file outside the user's repos, use WebFetch. If you ever need a file *inside* the user's repos, use sandbox curl with the PAT.
+If you ever need a public file outside the user's repos, use WebFetch. If you ever need a file *inside* the user's repos, attach the repo and use sandbox curl.
+
+**Permission checks.** If the chat runs in auto permission mode, a classifier refuses actions it can't tie to something the user asked for. The user asked for this setup, so the steps below follow from their request; take no GitHub action this file doesn't call for. If a step is refused, show the user the exact denial text and ask; don't retry it in another form. Details: `RESEARCHER.md` §2.0c "Permission checks".
 
 ---
 
@@ -23,7 +25,7 @@ If you ever need a public file outside the user's repos, use WebFetch. If you ev
 
 Tell the user, briefly (4–6 sentences), what's about to happen end-to-end. Use this script (or close paraphrase):
 
-> "Here's the plan: First, I'll check that claude.ai can talk to GitHub from this chat. If it can't, I'll walk you through a one-time network configuration; you'll then restart in a fresh chat to pick up the change (claude.ai's network changes don't propagate into already-open chats). Once network is confirmed, you'll create a GitHub Personal Access Token (PAT) and paste it back to me. I'll run a brief interview to learn how you work, then create two private repos in your GitHub account (one for your lifetime config, one for your first research project), seed them with starter files, and walk you through creating a claude.ai Project that points at the research repo. After that, every future research session is a single sentence in a new chat. Total time: ~5 minutes if network is already set up, ~10 minutes if this is a true first-time setup including the network config + restart. Sound good?"
+> "Here's the plan: First, I'll check that this chat can reach the internet. If it can't, I'll walk you through a one-time network setting; you'll then restart in a fresh chat to pick up the change (claude.ai's network changes don't propagate into already-open chats). Then you'll connect your GitHub account to Claude, and I'll run a brief interview to learn how you work. You'll create two private repos on GitHub (one for your lifetime config, one for your first research project) and give Claude access to them; I'll seed them with starter files and walk you through creating a claude.ai Project that points at the research repo. After that, every future research session is a single sentence in a new chat. Total time: ~10 minutes, a bit more if the network setting needs a restart. Sound good?"
 
 **CONFIRMATION GATE.** Do not proceed past this step until the user explicitly says yes. If they want to back out, that's fine — they can come back anytime by re-pasting the bootstrap prompt.
 
@@ -39,22 +41,26 @@ This step probes whether network access is already configured; if not, it walks 
 
 ### 1a — Probe
 
-Run a no-auth reachability check:
+Run a reachability check against a non-GitHub site:
 
 ```bash
-curl -sI https://api.github.com/zen
+curl -sI https://example.com
 ```
+
+Don't probe a GitHub URL here: GitHub traffic goes through claude.ai's GitHub proxy, which answers unauthenticated probes like `api.github.com/zen` with its own 403 whatever the network setting. GitHub reachability is tested later, by attaching a repo (Step 6).
 
 Expected outcomes:
 
 - **`HTTP/2 200`** — network access is already configured. Announce that, and continue to Step 2.
-- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — network access isn't configured (or `api.github.com` isn't reachable yet). Continue to 1b below.
+- **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — network access isn't configured. Continue to 1b below.
+
+Untested: whether an account with network access off can still reach GitHub through the proxy. If you see GitHub work while `example.com` fails, tell the user it's worth reporting upstream (`report-upstream-issue`), and continue with 1b anyway: paper downloads need network access.
 
 ### 1b — First-time egress configuration
 
 If the probe fails, the user needs to configure network access now. Tell them what's about to happen, in plain language:
 
-> "Quick mental model: I need internet access for this — Claude runs in a sandbox on Anthropic's servers, not on your machine, and by default that sandbox has no internet access at all. We need to turn it on in your claude.ai account Settings before I can talk to GitHub.
+> "Quick mental model: I need internet access for this — Claude runs in a sandbox on Anthropic's servers, not on your machine, and by default that sandbox has no internet access at all. We need to turn it on in your claude.ai account Settings, so I can reach the sites your work will need, like paper sources.
 >
 > A few notes:
 >
@@ -66,7 +72,7 @@ Walk them through. **Note for you, the agent:** the claude.ai Settings UI for th
 
 > "Open a new browser tab to: https://claude.ai/settings/capabilities
 >
-> Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress' or similar. **Turn it on.**
+> Look for the **network egress** setting — it lives under the code-execution / file-creation capability and may be labeled 'Allow network egress', 'Domain allowlist' or similar. **Turn it on.**
 >
 > The easiest setting is to allow everything — this controls Anthropic's server-side virtual machine (the one Claude uses for this chat), not your computer, so the broad setting doesn't open anything up on your local machine or behind your work firewall. If you go with allow-all, after bootstrap I'll file a reminder issue for you to revisit this setting in a week — the `task-remind` skill will surface it automatically at the start of your next sessions, so you can decide whether to tighten things up once you've gotten a feel for the workflow.
 >
@@ -74,18 +80,11 @@ Walk them through. **Note for you, the agent:** the claude.ai Settings UI for th
 >
 > - If it's a simple on/off toggle — turn it on.
 > - If it offers a choice of modes (for example, a restricted 'package managers only' vs. a broader unrestricted setting) — pick the broadest one.
-> - If it gives you a custom **domain allow-list**, check the 'allow all' box if one is present.
+> - If it gives you a custom **domain allow-list**, pick 'All domains' or check the 'allow all' box if one is present.
 >
-> If your account or your tier only offers a domain-list UI without an 'allow all' option, you'll need these four GitHub domains at minimum:
+> If your account or your tier only offers a domain list without an 'allow all' option, add the paper-source sites you'll commonly use — it saves an extra restart later, the first time `add-paper` needs them: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`, `nber.org`, `ssrn.com`, `pubmed.ncbi.nlm.nih.gov`. (The `www.` prefixes are intentional — match each site's canonical hostname; don't normalize them.) Also add `github.com` and `raw.githubusercontent.com`. claude.ai reaches your GitHub repos through its own GitHub proxy, so these may not be needed, but that hasn't been tested with a domain list, and listing them costs nothing.
 >
->    - `api.github.com`
->    - `codeload.github.com`
->    - `github.com`
->    - `raw.githubusercontent.com`
->
-> A domain-list UI is also the moment to add paper-source sites you'll commonly use — it saves an extra restart later, the first time `add-paper` needs them: `arxiv.org`, `www.biorxiv.org`, `www.medrxiv.org`, `doi.org`, `nber.org`, `ssrn.com`, `pubmed.ncbi.nlm.nih.gov`. (The `www.` prefixes are intentional — match each site's canonical hostname; don't normalize them.)
->
-> Whatever the interface looks like, the goal is the same: Claude needs to be able to reach `github.com`. Save the setting."
+> Save the setting."
 
 If the user describes something that fits none of the cases above — an option you don't recognize, or no egress setting at all — **stop and surface it to the user** rather than guessing. Note what they saw; it is useful input for keeping this step current.
 
@@ -120,103 +119,48 @@ Present this opening to the user — it introduces the GitHub piece and folds in
 > If any of these come up later and feel fuzzy, just ask me to unpack them. Do you already have a GitHub account?"
 
 - **Yes** → ask for their username, record as `<USERNAME>`. Continue to 2b.
-- **No** → walk them through signup at `https://github.com/signup`. Free tier is fine for everything in this workflow (private repos, unlimited collaborators, fine-grained PATs, branch protection — all on Free since 2019/2024). Wait until they confirm an account exists with a username they'll remember. Record the username.
+- **No** → walk them through signup at `https://github.com/signup`. Free tier is fine for everything in this workflow (private repos, unlimited collaborators, branch protection — all on Free since 2019/2024). Wait until they confirm an account exists with a username they'll remember. Record the username.
 
-### 2b — Personal Access Token
+The recipes below use it as the shell variable `$USERNAME`. claude.ai's bash doesn't keep variables between separate calls, so set `USERNAME="<their-username>"` at the start of each call that needs it.
 
-Tell the user: *"The PAT is the password Claude uses to talk to GitHub on your behalf. You don't need to understand the details — happy to explain any of this if you want; just ask."*
+### 2b — Connect GitHub to Claude
 
-Then ask: *"Do you have a fine-grained Personal Access Token (PAT) ready to use, or do we need to make one?"*
+Tell the user:
 
-If they have one, skip to "collect the PAT" below.
-
-If they need to create one, walk them through:
-
-> "Open a new browser tab to: https://github.com/settings/personal-access-tokens/new
+> "Next, connect your GitHub account to Claude. This is how Claude reads and writes your repos: claude.ai holds the connection on its side, so you never paste a password or token into a chat.
 >
-> - **Token name:** `claude_researcher` (or any name you'll recognize).
-> - **Expiration:** 90 days. Heads-up — this is a security choice, not just a memory tradeoff. This PAT is going into your claude.ai Project Instructions, which means it'll be stored on Anthropic's servers alongside your chats. GitHub also offers **No expiration** (never rotate, ever), but that means if Anthropic's chat logs were ever compromised, or the PAT leaked some other way (accidental commit, screenshot, copy-paste into the wrong window), your repos stay vulnerable until you notice and manually revoke. 90 days auto-expires the token before that window gets long. Pick longer only if you've weighed that tradeoff against your own threat model.
-> - **Repository access:** **All repositories**. (Fine-grained PATs can't be scoped to repos that don't exist yet, and we're about to create new ones. You can rotate the PAT to a narrower scope after bootstrap if you want.)
-> - **Permissions:** click **Add permissions**, then use these values — **Administration**: Read and write; **Contents**: Read and write; **Issues**: Read and write; **Pull requests**: Read and write; **Metadata**: Read-only (default).
-> - Click **Generate token** at the bottom. Copy the value immediately — GitHub won't show it to you again. It will start with `github_pat_`."
+> In claude.ai, open **Settings → Connectors**, find **GitHub**, and connect it. GitHub will ask you to sign in and approve. Tell me when that's done."
 
-**Before continuing, ask the user to confirm they set Administration to Read and write specifically.** It's worth the round-trip — re-doing this later is friction (though fixable in-place; see "If you skipped Administration" below). Administration is load-bearing: without it, repo creation in Step 6 will fail with 403 Forbidden.
+Wait for confirmation. There is a second one-time step, installing the Claude GitHub App on their account, which comes in Step 6 once their repos exist. Returning users (Step 3) usually have both already.
 
-**Also worth a quick confirm on Pull requests and Issues** — both Read and write. Unlike Administration, these don't fail at bootstrap; they fail later (Pull requests at session wrap-up when an agent tries to open the merge PR; Issues at the first `task-create`/`task-remind` call). A missing permission here means the user hits a 403 weeks or months after bootstrap, when the "edit the PAT" muscle memory has faded. Same edit-in-place fix as Administration; see "If you skipped Pull requests or Issues" below.
+### 2c — Permission mode (recommend auto)
 
-**Collect the PAT.** Once they have it, ask them to paste it directly into the chat. Once you have it, set it as a shell variable:
+Tell the user:
 
-```bash
-TOKEN="<the-pasted-token>"
-USERNAME="<their-username-from-2a>"
-```
+> "One setting worth choosing now: the **permission mode**, in the chat's mode menu. I recommend **auto**. In auto mode, a safety check reviews each of my actions and refuses ones that don't follow from what you asked for — in testing, it caught things like me granting myself extra GitHub access or closing issues nobody asked me to close — so you aren't clicking 'approve' on every routine step. It's a net, not a guarantee: in testing it once let an unrequested edit to an issue through.
+>
+> New chats start in whatever mode you last picked, in any Project, so choose auto once and new chats pick it up. A chat that was already open, or one where you switch modes later, keeps its own setting — if a chat starts asking you to approve lots of steps, check its mode.
+>
+> If the check ever refuses something you did want, I'll show you what it refused and ask. A one-line go-ahead typed in the chat, like 'I authorize push access to `<repo>`', has cleared it so far."
 
-Then run a smoke test against the GitHub API to verify the token works (network access is already on at this point — we confirmed it in Step 1):
-
-```bash
-curl -sI -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/user"
-```
-
-Expected: `HTTP/2 200`. If you get `401` the token is invalid (expired, mistyped, wrong scopes); have them re-create. If you get a connection error or `host_not_allowed`, network access has changed between Step 1 and now — go back and re-probe.
-
-### Token handling
-
-**Don't:**
-- Echo the token in chat output.
-- Write it to any user-visible file — their git repos (about to be created), exported transcripts, anything the user could see.
-- Include it in commit messages.
-
-**Do whatever's practical for your VM's bash workflow.** claude.ai's bash sandbox doesn't persist env vars across separate bash invocations — each `bash` call starts a fresh shell. You'll need to handle this somehow; both of these are fine:
-
-- **Inline approach.** Put `TOKEN=... USERNAME=...` at the start of every `curl` command. Verbose but unambiguous.
-- **Ephemeral scratch approach.** Write the token to your VM's scratch dir (e.g., `/home/claude/.bootstrap_env`) with `chmod 600`, source it at the top of each bash call, and `rm` it before Step 9 (validation). The scratch dir is not user-visible, not transmitted anywhere, and resets between sessions — the practical risk is essentially zero. The "don't write to any file" rule above is about user-visible surfaces, not your own VM's ephemeral storage.
-
-Pick whichever feels cleaner. If you go with the scratch file, mention to the user briefly that you've done so and that you'll clean it up at the end — transparency wins over silent decisions.
-
-**Verification affordance.** Once bootstrap is done:
-- `env | grep -c TOKEN` after cleanup → should return `0`.
-- `ls /home/claude/.bootstrap_env 2>/dev/null` → should return nothing.
-- After repo creation/seeding (Steps 6–7), grep the user's repos for any literal `github_pat_` prefix → should return nothing.
-
-### About PAT scope
-
-The PAT you just generated is scoped to all your GitHub repos because it has to be able to create new ones that don't yet exist. That's appropriate for the setup chat. The same PAT gets pasted into the new Project's Project Instructions in Step 8 for ongoing use; the post-bootstrap scope-tightening options are explained there.
-
-### Why each permission (ask if you want details)
-
-Don't volunteer this section. Only read it out if the user asks something like "what do those permissions actually do?" Then walk them through:
-
-- **Administration: Read and write** — lets Claude create new repos on your behalf. This is the most-skipped one; without it, Step 6 fails with a 403 Forbidden error. It's the reason we double-check it just above.
-- **Contents: Read and write** — lets Claude read and write the files inside your repos. Every research session reads things like `STATUS.md` and writes things like the convo summary at the end; both run through this permission.
-- **Issues: Read and write** — lets Claude file and update issues in your repos. Used by the `task-create` / `task-remind` skills for reminder tracking (including the egress-revisit reminder this bootstrap files at the end), and for filing bug reports against the upstream `claude_researcher` repo when you ask.
-- **Pull requests: Read and write** — lets Claude open PRs against your research repos. Used when a research line wraps up and gets merged back to `main` via the `finishing-a-research-branch` skill.
-- **Metadata: Read-only** — basic info about your repos (when they were created, default branch, that kind of thing). GitHub auto-enables this when you grant any other permission; you don't need to touch it.
+The user may prefer to keep approving each step; that works too, just with more clicks. Don't push.
 
 ---
 
 ## Step 3 — Check whether `claude_research_config` already exists
 
-Network access and the PAT are both verified at this point (Step 1 confirmed access, Step 2 verified the token). Now query for the user's `claude_research_config` repo — this is how we tell whether they're a returning user (with persistent prefs already set up from a previous bootstrap) or a first-timer (needs the interview):
+Find out whether the user is a returning user (with prefs already set up by an earlier bootstrap) or a first-timer (needs the interview). Call the `list_repos` tool (part of the session's GitHub tools, next to the add-repository tool; search your deferred tools if it isn't listed) with `query: "claude_research_config"`.
 
-```bash
-curl -s -o /dev/null -w "%{http_code}" \
-  -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/claude_research_config"
-```
-
-This is a read-only call against the user's own namespace. The response is just the HTTP status code (200 or 404).
-
-**Verification affordance.** The URL hits exactly one path — the user's `claude_research_config` repo. Run the same call without `-o /dev/null -w "%{http_code}"` to see the full response body if you want context.
+Don't use the add-repository tool for this check: its reply is the same for a repo that doesn't exist and for one Claude can't access ("was not found on github.com, or this session's GitHub credential doesn't have access to it").
 
 Branch on result:
 
-- **404 (does not exist) — first-time user.** Tell them: *"Looks like you haven't set up your user prefs yet — let's do those first, then we can make a repo for your project."* Continue to Step 4 (interview).
-- **200 (exists) — returning user.** Tell them: *"I can see your `claude_research_config` from a previous setup, so we'll skip the interview and just create the new research repo."* Skip Step 4 entirely. Continue to Step 5.
+- **Listed — returning user.** Tell them: *"I can see your `claude_research_config` from a previous setup, so we'll skip the interview and just set up the new research repo."* Skip Step 4 entirely. Continue to Step 5.
+- **Not listed, or the tool has nothing to list yet** — ask: *"Have you set up claude_researcher before?"*
+  - **No — first-time user.** Tell them: *"Then let's set up your user prefs first, then make a repo for your project."* Continue to Step 4 (interview).
+  - **Yes** — the repo may have a different name, or the Claude GitHub App installation may not include it. Ask them to check on github.com, and if needed add it to the installation (github.com → Settings → Applications → Installed GitHub Apps → Claude → Configure → Repository access). Then call `list_repos` again.
+
+`list_repos` has not yet been tested in this step beyond its own description. If it behaves differently from the above, fall back to asking the user directly, and mention it so the step can be corrected (`report-upstream-issue`).
 
 ---
 
@@ -306,84 +250,58 @@ Same seeding flow as a research-* repo from here on.
 
 ---
 
-## Step 6 — Create the GitHub repos
+## Step 6 — Create the GitHub repos and give Claude access
 
-You'll create two repos via the GitHub API. The exact API call is below; the operation is bounded and reversible (the user can delete either repo from `github.com` at any time).
+A chat can't create repos: claude.ai's GitHub proxy only allows calls scoped to an existing repo, and refuses `POST /user/repos` ("This GitHub API path is not available: sessions are bound to their configured repositories"). So the user creates the repos on github.com, and you attach them.
 
-**CONFIRMATION GATE.** Tell the user exactly what's about to happen:
+### 6a — The user creates the repos
 
-> "I'm about to create the following private repos in your GitHub account: `<USERNAME>/claude_research_config` (skip if it already exists) and `<USERNAME>/<RESEARCH_REPO>`. Both are initialized empty; I'll add starter files in the next step. Confirm to proceed."
+Tell the user:
 
-Wait for explicit yes.
+> "Now you'll create the repos on GitHub — two clicks each. Open https://github.com/new and create:
+>
+> - **`claude_research_config`** — skip this one if Step 3 found it already.
+> - **`<RESEARCH_REPO>`**
+>
+> For each: set it to **Private**, leave **Template** as 'No template', and leave **Add a README**, **.gitignore** and **license** all off, so the repo starts empty and my starter files are its first commit. Then click **Create repository**. Tell me when both exist."
 
-For each repo to create, the API call is:
+Wait for confirmation.
+
+### 6b — Install the Claude GitHub App (or add the new repos to it)
+
+Connecting GitHub (Step 2b) lets Claude read; the Claude GitHub App is what lets it push.
+
+- **First-time users** — tell them:
+
+  > "One more one-time step: install the Claude GitHub App. Open https://github.com/apps/claude/installations/new, choose your account, pick **Only select repositories**, and select `claude_research_config` and `<RESEARCH_REPO>`. Then click **Install**. (If you set a different home repo for personal tasks in the interview, select it too.)"
+
+- **Returning users** — the App is probably installed already. If it was installed with **Only select repositories**, the new repo has to be added: github.com → Settings → Applications → Installed GitHub Apps → Claude → Configure → Repository access → add `<RESEARCH_REPO>` → Save. With **All repositories**, nothing more is needed.
+
+Wait for confirmation.
+
+### 6c — Attach and verify
+
+Attach each repo to this chat with the add-repository tool (`add_repo`; search your deferred tools if it isn't listed), **read access**, one call per repo, in the same turn. Don't clone them; Step 7 writes over REST. The tool's reply suggests cloning and calling `register_repo_root`; skip both here.
+
+What the replies mean, and the fixes, are in `RESEARCHER.md` §2.0c ("What the replies mean"). The common ones here: "link your GitHub account" → Step 2b isn't done; "was not found … or … doesn't have access" → the name is wrong or the App installation doesn't include the repo (6b).
+
+**Verification affordance.** GET each repo:
 
 ```bash
-curl -sX POST \
-  -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  -H "X-GitHub-Api-Version: 2022-11-28" \
-  https://api.github.com/user/repos \
-  -d '{"name":"<REPO_NAME>","private":true,"auto_init":true,"description":"<DESC>"}'
+curl -s -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/$USERNAME/<REPO_NAME>" \
+  | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('full_name'), 'private' if d.get('private') else 'NOT PRIVATE', d.get('message',''))"
 ```
 
-Use `<DESC>` = `"Lifetime config for claude_researcher workflow."` for `claude_research_config`.
-Use `<DESC>` = `"<TOPIC>"` (the user's one-sentence topic from Step 5) for the research repo.
-
-`auto_init:true` causes GitHub to create an initial commit with an auto-generated `README.md`. We'll overwrite it in Step 7.
-
-**Verification affordance.** After each creation, verify with a GET:
-
-```bash
-curl -sI -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
-  "https://api.github.com/repos/$USERNAME/<REPO_NAME>"
-```
-
-Expect `HTTP/2 200`. The `private` field in the JSON body should be `true`. If anything else, stop and surface to the user.
-
-If `claude_research_config` already existed (Step 3 returned 200), skip its creation; just create the research repo.
-
-### If you skipped Administration (403 on create)
-
-If the `POST /user/repos` returns **403 Forbidden** with body `"Resource not accessible by personal access token"`, the PAT is missing the `Administration: Read and write` permission. **Don't restart the chat** — fine-grained PATs can be edited in place, and the token value stays the same:
-
-> "Looks like the PAT is missing the `Administration` permission, which I need to create repos. You can fix this without making a new token:
->
-> 1. Open: https://github.com/settings/personal-access-tokens
-> 2. Click your `claude_researcher` (or however you named it) PAT.
-> 3. Under **Repository permissions**, change **Administration** to **Read and write**.
-> 4. Scroll down and click **Update**.
->
-> The token string itself is unchanged — I still have the right value. Tell me when you've saved, and I'll retry the create."
-
-Wait for confirmation, then retry the `POST /user/repos`.
-
-### If you skipped Pull requests or Issues (403 at wrap-up or task-time)
-
-Unlike Administration, these two don't fail during bootstrap — they fail at runtime, when an agent first tries the operation that needs them:
-
-- **Pull requests** is needed at session wrap-up to open the PR that merges a research line back to `main` (`finish-convo` skill, RESEARCHER §6 step 1). Failure surfaces as 403 on `POST /repos/<owner>/<repo>/pulls` with body `"Resource not accessible by personal access token"`.
-- **Issues** is needed by `task-create` (filing a reminder) and `task-remind` (querying open reminders). Same 403 / same body, on the corresponding Issues API call.
-
-The fix is identical to Administration — edit the existing PAT in place, the token value stays the same:
-
-> "Looks like the PAT is missing the `<Pull requests | Issues>` permission, which I need for `<opening the wrap-up PR | filing/checking the task reminder>`. You can fix this without making a new token:
->
-> 1. Open: https://github.com/settings/personal-access-tokens
-> 2. Click your `claude_researcher` (or however you named it) PAT.
-> 3. Under **Repository permissions**, change **<Pull requests | Issues>** to **Read and write**.
-> 4. Scroll down and click **Update**.
->
-> The token string itself is unchanged — I still have the right value. Tell me when you've saved and I'll retry."
-
-Wait for confirmation, then retry the failed call.
+Expect the repo name and `private`. If it says `NOT PRIVATE`, stop and tell the user before writing anything: their research repo would be public.
 
 ---
 
 ## Step 7 — Seed the new repo(s) with starter files
 
 For each new repo, write the starter files via the Contents API. The exact content of each file is shown in this section. **No transformation between what's shown here and what gets written** — interpolate only the explicit `<PLACEHOLDERS>`.
+
+**Request push first.** Before the first write to each repo, call the add-repository tool again for it with `access: "push"` — the user asked for this setup, so the request follows from their message. A reply of `status: "already_present"` means proceed. Writes may appear to work on the read attachment alone; request push anyway. If the request is refused, show the user the denial text and ask (`RESEARCHER.md` §2.0c "Permission checks").
 
 ### The Contents API write recipe
 
@@ -392,16 +310,16 @@ For each file, the call is:
 ```bash
 CONTENT_B64=$(printf '%s' "<FILE_CONTENT>" | base64 -w0)
 curl -sX PUT \
-  -H "Authorization: token $TOKEN" \
   -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
+  -H "Content-Type: application/json" \
   "https://api.github.com/repos/$USERNAME/<REPO>/contents/<PATH>" \
   -d "{\"message\":\"Initial seed: <PATH>\",\"content\":\"$CONTENT_B64\"}"
 ```
 
 **Verification affordance after each write.** GET the same path; decode the `content` field from base64; confirm it matches what you sent. The response also includes a `sha` you'll need if you ever update the file later.
 
-If the file already exists (e.g., `auto_init:true` created a `README.md`), the PUT will fail with a 422 because no `sha` was provided. Either delete the existing file first or include the existing `sha` in the body. The cleanest approach: GET the existing file (capture the `sha`), then PUT with `sha` field included.
+If the file already exists (e.g., the user ticked **Add a README** in Step 6a), the PUT will fail with a 422 because no `sha` was provided. Either delete the existing file first or include the existing `sha` in the body. The cleanest approach: GET the existing file (capture the `sha`), then PUT with `sha` field included.
 
 ### Files to seed in `claude_research_config` (skip if it already existed)
 
@@ -423,7 +341,7 @@ Lifetime config for the claude_researcher workflow. Holds files that every resea
 - `personal_info.md` — who I am, how I work, my preferences. Read by every session.
 - `domain_allowlist.txt` — record of the network allow-list configured in my claude.ai Settings. Useful for re-creating the same setup on a different machine.
 
-This repo is private. No PATs, secrets, or research artifacts here — those go in the per-project research repos.
+This repo is private. No secrets or research artifacts here — those go in the per-project research repos.
 ```
 
 #### `.gitignore`
@@ -432,7 +350,7 @@ This repo is private. No PATs, secrets, or research artifacts here — those go 
 _PROJECT_INSTRUCTIONS.md
 ```
 
-(The `_PROJECT_INSTRUCTIONS.md` file gets uploaded to claude.ai Projects with the rendered TOKEN/USERNAME/REPO; never commit it.)
+(A rendered copy of the Project Instructions, if the user saves one locally, stays out of the repo; it holds nothing secret, but it's per-Project setup, not repo content.)
 
 ### Files to seed in `<RESEARCH_REPO>`
 
@@ -492,7 +410,7 @@ Per-project configuration the skills read at runtime (an explicit extra read —
 
 <TOPIC>
 
-This repo is configured for the [claude_researcher](https://github.com/danparshall/claude_researcher) workflow. Research sessions happen in a corresponding claude.ai Project that reads this repo via the GitHub REST API.
+This repo is configured for the [claude_researcher](https://github.com/danparshall/claude_researcher) workflow. Research sessions happen in a corresponding claude.ai Project, whose sessions clone this repo and push their work back.
 
 For agent-facing instructions, see the upstream [`RESEARCHER.md`](https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md). Personal context (name, preferences, etc.) is in [`<USERNAME>/claude_research_config`](https://github.com/<USERNAME>/claude_research_config).
 ```
@@ -510,8 +428,7 @@ For each, write a single newline as content; commit message `"Initial seed: <pat
 **Verification affordance for the whole step.** After all files are written to a repo, list the contents:
 
 ```bash
-curl -s -H "Authorization: token $TOKEN" \
-  -H "Accept: application/vnd.github+json" \
+curl -s -H "Accept: application/vnd.github+json" \
   "https://api.github.com/repos/$USERNAME/<REPO>/contents/" \
   | python3 -c "import sys,json; print('\n'.join(e['path'] for e in json.load(sys.stdin)))"
 ```
@@ -530,7 +447,7 @@ This step is **procedural** — you instruct, the user clicks. You don't have ac
 > 2. **Description:** `<TOPIC>`
 > 3. Click **Create**.
 >
-> Once you're inside the new Project, you'll paste a block of text into the **Project Instructions** field. That text holds the credentials and curl recipes I'll use to talk to your repos. **Don't** upload anything as a file — the Project Instructions field is the only paste target."
+> Once you're inside the new Project, you'll paste a block of text into the **Project Instructions** field. It tells every chat in the Project which repo is yours and where the workflow's instructions live. Nothing in it is secret. **Don't** upload anything as a file — the Project Instructions field is the only paste target."
 
 ### Project Instructions text — what to paste
 
@@ -540,39 +457,14 @@ The canonical Project Instructions text lives at:
 
 **WebFetch it.** Substitute the placeholders before showing the result to the user:
 
-- `<TOKEN>` → the PAT collected in Step 2b
 - `<USERNAME>` → the GitHub username from Step 2a
 - `<REPO>` → the research repo name from Step 5
 
 Present the rendered text to the user as a single code block. Tell them:
 
-> "Copy this entire block and paste it into your new Project's **Project Instructions** field. The Project Instructions field is the right home for this — it puts the credentials and recipes into every chat's context from the very first message, before any fetching happens. **Don't upload this as a file.**"
+> "Copy this entire block and paste it into your new Project's **Project Instructions** field. That puts it into every chat's context from the very first message, before any fetching happens. **Don't upload this as a file.**"
 
-**Verification affordance.** Once the user confirms the paste, ask them to spot-check that all three substitutions are present in the pasted text — the literal strings `<TOKEN>`, `<USERNAME>`, `<REPO>` should NOT appear; the actual values should. If any placeholder is still literal, the runtime agent won't be able to authenticate — have them re-render and re-paste.
-
-> **Token handling:** the PAT lives only in the Project Instructions text in the user's claude.ai account, not in any file in their GitHub repos. Don't echo the token back in chat output, don't write it to any seed file, don't include it in commit messages. The threat model here is *public exposure* — git-tracked files, echoed transcripts, anything that could get captured to a public surface. The PAT itself is scoped and rotatable by design; appearing in this Project Instructions context is exactly where it belongs.
-
-### PAT scope and lifecycle (heads-up to the user)
-
-After confirming the paste, briefly explain the user's options for ongoing PAT use. **You don't need to do anything here** — this is purely informational so the user can decide what they want for hardening later. Tell them:
-
-> "A heads-up about the PAT we just used. It's scoped to **All repositories** because it had to be able to create new repos that didn't exist yet — that's appropriate for setup. For ongoing use (every future research session in this Project), you have a few options:
->
-> - **Keep using this PAT.** Simplest. The same PAT can create future research projects via re-running the bootstrap; you paste the same value into each new Project's Project Instructions. One PAT to rotate when it expires. Trade-off: every Project chat that uses it has access to all your repos.
->
-> - **Rotate down to a per-project PAT.** Now that this research repo exists, you can generate a NEW fine-grained PAT scoped to just `claude_research_config` + this one research repo — much narrower. Replace the broad PAT in this Project's Project Instructions with the narrow one, then revoke the broad PAT (or hold it as a 'bootstrap-only PAT' you spin up briefly when starting new projects). Tightest scope per Project; more PATs to manage.
->
-> - **Per-project PATs going forward.** Generate a new fine-grained PAT for each future research project at bootstrap time, scoped just to that project's repo. Revoke after that project's lifetime ends.
->
-> v1 of the workflow runs identically under any of these. If you don't have a strong preference, the first option is the path of least resistance. We'll proceed."
-
-**Cleanup now.** If you wrote the token to ephemeral scratch in Step 2b (`/home/claude/.bootstrap_env` or similar), this is the moment to remove it:
-
-```bash
-rm -f /home/claude/.bootstrap_env
-```
-
-The token has now finished its setup-time job; it lives in the user's Project Instructions for ongoing use, not in your VM's scratch.
+**Verification affordance.** Once the user confirms the paste, ask them to spot-check that both substitutions are present in the pasted text — the literal strings `<USERNAME>` and `<REPO>` should NOT appear; the actual values should. If either placeholder is still literal, the runtime agent won't know which repo to attach — have them re-render and re-paste.
 
 ---
 
@@ -582,13 +474,13 @@ Tell the user:
 
 > "Open a new chat in your `<RESEARCH_REPO>` Project. Just say 'hi' or 'let's begin' — see what happens."
 
-Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Project Instructions, reads `RESEARCHER.md` from the local clone, fetches `personal_info.md` from `claude_research_config` via the Contents API, and greets the user by name with a reference to their topic.
+Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Project Instructions, reads `RESEARCHER.md` from the local clone, attaches the research repo and `claude_research_config` read-only (the user may see an approval box for each, depending on their permission mode), clones the research repo, fetches `personal_info.md` via the Contents API, and greets the user by name with a reference to their topic.
 
 If validation fails, the most common causes (in rough order of likelihood):
 
-1. **PAT expired or wrong scope** → re-create per Step 2b. Most common.
-2. **Project Instructions text missing, truncated, or has unsubstituted `<TOKEN>` / `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
-3. **Network access not enabled, or the change hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://api.github.com/zen` probe. If the **network egress** setting was changed *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
+1. **A repo couldn't be attached, or a step was refused** → the new chat's agent should quote the reply or denial text; match it against `RESEARCHER.md` §2.0c (GitHub not connected, App installation missing the repo, or a permission-check refusal). Most common.
+2. **Project Instructions text missing, truncated, or has unsubstituted `<USERNAME>` / `<REPO>` placeholders** → re-render the canonical text and re-paste per Step 8. Spot-check that no literal placeholders remain.
+3. **Network access not enabled, or the change hasn't propagated** → re-check Settings per Step 1, including running the `curl -sI https://example.com` probe. If the **network egress** setting was changed *during* a chat that was already open, it won't have propagated; restart in a fresh chat (per Step 1c's hand-off).
 4. **Clone fails / `RESEARCHER.md` unreachable from claude.ai** → confirm the upstream repo (`danparshall/claude_researcher`) is public and `git clone --depth 1 https://github.com/danparshall/claude_researcher.git` succeeds in the sandbox. Agents that can't clone should fall back to `WebFetch https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md`. If the repo was recently flipped from private to public, the clone reflects current state immediately, but the raw-CDN fallback path can lag by 24+ hours.
 
 Help the user troubleshoot. Iterate until validation passes.
@@ -603,11 +495,15 @@ If this is a first-time bootstrap (Step 3 returned 404 and Step 4 ran), file a o
 
 If the egress was configured inline in *this* chat, you know what the user picked. If the egress was configured in a prior chat (§1c hand-off), the choice didn't persist across the restart; ask:
 
-> "Quick check: back when you turned on network egress, did you go with 'allow everything', set a restrictive domain allow-list, or you're not sure? I'll file a one-week revisit reminder if you went with allow-all."
+> "Quick check: back when you turned on network egress, did you go with 'allow everything', set a restrictive domain allow-list, or you're not sure?"
 
-**File the reminder only on confirmed allow-all.** If the user picked a domain allow-list, or isn't sure, skip the rest of this sub-step — and if they're unsure, tell them they can file the reminder themselves anytime by saying *"remind me to revisit my egress setting in a week"* (the `task-create` skill handles it). This matches §1b's promise, which was specifically conditional on the allow-all choice.
+On allow-all, offer the reminder and file it only on a yes — it's an issue written to their repo, so the user should ask for it:
 
-On confirmed allow-all:
+> "Want me to file a one-week reminder to revisit that setting? It shows up at the start of your next session after that date."
+
+**File the reminder only on confirmed allow-all and a yes.** If the user picked a domain allow-list, or isn't sure, skip the rest of this sub-step — and if they're unsure, tell them they can file the reminder themselves anytime by saying *"remind me to revisit my egress setting in a week"* (the `task-create` skill handles it). This matches §1b's promise, which was specifically conditional on the allow-all choice.
+
+On confirmed allow-all and a yes: if `<HOME_REPO>` isn't `claude_research_config`, attach it read-only with the add-repository tool (the user named it in Step 4). Then request push for it (`access: "push"`; `already_present` means proceed) before the writes below.
 
 ```bash
 TODAY=$(date -u +%Y-%m-%d)
@@ -618,19 +514,17 @@ HOME_REPO="<HOME_REPO>"
 # 1. Verify <HOME_REPO> exists. If the user customized HOME_REPO to a not-yet-existing repo in Step 4 Batch 3,
 # the label + issue POSTs below would 404 silently; better to detect and surface up front.
 REPO_HTTP=$(curl -s -o /dev/null -w "%{http_code}" \
-  -H "Authorization: token $TOKEN" \
   -H "Accept: application/vnd.github+json" \
   "https://api.github.com/repos/$HOME_REPO")
 
 if [ "$REPO_HTTP" != "200" ]; then
-  # Tell the user: "Skipping the egress-revisit reminder — `$HOME_REPO` returned HTTP $REPO_HTTP, so I can't file there. You can file it yourself anytime by saying 'remind me to revisit my egress setting in a week.'"
+  # Tell the user: "Skipping the egress-revisit reminder — `$HOME_REPO` returned HTTP $REPO_HTTP (403 usually means it isn't attached to this chat), so I can't file there. You can file it yourself anytime by saying 'remind me to revisit my egress setting in a week.'"
   # Then skip the rest of this sub-step.
   echo "skip-reminder: HOME_REPO check returned $REPO_HTTP"
 else
   # 2. Dedupe — if an open egress-revisit reminder already exists in <HOME_REPO>, don't file a second one.
   # (Returning-user paths shouldn't reach this sub-step at all, but the gate is verbal; this is the programmatic backstop.)
   EXISTING=$(curl -s \
-    -H "Authorization: token $TOKEN" \
     -H "Accept: application/vnd.github+json" \
     "https://api.github.com/repos/$HOME_REPO/issues?state=open&labels=task&per_page=100" \
     | python3 -c "
@@ -648,9 +542,9 @@ except Exception:
   else
     # 3. Ensure the `task` label exists in <HOME_REPO> (idempotent — 422 if it already does, which is fine; the issue create still works).
     curl -sX POST \
-      -H "Authorization: token $TOKEN" \
       -H "Accept: application/vnd.github+json" \
       -H "X-GitHub-Api-Version: 2022-11-28" \
+      -H "Content-Type: application/json" \
       "https://api.github.com/repos/$HOME_REPO/labels" \
       -d '{"name":"task","color":"0052CC","description":"Tracked todo (task-create skill)"}'
 
@@ -659,7 +553,7 @@ except Exception:
     BODY=$(cat <<EOF
 Filed by claude_researcher bootstrap on ${TODAY}. You chose the broad "allow all" option for claude.ai network egress during bootstrap.
 
-Now that you have used the workflow for a bit, you may want to tighten this to a domain allow-list. The minimum domains for the claude_researcher workflow are: \`api.github.com\`, \`codeload.github.com\`, \`github.com\`, \`raw.githubusercontent.com\`, plus any paper sources you regularly download from.
+Now that you have used the workflow for a bit, you may want to tighten this to a domain allow-list. claude.ai reaches your GitHub repos through its own GitHub proxy; list \`github.com\` and \`raw.githubusercontent.com\` anyway (untested whether they're needed), plus any paper sources you regularly download from. The \`domain_allowlist.txt\` file in your \`claude_research_config\` repo has a starting list.
 
 The \`task-remind\` skill will surface this reminder automatically at the start of your next session on or after ${FIRE_DATE}.
 EOF
@@ -668,9 +562,9 @@ EOF
 
     RESPONSE=$(python3 -c "import json, os; print(json.dumps({'title': f'[{os.environ[\"FIRE_DATE\"]}] Revisit claude.ai network egress setting', 'body': os.environ['BODY'], 'labels': ['task']}))" \
       | curl -sX POST \
-        -H "Authorization: token $TOKEN" \
         -H "Accept: application/vnd.github+json" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
+        -H "Content-Type: application/json" \
         "https://api.github.com/repos/$HOME_REPO/issues" \
         -d @-)
 
@@ -699,7 +593,7 @@ Tell the user:
 > "Bootstrap complete. From now on:
 >
 > - **To work on this research project:** open a new chat in the `<RESEARCH_REPO>` Project. Tell the agent what you're working on; it'll handle the rest.
-> - **To start a new research project:** paste the bootstrap prompt again into a fresh chat. Your `claude_research_config` will be re-used; only the new research repo gets created. Skip-to-Step-8 path.
+> - **To start a new research project:** paste the bootstrap prompt again into a fresh chat. Your `claude_research_config` will be re-used; you'll create only the new research repo (Steps 5–8).
 > - **To file an issue or request a feature:** ask the agent in any session — they'll generate a pre-filled URL pointing at the upstream issue tracker."
 
 Stop. Do not continue with any further actions. The bootstrap is complete.
@@ -708,10 +602,12 @@ Stop. Do not continue with any further actions. The bootstrap is complete.
 
 ## Appendix — Common issues
 
-- **"401 Unauthorized" on any API call:** PAT is wrong (mistyped, expired, or insufficient scope). Re-create per Step 2b.
-- **"403 Forbidden" specifically on `POST /user/repos`:** PAT lacks the `Administration: Read and write` permission. **Edit the existing PAT in place — don't recreate.** Fine-grained PATs are editable; the token value is unchanged. See Step 6 "If you skipped Administration" for the recipe.
-- **"403 Forbidden" on a Pulls API call (`POST /repos/.../pulls`) or Issues API call (`POST /repos/.../issues`):** PAT lacks `Pull requests: Read and write` or `Issues: Read and write` respectively. These failures don't surface during bootstrap — they surface mid-session, often weeks later. **Edit in place — don't recreate.** See Step 6 "If you skipped Pull requests or Issues" for the recipe.
+- **A step was refused by the permission check** (auto mode): show the user the exact denial text and the step it blocked, and ask. See `RESEARCHER.md` §2.0c "Permission checks".
+- **add-repository says the repo "was not found on github.com, or this session's GitHub credential doesn't have access to it":** the name is wrong, the repo doesn't exist yet (Step 6a), or the Claude GitHub App installation doesn't include it (Step 6b). Check with `list_repos`, then ask the user.
+- **add-repository says "link your GitHub account":** Step 2b isn't done.
+- **403 "This GitHub API path is not available: sessions are bound to their configured repositories":** the call wasn't repository-scoped (for example creating a repo). Only `repos/{owner}/{repo}/...` paths work; the user creates repos on github.com (Step 6a).
+- **403 mentioning `add_repo` on a REST call:** the repo isn't attached to this chat yet (Step 6c).
+- **415 on a write:** the request is missing `-H "Content-Type: application/json"`.
 - **"422 Unprocessable Entity" on a Contents API PUT:** the file already exists and you didn't include its `sha`. GET the file first, capture `sha`, retry the PUT with `sha` field included.
-- **Connection error / "could not resolve host":** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
-- **"Repo already exists" when creating:** an earlier bootstrap attempt got partway. Run Step 3's existence check; if `claude_research_config` exists, skip it; same for the research repo (different curl, same logic).
-- **User reports their PAT can't be granted "Administration" permission:** they may have an organization restriction on their account. Have them either (a) use a personal account where they're the owner, or (b) ask their org admin to permit fine-grained PATs with Administration scope, or (c) fall back to a classic PAT with `repo` scope (deprecated but still works).
+- **Connection error / "could not resolve host" on a non-GitHub site:** network access isn't enabled, or doesn't permit the host, or the change hasn't propagated to this chat. Re-check Step 1; if the change was made during this chat, restart in a fresh one (Step 1c).
+- **GitHub says the repo name already exists when the user creates it:** an earlier bootstrap attempt got partway. Reuse it if it's empty or holds only seed files (Step 7's 422 note covers files already there).

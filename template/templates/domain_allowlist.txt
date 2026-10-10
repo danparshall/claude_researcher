@@ -13,9 +13,10 @@
 # One domain per line. Strip the comment lines (starting with #) before
 # pasting if the allow-list field does not tolerate them.
 
-# --- Workflow-required (GitHub REST API + raw content fetch) ---
-api.github.com
-codeload.github.com
+# --- GitHub ---
+# claude.ai reaches your GitHub repos (git and the REST API) through its own
+# GitHub proxy, so these may not be needed. Untested with a domain list;
+# listing them costs nothing.
 github.com
 raw.githubusercontent.com
 
