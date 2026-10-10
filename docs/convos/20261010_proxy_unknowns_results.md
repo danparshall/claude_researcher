@@ -21,7 +21,7 @@ Results of [plan 15](../plans/15_proxy_unknowns_tests.md), run by Dan in the `pr
 | T3 network egress | 1 | `api.github.com/zen` 403 and `github.com` 400, both from the proxy; `raw.githubusercontent.com`, `arxiv.org`, `example.com` 200. No approval prompts. Dan's egress setting: "All domains" (`full_egress`). The agent reported the Project Instructions arriving inside command output, styled as a system reminder, and ignored them as an injection. |
 | T4 what a read attachment allows | 2 (plus one void run: repo didn't exist yet) | Both runs: read request approved ("appended", access level not echoed); REST GET 200; `git push` of a new branch succeeded. Nothing refused. |
 | T5 read-to-push upgrade | 1 | Push request on the already-attached repo returned `status: "already_present"`, no access change mentioned, no refusal; push succeeded. With T4, the push request is a no-op once a repo is attached. Second run skipped (nothing left to distinguish). |
-| T6 auto permission mode | Dan's UI observation | Not per account: Dan has had to re-enable it. Possibly per Project, or the default is whatever was last selected. Not pinned down further. |
+| T6 auto permission mode | Dan's UI observation | New chats default to whatever mode was last selected, in any Project (changing it in one Project changes the default in the others). Chats already open keep their own setting; those open when the feature rolled out defaulted to Manual. |
 
 ### T1 — Attaching a repo that doesn't exist
 
@@ -98,9 +98,9 @@ No approval prompts. Dan's claude.ai setting (Settings → capabilities → Doma
 
 ### T6 — The auto permission mode
 
-Dan, from using the UI: the mode is **not** an account-level setting ("I've had to go re-enable"). It may be per Project, or new chats may default to whatever was last selected. Not tested further.
+Dan, from using the UI: new chats default to **whatever mode was last selected**, wherever it was selected; changing it in one Project changes the default in the others. Chats already open keep their own setting. When the feature rolled out, the chats Dan already had open defaulted to Manual, which is why he "had to go re-enable" it.
 
-**What it means for plan 14:** BOOTSTRAP can't say "set it once". It should tell the user to check the permission mode at the start of a chat and choose auto if it isn't already selected.
+**What it means for plan 14:** BOOTSTRAP can say "choose auto once; new chats pick it up", with one caveat: a chat that was already open, or one where the user later switched modes, keeps its own setting, so check the mode if a chat starts asking for approvals.
 
 ## Summary of what changes in plan 14
 
@@ -111,6 +111,6 @@ Dan, from using the UI: the mode is **not** an account-level setting ("I've had 
 | BOOTSTRAP Step 6 (create repos) | The user creates both repos on github.com; the proxy refuses `POST /user/repos`. With "Only select repositories", the user also adds each to the installation. | T2 |
 | RESEARCHER.md §2.0c | General rule: only `repos/{owner}/{repo}/...` API paths work. Push request at the first commit stays; `already_present` means proceed. Never push on a read attachment without having requested push. | T2, T4, T5 |
 | RESEARCHER.md §2.0c | Say whether to call `register_repo_root` (default: don't). | T4, T5 |
-| BOOTSTRAP auto-mode text | "Check the permission mode at the start of a chat; choose auto." | T6 |
+| BOOTSTRAP auto-mode text | "Choose auto once; new chats inherit the last selection. Chats already open keep their own." | T6 |
 | `resolve-runtime-issue` | Entries quoting the T1 and T2 refusal texts. | T1, T2 |
 | Upstream | Project Instructions delivered inside tool output look like an injection to the agent. | T3 |
