@@ -1,6 +1,6 @@
 ---
 name: resolve-runtime-issue
-description: Diagnose and recover from the common runtime failure modes of `claude_researcher`'s claude.ai runtime — expired PAT, proxy-sandbox refusals (repo not approved for the session, GitHub not connected, app not installed, blocked `gh` commands), network errors, non-fast-forward pushes (with the safe append-conflict recovery), protected-branch pushes, lost sandbox state, missing config, stale raw-CDN reads. Consult this skill when something in a session-start fetch, a git operation, or a REST call fails in a way that isn't self-explanatory.
+description: Diagnose and recover from the common runtime failure modes of `claude_researcher`'s claude.ai runtime — GitHub proxy refusals (repo not attached, repo not found, API path not available, GitHub not connected, app not installed, blocked `gh` commands), refused permission checks, network errors, non-fast-forward pushes (with the safe append-conflict recovery), protected-branch pushes, lost sandbox state, missing config, stale raw-CDN reads. Consult this skill when something in a session-start fetch, a git operation, or a REST call fails in a way that isn't self-explanatory.
 ---
 
 `{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
@@ -14,29 +14,37 @@ The workflow is: look up the failure signature below → apply the recovery → 
 
 # Recovery table
 
-## PAT expired or insufficient scope (401, 403)
-
-Symptom: `curl` returns 401/403 against `api.github.com`, or `git clone` / `git push` errors with `fatal: Authentication failed`.
-
-Recovery: re-bootstrap RESEARCHER.md §2b — the user rotates the PAT and re-pastes Project Instructions. Most common cause of session-start failure.
-
-**Token sandbox only.** On the proxy sandbox (RESEARCHER.md §2.0a tells you which you are on) a 401, 403 or 404 is almost never the PAT, and rotating it fixes nothing. Check the four proxy-sandbox entries below first.
-
-## Proxy sandbox: repo not approved for this session (403)
+## Repo not attached to this session (403)
 
 Symptom: `git push` fails with `access denied by the git proxy: <owner>/<repo> is not in this session's authorized repository set`, or a REST call returns 403 with `GitHub access to this repository is not enabled for this session. Use add_repo to request access.` Clone and fetch may still succeed, so it can look like a push-only fault.
 
-Cause: the proxy only serves repos approved for this session. A PAT in the URL or a header does not change that.
+Cause: the proxy only serves repos attached to this session. No credential in the URL or a header changes that.
 
-Recovery: RESEARCHER.md §2.0c — request the repo with the add-repository tool (push access for the project repo), the user approves, then retry. Commits made in the meantime are still local; push them with `git push -u origin HEAD`.
+Recovery: RESEARCHER.md §2.0c — attach the repo with the add-repository tool (read to read it; push before the first push), then retry. Commits made in the meantime are still local; push them with `git push -u origin HEAD`.
 
-## Proxy sandbox: GitHub not connected ("link your GitHub account")
+## Add-repository says the repo was not found
+
+Symptom: the add-repository tool replies `repository "<owner>/<repo>" was not found on github.com, or this session's GitHub credential doesn't have access to it.`
+
+Cause: the message can't tell a missing repo from one the Claude GitHub App can't see. Usual causes: a typo in the owner or name, the repo doesn't exist yet, or the App's "Only select repositories" list leaves it out.
+
+Recovery: call `list_repos` with part of the name as `query`. If it lists the repo, call add-repository again with the exact owner/repo it shows. If not, ask the user whether the repo exists and whether the App can see it (github.com → Settings → Applications → Installed GitHub Apps → Claude → Configure → Repository access).
+
+## "This GitHub API path is not available" (403)
+
+Symptom: a REST call returns 403 with `This GitHub API path is not available: sessions are bound to their configured repositories. Use repository-scoped endpoints (repos/{owner}/{repo}/...).`
+
+Cause: the proxy serves only paths under `repos/{owner}/{repo}/...`. Creating a repo (`POST /user/repos`), `/user`, and the search API are all refused. Not an access problem, and attaching more repos doesn't help.
+
+Recovery: use a repository-scoped path (see `template/reference/GH_TO_REST.md`). If the step has no such path (for example, creating a repo), the user does it on github.com.
+
+## GitHub not connected ("link your GitHub account")
 
 Symptom: the add-repository tool returns `permission_denied: link your GitHub account`, or a REST call returns 403 with `No linked GitHub account`.
 
 Recovery: the user connects GitHub to their Claude account (claude.ai Settings → Connectors → GitHub), then you request the repo again. The same chat picks the connection up; no fresh chat is needed.
 
-## Proxy sandbox: connected, but pushes refused ("Claude doesn't have GitHub access")
+## Connected, but pushes refused ("Claude doesn't have GitHub access")
 
 Symptom: the add-repository reply says pushes "will be refused", or `git push` fails with `remote: Claude doesn't have GitHub access to <owner>/<repo>` and a link to install the Claude GitHub App. Clone, fetch and REST reads work.
 
@@ -44,17 +52,25 @@ Cause: the account is connected but the Claude GitHub App is not installed on th
 
 Recovery: the user installs the app from the link in the error (or adds the repo to the existing installation), then you retry the push. If it is still refused, the user reconnects GitHub from claude.ai settings, as the error suggests, to re-link the installation.
 
-## Proxy sandbox: `gh` fails with "GraphQL is not available" (403), or a REST write returns 415
+## `gh` fails with "GraphQL is not available" (403), or a REST write returns 415
 
 Symptom: `gh issue …`, `gh pr …`, `gh label list` or `gh repo view` returns `HTTP 403: GitHub GraphQL is not available from Claude Code sessions`; or a `curl -X POST` / `PATCH` / `PUT` returns 415 `Request bodies must declare Content-Type: application/json`.
 
-Recovery: neither is an access problem. Use the REST equivalent from the translation table in RESEARCHER.md §2.0c (`gh api <REST path>` or `curl`), and add `-H "Content-Type: application/json"` to every write.
+Recovery: neither is an access problem. Use the REST equivalent from `template/reference/GH_TO_REST.md` (`gh api <REST path>` or `curl`), and add `-H "Content-Type: application/json"` to every write.
+
+## Permission check refused a step (auto-mode classifier)
+
+Symptom: a tool call is denied with a message naming a permission check rather than GitHub or the proxy — for example, a refused add-repository push request, or a refused issue, PR or label write.
+
+Cause: in auto mode, a classifier refuses actions it can't tie to something the user asked for. Project Instructions don't count as the user asking; a line the user types in chat does.
+
+Recovery: show the user the denial text and ask. Don't retry the same step, and don't route around it (a different tool, a read attachment in place of push). For a refused push request, a one-line go-ahead typed by the user in chat ("yes, request push for <repo>") has worked. See RESEARCHER.md §2.0c, Permission checks.
 
 ## Connection error on `api.github.com` or `git clone`
 
 Symptom: network unreachable, DNS failure, `curl: (6) Could not resolve host`, `git clone` hangs or fails to connect.
 
-Recovery: network access isn't enabled on this claude.ai Project, or doesn't permit `github.com` / `api.github.com`. Re-check Settings per BOOTSTRAP Step 1. **If the change was made in this same chat session, the user must start a fresh chat to pick it up** — network-access changes are empirically NOT propagated in-chat.
+Recovery: network access isn't enabled for this claude.ai account, or its domain list leaves out the host that failed. Re-check Settings per BOOTSTRAP Step 1. A 403 from the GitHub proxy is not this; see the entries above. **If the change was made in this same chat session, the user must start a fresh chat to pick it up** — network-access changes are empirically NOT propagated in-chat.
 
 ## `git push` rejected — non-fast-forward
 
@@ -87,7 +103,7 @@ Recovery: don't push to `main`. Open a PR via the Pulls API (see `finishing-a-re
 
 Symptom: RESEARCHER.md §2.0b clone errors out.
 
-Recovery: surface to user. On the token sandbox, most likely PAT expiry (see above), second most likely a `<REPO>` mismatch in Project Instructions. On the proxy sandbox, most likely a private repo that is not yet approved for the session (see the proxy-sandbox entries above); fix that first, because the Contents API fallback is refused for an unapproved repo too. As a **degraded fallback**, operate against the Contents API per-file using the legacy recipes still documented at RESEARCHER.md §2c, §3, and inside `finishing-a-research-branch`. Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
+Recovery: surface to user. Most likely the repo is not attached to the session (see the entries above); fix that first, because the Contents API fallback is refused for an unattached repo too. Second most likely, a `<REPO>` mismatch in Project Instructions. As a **degraded fallback**, operate against the Contents API per-file using the legacy recipes still documented at RESEARCHER.md §2c, §3, and inside `finishing-a-research-branch`. Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
 
 ## Sandbox state lost between turns / `/home/claude/${REPO}/` gone
 
@@ -117,11 +133,9 @@ Recovery: RESEARCHER.md §4. Not an error: the Project's repo is a default, not 
 
 ## Project Instructions look truncated
 
-Symptom: `TOKEN`, `USERNAME`, `REPO`, or the recipe blocks are missing from your context.
+Symptom: `USERNAME` or `REPO` is missing from your context.
 
 Recovery: stop. The bootstrap may not have completed correctly. Walk the user through re-pasting Project Instructions per BOOTSTRAP Step 8.
-
-Exception: on the proxy sandbox a missing `TOKEN` is fine — it is not used there. `USERNAME` and `REPO` are still required.
 
 ## `main` protected and merge fails (405 / 422)
 

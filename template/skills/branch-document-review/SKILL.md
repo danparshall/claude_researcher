@@ -48,12 +48,12 @@ When starting an edit round on a document, Claude creates a branch from `main`:
 
 ```bash
 # Get the SHA of main
-MAIN_SHA=$(curl -s -H "Authorization: token $TOKEN" \
+MAIN_SHA=$(curl -s \
   "https://api.github.com/repos/$REPO/git/refs/heads/main" \
   | python3 -c "import sys,json; print(json.load(sys.stdin)['object']['sha'])")
 
 # Create the branch
-curl -s -X POST -H "Authorization: token $TOKEN" \
+curl -s -X POST -H "Content-Type: application/json" \
   "https://api.github.com/repos/$REPO/git/refs" \
   -d "{\"ref\":\"refs/heads/BRANCH_NAME\",\"sha\":\"$MAIN_SHA\"}"
 ```
@@ -114,7 +114,7 @@ Claude pulls the latest branch state. The user's edits come in two flavors and a
 **Mode 2 — Direct edits (the user wrote new text in place).** Claude detects these by calling the GitHub Compare API to diff the branch tip against the branch-creation commit. `BASE_SHA` is the value captured as `MAIN_SHA` in Step 1.
 
 ```bash
-curl -s -H "Authorization: token $TOKEN" \
+curl -s \
   "https://api.github.com/repos/$REPO/compare/$BASE_SHA...$BRANCH_NAME"
 ```
 
@@ -151,7 +151,7 @@ When the user says "merge" or "ready to merge" or "looks good, merge it":
 
 ```bash
 # Merge the branch into main via the API
-curl -s -X POST -H "Authorization: token $TOKEN" \
+curl -s -X POST -H "Content-Type: application/json" \
   "https://api.github.com/repos/$REPO/merges" \
   -d "{\"base\":\"main\",\"head\":\"BRANCH_NAME\",\"commit_message\":\"Merge BRANCH_NAME: brief summary of what changed\"}"
 ```
@@ -185,4 +185,4 @@ Claude reports the merge SHA and confirms `main` is updated. The branch can stay
 - **General-purpose branch use.** This protocol is specifically for the document-review case. If the user wants a branch for any other reason, they will say so and use plain git, not this skill.
 - **Code review.** Code collaboration uses standard PR-based git flow but isn't formalized here.
 - **Multi-author editing.** If a coworker is also editing the document at the same time, this protocol breaks. Tell the user immediately if that happens.
-- **Permissions.** This protocol assumes the user's PAT has write access to the repo. If Claude can't push to the branch, the PAT doesn't have the right permissions.
+- **Permissions.** This protocol assumes push access to the repo (RESEARCHER.md §2.0c). If Claude can't push to the branch, see `resolve-runtime-issue`.
