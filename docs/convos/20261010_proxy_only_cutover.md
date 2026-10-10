@@ -60,6 +60,18 @@ Other blocks seen:
 - Whether a read-level attachment always permits push, or run 5's "already attached" was incidental. The template should not depend on it either way.
 - Whether the proxy lets a session create repos (BOOTSTRAP Step 6) and whether the egress configuration in BOOTSTRAP Step 1 still applies on the proxy sandbox. Both untested.
 
+## Later in the session: plan 15 and decisions
+
+Dan asked for a plan to test the unknowns rather than leave them as questions in plan 14. Plan 15 ran six tests in a dedicated `proxy-scratch` Project against a throwaway repo `danparshall/proxy-scratch` (created from the CLI after the proxy refused creation). Full results: [20261010_proxy_unknowns_results.md](20261010_proxy_unknowns_results.md). In short: sessions can't create repos; only repository-scoped API paths work; attaching a nonexistent repo gives the same message as an inaccessible one (`list_repos` is the likely existence check); BOOTSTRAP's `api.github.com/zen` probe always fails on the proxy; a read attachment permits REST reads and pushes; a push request on an attached repo returns `already_present`; new chats inherit the last-selected permission mode. One agent reported receiving the Project Instructions inside command output and ignored them as an injection, a likely reason Project Instructions never counted as Dan's authority.
+
+Further decisions:
+- **Keep requesting push before the first push** even though a read attachment permits it; never push on a read attachment unasked (would route around the classifier, and breaks if Anthropic enforces access levels).
+- **Call `register_repo_root`** for the project repo after the full clone (Dan); surface conflicts between the repo's CLAUDE.md and RESEARCHER.md.
+- **Report the Project Instructions delivery to Anthropic** (Dan); a draft was handed to him in the session, not committed.
+- **Filename stays `personal_info.md`** (Dan: "if this comes up again we can rename"); plan 14 Phase 6 carries a watch item. The test copies stay in `claude_research_config` for now.
+- **Plan 14 goes to a fresh agent.**
+- Issue #72 commented with links to both plans.
+
 ## Artifacts
 
 - Plan: `docs/plans/14_proxy_only.md`

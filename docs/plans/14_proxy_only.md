@@ -125,6 +125,7 @@ No code, so no unit tests. The checks are a grep gate, the existing suites, and 
    - **Run D (LITE):** one session on a lite-mode Project, same pass criteria as A.
    - **Run E (BOOTSTRAP read-through):** a fresh agent reads the revised BOOTSTRAP cold and reports contradictions with RESEARCHER.md. A live bootstrap needs a fresh GitHub account; that is Dan's call.
    Record each run in the convo with the exact denial text of anything refused.
+   **Watch item (Dan, 2026-10-10):** the filename stays `personal_info.md`. If any run is refused at the step that reads it, and the exact denial text points at the file, stop and raise a rename with Dan (candidate: `researcher_config.md`; a byte-identical test copy already sits in `claude_research_config`).
 4. **Close-out:** update issue #72's checklist; record the result in `RESEARCH_LOG.md`; open the PR. Don't merge without Dan's explicit go-ahead.
 
 ## Housekeeping (Dan, outside the template)
