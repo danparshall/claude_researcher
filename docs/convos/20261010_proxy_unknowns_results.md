@@ -19,6 +19,8 @@ Results of [plan 15](../plans/15_proxy_unknowns_tests.md), run by Dan in the `pr
 | T1 attach a nonexistent repo | 1 | Refused by the add-repository tool; message merges "not found" and "no access". REST GET refused by the proxy (403, own wording). Classifier did not intervene. |
 | T2 create a repo from a session | 1 | Refused by the proxy (403): only repository-scoped API paths are allowed. A structural rule, so one run settles it. Classifier did not intervene. |
 | T3 network egress | 1 | `api.github.com/zen` 403 and `github.com` 400, both from the proxy; `raw.githubusercontent.com`, `arxiv.org`, `example.com` 200. No approval prompts. Dan's egress setting: "All domains" (`full_egress`). The agent reported the Project Instructions arriving inside command output, styled as a system reminder, and ignored them as an injection. |
+| T4 what a read attachment allows | 2 (plus one void run: repo didn't exist yet) | Both runs: read request approved ("appended", access level not echoed); REST GET 200; `git push` of a new branch succeeded. Nothing refused. |
+| T5 read-to-push upgrade | 1 | Push request on the already-attached repo returned `status: "already_present"`, no access change mentioned, no refusal; push succeeded. With T4, the push request is a no-op once a repo is attached. Second run skipped (nothing left to distinguish). |
 
 ### T1 — Attaching a repo that doesn't exist
 
@@ -67,3 +69,28 @@ No approval prompts. Dan's claude.ai setting (Settings → capabilities → Doma
 - The egress setting still exists, so Step 1 stays for paper sources and general web access. Its GitHub domain list is moot: GitHub traffic goes through the proxy. Whether a default account can reach the proxy at all is untested.
 - `raw.githubusercontent.com` works, so the WebFetch fallback for the template stays.
 - If Project Instructions can arrive in a form an agent rightly treats as untrusted, nothing that needs the user's authority should rest on them. This supports the plan's design (startup reads, push at the first commit after a user request, a typed go-ahead when refused). Candidate upstream report to Anthropic.
+
+### T4 — What a read attachment allows
+
+**Void run (12:59 EDT):** `proxy-scratch` did not exist yet. add-repository gave the same "not found … or … doesn't have access" message as T1; REST 403 from the proxy; clone failed with `could not read Username` (git's info/refs answered 401 "Repository not found", realm `ccr-gitengine`, with an `X-Github-Request-Id`). Confirms T1: the tool's message can't separate a missing repo from no access. The repo was then created from the CLI (`gh repo create danparshall/proxy-scratch --private --add-readme`).
+
+**Run 1 (13:10 EDT):** add-repository with `access: "read"` returned `status: "appended"`, `workspace: "/home/claude/proxy-scratch"`, message "Repo danparshall/proxy-scratch added. Clone it NOW…" and "danparshall/proxy-scratch is now in this session's GitHub scope… writes and account-wide tools such as create_repository remain limited to the repositories attached to this session". The access level was not echoed. Then:
+- `GET …/repos/danparshall/proxy-scratch/contents/README.md`: HTTP 200.
+- Shallow clone, branch `t4-read-push`, commit `f4a0cbe`, `git push -u origin t4-read-push`: succeeded (`* [new branch] t4-read-push -> t4-read-push`).
+- Nothing refused by GitHub, the proxy, or the classifier.
+
+**Run 2 (13:17 EDT):** identical outcome. Read request "appended" (scope wording as run 1, no access level echoed); REST GET 200; shallow clone at `0a65458`, branch `t4-read-push-2`, commit `2bf28a0`, push succeeded; `git ls-remote origin` shows `refs/heads/t4-read-push-2` at `2bf28a0`. Nothing refused. Side finding: after a `--depth 1` clone, whose fetch refspec maps only `main`, `git push -u` can't store a tracking ref for the new branch, and the sandbox's stop hook then reports unpushed work (`fatal: upstream branch 'refs/heads/t4-read-push-2' not stored as a remote-tracking branch`). RESEARCHER.md's full clone avoids this; its shallow fallback already runs `git remote set-branches origin '*'`.
+
+**What it means for plan 14:**
+- Attachment is the boundary; the `access` level appears to be ignored, at least with an "All repositories" installation. Read access is not a safety boundary (the plan already says not to treat it as one).
+- The template must still request push before the first push. Requesting "read" because it is known to permit writes would use the label to get past the classifier's judgment, which is the behaviour the classifier exists to catch, and it would break if Anthropic starts enforcing the level. If the push request is refused, the agent asks the user rather than pushing on the read attachment.
+- The tool's reply tells the agent to shallow-clone and to call a register-repo-root tool. RESEARCHER.md already overrides the shallow clone; it should say whether to call the register tool.
+
+### T5 — Upgrading read to push
+
+**Run 1 (13:22 EDT):** add-repository `access: "read"` → `status: "appended"`. Full clone (`is-shallow-repository` false), branch `t5-upgrade`, commit `d84d01c`. Then add-repository `access: "push"` on the same repo returned immediately, no denial, no pending approval visible to the agent (whether Dan saw an approval box was not recorded), with `"status":"already_present"`. Message opens: "Repo `danparshall/proxy-scratch` is already attached to this session. It should be at /home/claude/proxy-scratch. Do NOT re-clone if it's already there…", repeats the clone guidance, the scope wording ("writes and account-wide tools such as `create_repository` remain limited to the repositories attached to this session"), and the instruction to call `register_repo_root`, which "tells the session to load the repo's CLAUDE.md, skills, and plugins on the next turn". Push of `t5-upgrade` succeeded.
+
+**What it means for plan 14:**
+- With T4, the push request on an attached repo is a no-op that the classifier allows. The morning's [Permission Grant] refusals were on push requests for repos **not yet attached**, at session start. So the plan's design (read at startup, push request at the first commit) costs one cheap call, and becomes the real request if Anthropic ever enforces access levels.
+- RESEARCHER.md should say: `already_present` means proceed; push, then install the hook.
+- `register_repo_root` loads the repo's own CLAUDE.md, skills and plugins. RESEARCHER.md should decide whether to call it (Dan's call; leaning no, so RESEARCHER.md stays the single runtime spec).

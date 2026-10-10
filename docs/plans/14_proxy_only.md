@@ -27,7 +27,7 @@
   - First commit: request **push** for `${USERNAME}/${REPO}`. If the reply is "already attached" or otherwise unclear, try `git push`; the push result is the test. Only after a push succeeds, install the post-commit hook.
   - A refused step: show the user the exact denial text and the step it blocked, and ask. Don't retry in a different form, and don't keep committing when nothing can be pushed (the sandbox is wiped at session end).
   - Issue, PR and label writes (create, comment, retitle, close, merge) only when the user asked for that write in this session. Skills that offer a menu (task-remind's close / snooze / skip) already satisfy this: the user's choice is the request.
-  - A read-level attachment may still permit pushes (run 5). Don't describe read access as a safety boundary, and don't depend on it permitting pushes either.
+  - A read-level attachment permits pushes and REST writes (run 5; plan 15 T4). Don't describe read access as a safety boundary. And don't use it: always request push before the first push, and if that request is refused, ask the user rather than pushing on the read attachment. Pushing because the label happens not to be enforced would route around the classifier's judgment, which is exactly what it exists to catch.
 
 ## Phase 1 — RESEARCHER.md
 
