@@ -26,7 +26,7 @@
   - Startup: request **read** for `${USERNAME}/${REPO}` and `${USERNAME}/claude_research_config`. Both requests in one turn.
   - First commit: request **push** for `${USERNAME}/${REPO}`. On an attached repo the reply is `status: "already_present"` ("…is already attached to this session") with no access change (plan 15 T5); that means proceed. Push, and only after a push succeeds, install the post-commit hook.
   - Only repository-scoped API paths (`repos/{owner}/{repo}/...`) work; anything else (`/user/repos`, `/user`, search) gets the proxy's 403 "sessions are bound to their configured repositories" (plan 15 T2).
-  - The add-repository reply tells the agent to shallow-clone and to call `register_repo_root`, which loads the repo's own CLAUDE.md, skills and plugins. RESEARCHER.md overrides both: full clone (as today), and don't call `register_repo_root`, so RESEARCHER.md stays the single runtime spec. **Dan's call; this is the default pending his ruling.**
+  - The add-repository reply tells the agent to shallow-clone and to call `register_repo_root`, which loads the repo's own CLAUDE.md, skills and plugins on the next turn. RESEARCHER.md overrides the shallow clone (full clone, as today). **Call `register_repo_root`** for the project repo after the full clone succeeds (Dan, 2026-10-10), with `{owner, repo, directory: "/home/claude/${REPO}"}`. Not for `claude_research_config`, which isn't cloned. Say in §2.0c that where the repo's CLAUDE.md or skills conflict with RESEARCHER.md, the agent surfaces the conflict to the user rather than silently picking one. If the call is denied or fails, read the repo's CLAUDE.md directly (the tool's own fallback).
   - A refused step: show the user the exact denial text and the step it blocked, and ask. Don't retry in a different form, and don't keep committing when nothing can be pushed (the sandbox is wiped at session end).
   - Issue, PR and label writes (create, comment, retitle, close, merge) only when the user asked for that write in this session. Skills that offer a menu (task-remind's close / snooze / skip) already satisfy this: the user's choice is the request.
   - A read-level attachment permits pushes and REST writes (run 5; plan 15 T4). Don't describe read access as a safety boundary. And don't use it: always request push before the first push, and if that request is refused, ask the user rather than pushing on the read attachment. Pushing because the label happens not to be enforced would route around the classifier's judgment, which is exactly what it exists to catch.
@@ -154,8 +154,8 @@ No code, so no unit tests. The checks are a grep gate, the existing suites, and 
 - If `list_repos` doesn't behave as its description says, BOOTSTRAP Step 3 falls back to asking the user.
 
 **Questions**
-- `register_repo_root`: call it or not? Default in this plan is not (Background). Dan's call.
-- Project Instructions were once delivered to an agent inside tool output, and it ignored them as an injection (plan 15 T3). Report upstream to Anthropic? Dan's call.
+- Settled 2026-10-10: call `register_repo_root` for the project repo (Background). Phase 6 runs should note whether it loaded anything and whether it conflicted with RESEARCHER.md.
+- Settled 2026-10-10: Project Instructions delivered inside tool output (plan 15 T3) go to Anthropic as a report; draft in the results convo's session.
 - Settled 2026-10-10 by [plan 15](15_proxy_unknowns_tests.md) (results: [convo](../convos/20261010_proxy_unknowns_results.md)): repo creation (no), nonexistent-repo attach (indistinguishable from no access), egress probe (replace), read attachment (permits push), read-to-push reply (`already_present`), auto mode (new chats inherit the last selection). BOOTSTRAP recommends the auto permission mode (Phase 3 item 9).
 - The convo-name handshake and §2e are unaffected, but the `Claude-Session:` trailer rule awaits #74's measurement (2026-10-14).
 

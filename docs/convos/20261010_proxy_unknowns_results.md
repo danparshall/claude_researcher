@@ -110,7 +110,7 @@ Dan, from using the UI: new chats default to **whatever mode was last selected**
 | BOOTSTRAP Step 3 (does the config repo exist?) | The add-repository tool can't tell missing from inaccessible. Use `list_repos` with `claude_research_config` (untested); if not listed, ask the user. | T1 |
 | BOOTSTRAP Step 6 (create repos) | The user creates both repos on github.com; the proxy refuses `POST /user/repos`. With "Only select repositories", the user also adds each to the installation. | T2 |
 | RESEARCHER.md §2.0c | General rule: only `repos/{owner}/{repo}/...` API paths work. Push request at the first commit stays; `already_present` means proceed. Never push on a read attachment without having requested push. | T2, T4, T5 |
-| RESEARCHER.md §2.0c | Say whether to call `register_repo_root` (default: don't). | T4, T5 |
+| RESEARCHER.md §2.0c | Call `register_repo_root` for the project repo after the full clone (Dan); surface conflicts between the repo's CLAUDE.md and RESEARCHER.md to the user. | T4, T5 |
 | BOOTSTRAP auto-mode text | "Choose auto once; new chats inherit the last selection. Chats already open keep their own." | T6 |
 | `resolve-runtime-issue` | Entries quoting the T1 and T2 refusal texts. | T1, T2 |
 | Upstream | Project Instructions delivered inside tool output look like an injection to the agent. | T3 |
