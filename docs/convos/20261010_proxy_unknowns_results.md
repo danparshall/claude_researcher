@@ -21,6 +21,7 @@ Results of [plan 15](../plans/15_proxy_unknowns_tests.md), run by Dan in the `pr
 | T3 network egress | 1 | `api.github.com/zen` 403 and `github.com` 400, both from the proxy; `raw.githubusercontent.com`, `arxiv.org`, `example.com` 200. No approval prompts. Dan's egress setting: "All domains" (`full_egress`). The agent reported the Project Instructions arriving inside command output, styled as a system reminder, and ignored them as an injection. |
 | T4 what a read attachment allows | 2 (plus one void run: repo didn't exist yet) | Both runs: read request approved ("appended", access level not echoed); REST GET 200; `git push` of a new branch succeeded. Nothing refused. |
 | T5 read-to-push upgrade | 1 | Push request on the already-attached repo returned `status: "already_present"`, no access change mentioned, no refusal; push succeeded. With T4, the push request is a no-op once a repo is attached. Second run skipped (nothing left to distinguish). |
+| T6 auto permission mode | Dan's UI observation | Not per account: Dan has had to re-enable it. Possibly per Project, or the default is whatever was last selected. Not pinned down further. |
 
 ### T1 — Attaching a repo that doesn't exist
 
@@ -94,3 +95,22 @@ No approval prompts. Dan's claude.ai setting (Settings → capabilities → Doma
 - With T4, the push request on an attached repo is a no-op that the classifier allows. The morning's [Permission Grant] refusals were on push requests for repos **not yet attached**, at session start. So the plan's design (read at startup, push request at the first commit) costs one cheap call, and becomes the real request if Anthropic ever enforces access levels.
 - RESEARCHER.md should say: `already_present` means proceed; push, then install the hook.
 - `register_repo_root` loads the repo's own CLAUDE.md, skills and plugins. RESEARCHER.md should decide whether to call it (Dan's call; leaning no, so RESEARCHER.md stays the single runtime spec).
+
+### T6 — The auto permission mode
+
+Dan, from using the UI: the mode is **not** an account-level setting ("I've had to go re-enable"). It may be per Project, or new chats may default to whatever was last selected. Not tested further.
+
+**What it means for plan 14:** BOOTSTRAP can't say "set it once". It should tell the user to check the permission mode at the start of a chat and choose auto if it isn't already selected.
+
+## Summary of what changes in plan 14
+
+| Plan 14 item | Change | From |
+|---|---|---|
+| BOOTSTRAP Step 1 (egress) | Replace the `api.github.com/zen` probe (always 403 on the proxy) with a non-GitHub URL such as `https://example.com`; drop the GitHub domain list (GitHub goes through the proxy); keep the setting walkthrough for paper sources. | T3 |
+| BOOTSTRAP Step 3 (does the config repo exist?) | The add-repository tool can't tell missing from inaccessible. Use `list_repos` with `claude_research_config` (untested); if not listed, ask the user. | T1 |
+| BOOTSTRAP Step 6 (create repos) | The user creates both repos on github.com; the proxy refuses `POST /user/repos`. With "Only select repositories", the user also adds each to the installation. | T2 |
+| RESEARCHER.md §2.0c | General rule: only `repos/{owner}/{repo}/...` API paths work. Push request at the first commit stays; `already_present` means proceed. Never push on a read attachment without having requested push. | T2, T4, T5 |
+| RESEARCHER.md §2.0c | Say whether to call `register_repo_root` (default: don't). | T4, T5 |
+| BOOTSTRAP auto-mode text | "Check the permission mode at the start of a chat; choose auto." | T6 |
+| `resolve-runtime-issue` | Entries quoting the T1 and T2 refusal texts. | T1, T2 |
+| Upstream | Project Instructions delivered inside tool output look like an injection to the agent. | T3 |
