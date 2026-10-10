@@ -271,35 +271,18 @@ What the replies mean:
 - **`status: "already_present"`** ("…is already attached to this session") → proceed. Push by hand (`git push -u origin HEAD`), and only after that push succeeds, install the post-commit hook (§2.0b).
 - **Refused** → see "Permission checks" below. Don't keep committing work that can't be pushed: the sandbox is wiped at session end.
 
-A read attachment has been observed to permit pushes and REST writes too. Don't treat read access as a safety boundary, and don't rely on it either: always request push before the first push or write, and if that request is refused, ask the user rather than pushing on the read attachment. Pushing because the access level happens not to be enforced would route around the permission check's judgment, which is what the check exists to catch.
+Pushes may work on a read attachment; request push first anyway, and if the request is refused, ask the user rather than pushing.
 
-**Other repos.** The Project's repo is the default, not a wall (§4). Attach another of the user's repos only when the user names it or after asking; read first, push requested before writing, as above. Never attach one on your own initiative.
+**Other repos:** §4.
 
-**Permission checks.** In auto permission mode, a classifier reviews each action and refuses ones it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So: take actions with outside effects (attaching a repo, requesting push, issue and PR writes) only as a step toward what the user asked for in this session. Issue, PR and label writes — create, comment, retitle, close, merge — happen only when the user asked for that write; a skill's menu satisfies this, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and ask how to proceed; a one-line go-ahead typed by the user in chat ("I authorize push access to `<repo>`") has cleared refused push requests so far. Don't retry a refused step in a different form.
+**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and ask; a one-line go-ahead typed in chat has cleared refused push requests so far. Don't retry a refused step in another form.
 
 **REST through the proxy.**
 
 - **Only repository-scoped paths work.** `repos/{owner}/{repo}/...` paths on attached repos go through. Other paths, such as `/user/repos` and the search API, are refused with "This GitHub API path is not available: sessions are bound to their configured repositories". A session can't create repos.
 - **No credentials needed.** The proxy adds them for attached repos. Send no `Authorization` header.
 - **Writes must declare JSON.** Add `-H "Content-Type: application/json"` to every `POST`, `PATCH` and `PUT`, including the recipes in skills' sandbox notes. Without it the proxy answers 415.
-- **GraphQL is blocked, and most `gh` subcommands use it.** `gh issue list`, `gh issue create`, `gh issue edit`, `gh pr list`, `gh label list` and `gh repo view` all fail with "GraphQL is not available" (verified 2026-10-07); assume the same for every other `gh issue …` and `gh pr …`. `gh api <REST path>` works. Skills are written with `gh` commands for the CLI, so translate:
-
-| Skill says | In the sandbox |
-| --- | --- |
-| `gh api user --jq .login` | `${USERNAME}` from Project Instructions (`/user` is not a repository-scoped path) |
-| `gh repo view --json nameWithOwner` | `${USERNAME}/${REPO}` from Project Instructions |
-| `gh issue list --label task --state open` | `GET /repos/{owner}/{repo}/issues?state=open&labels=task&per_page=100`, then drop entries that have a `pull_request` key. If 100 come back, fetch `&page=2` and so on. |
-| `gh search issues --owner …` (`task-triage`) | No equivalent: the search API is refused ("sessions are bound to their configured repositories"). List issues repo by repo for the attached repos, and tell the user the cross-repo view is limited to those. |
-| `gh issue create` | `POST /repos/{owner}/{repo}/issues` with `{"title", "body", "labels"}` |
-| `gh issue edit <N> --title …` | `PATCH /repos/{owner}/{repo}/issues/<N>` with `{"title"}` |
-| `gh issue close <N> --comment …` | `POST …/issues/<N>/comments` with `{"body"}`, then `PATCH …/issues/<N>` with `{"state": "closed"}` |
-| `gh label list … \| grep -qx task` / `gh label create` | `GET /repos/{owner}/{repo}/labels/task` (200 = exists, 404 = missing) / `POST /repos/{owner}/{repo}/labels` with `{"name", "description"}` |
-| `gh pr create` | `POST /repos/{owner}/{repo}/pulls` with `{"title", "head", "base", "body"}` |
-| `gh pr view <N>` | `GET /repos/{owner}/{repo}/pulls/<N>` |
-| `gh pr checks` | `GET /repos/{owner}/{repo}/commits/<sha>/check-runs` |
-| `gh pr merge <N>` | `PUT /repos/{owner}/{repo}/pulls/<N>/merge` with `{"merge_method"}` |
-
-Issue listing, creation and editing, the label lookup, the search refusal, and PR create, view, checks and merge were exercised in the sandbox on 2026-10-07. The comment, close and label-create rows are the standard REST calls but had not yet been run there when this was written.
+- **`gh issue …` and `gh pr …` don't work** (GraphQL is blocked; `gh api <REST path>` works). Before running a skill's `gh` command, read `template/reference/GH_TO_REST.md` in the template clone for its REST equivalent.
 
 - **The proxy rejects branch deletions and tag pushes** (per Anthropic's cloud-environment docs; not exercised here). If a step calls for deleting a remote branch, ask the user to do it.
 
@@ -373,7 +356,7 @@ Read and follow `template/skills/task-remind/SKILL.md`. Once-per-session pre-fli
 
 No fired reminders → single line ("*No reminders pending*") and continue. Fired reminders → surface before the §2e first-message response so the user can decide whether to handle a reminder or proceed with the planned session.
 
-In the sandbox the skill's `gh` commands do not work as written; use the `gh` → REST translations in §2.0c. Attach the home repo read-only first (§2.0c).
+In the sandbox the skill's `gh` commands do not work as written; use `template/reference/GH_TO_REST.md` (§2.0c). Attach the home repo read-only first (§2.0c).
 
 Not a heartbeat — once per session.
 
