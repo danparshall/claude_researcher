@@ -1,0 +1,108 @@
+% =============================================================================
+%  academic_slides_preamble.tex — Academic Beamer slides preamble
+%
+%  Used by: academic_slides_skill.md (conference talks, seminars,
+%           paper presentations, workshops).
+%
+%  HOW TO USE: copy the contents of this file into the top of the main .tex
+%  file you produce. This file is a template, not a runtime include — do not
+%  `\input{}` it. It begins with `\documentclass{beamer}` and must be the
+%  literal start of the generated .tex file.
+%
+%  The color block below is this file's own definition — it is
+%  self-contained and needs no external color reference. It ships with
+%  placeholder colors: set the four base colors to your own before the
+%  first real deck, and keep the color names stable so the theme settings
+%  below keep working.
+%
+%  Starter-package edition, mirrored from kit v6.11 (October 10, 2026). The
+%  color block is the package's own. Record your own changes here.
+% =============================================================================
+
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+% --- Theme — Boadilla with custom colors --------------------------------------
+\usetheme{Boadilla}
+\usepackage{lmodern}
+\usepackage[utf8]{inputenc}
+\usepackage[table]{xcolor}
+\usepackage{booktabs}
+\usepackage{makecell}
+
+% --- Colors: define your palette here ----------------------------------------
+% This template needs a small palette: three hues, each in a few shades, and
+% grays. Set the four base colors below. The shades are derived from them, so
+% the settings that use them keep working. The defaults are xcolor's generic
+% colors: placeholders until you set your own. A fourth hue is added the same
+% way.
+\colorlet{BaseBlue}{blue!70!cyan!75!black}  % main hue: title bars, structure, links
+\colorlet{BaseGreen}{green!45!black}        % second hue: curves, contrasts
+\colorlet{BaseYellow}{yellow!85!orange}     % warm hue: highlights
+\colorlet{BaseGray}{black!45}               % labels, annotations
+
+% Shades, derived from the bases. Keep these names stable.
+\colorlet{PrimaryBlue}{BaseBlue}
+\colorlet{DarkBlue}{BaseBlue!70!black}
+\colorlet{SecondaryBlue}{BaseBlue!60}
+\colorlet{SoftBlue}{BaseBlue!30}
+\colorlet{LightBlue}{BaseBlue!18}
+\colorlet{DarkGreen}{BaseGreen}
+\colorlet{LightGreen}{BaseGreen!35}
+\colorlet{WarmCream}{BaseYellow!20}
+\colorlet{LabelGray}{BaseGray}
+\colorlet{LightGray}{BaseGray!30}
+
+% --- Beamer theme colors -----------------------------------------------------
+\setbeamercolor{palette primary}{bg=PrimaryBlue,fg=white}
+\setbeamercolor{palette secondary}{bg=SecondaryBlue,fg=black}
+\setbeamercolor{palette tertiary}{bg=LightBlue,fg=black}
+\setbeamercolor{palette quaternary}{bg=PrimaryBlue,fg=white}
+\setbeamercolor{author in head/foot}{bg=PrimaryBlue,fg=white}
+\setbeamercolor{title in head/foot}{bg=SecondaryBlue,fg=black}
+\setbeamercolor{date in head/foot}{bg=LightBlue,fg=black}
+\setbeamercolor{structure}{fg=PrimaryBlue}
+\setbeamercolor{frametitle}{bg=PrimaryBlue,fg=white}
+\setbeamercolor{normal text}{fg=black}
+\setbeamercolor{itemize item}{fg=SecondaryBlue}
+\setbeamercolor{itemize subitem}{fg=SecondaryBlue}
+\setbeamercolor{title}{fg=PrimaryBlue}
+\setbeamercolor{author}{fg=black}
+\setbeamercolor{institute}{fg=black}
+\setbeamercolor{date}{fg=black}
+
+% --- Packages ----------------------------------------------------------------
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, decorations.pathreplacing}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  urlcolor=PrimaryBlue, linkcolor=PrimaryBlue, citecolor=PrimaryBlue,
+  pdfborder={0 0 1}
+}
+\usepackage{amsmath,amssymb}
+
+% --- Optional logo overlay on non-title slides -------------------------------
+% This template ships without a logo. If your project has one, drop the image
+% file next to the .tex file and uncomment the block below, replacing
+% `your_logo.png` with its filename. Otherwise leave it commented out.
+%
+% \addtobeamertemplate{frametitle}{}{%
+%   \begin{tikzpicture}[remember picture,overlay]
+%     \node[anchor=south west,inner sep=0pt] at ($(current page.south west)+(0.3cm,0.3cm)$) {
+%       \includegraphics[height=0.35in]{your_logo.png}
+%     };
+%   \end{tikzpicture}
+% }
+
+% --- Content spacing ---------------------------------------------------------
+\setlength{\parskip}{0.8\baselineskip}
+\setbeamerfont{itemize/enumerate body}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+\setlength{\itemsep}{0.8em}
+\let\olditemize\itemize
+\renewcommand{\itemize}{\olditemize\setlength{\itemsep}{0.8em}\vspace{0.3em}}
+\setbeamersize{text margin left=0.25in, text margin right=0.25in}
+
