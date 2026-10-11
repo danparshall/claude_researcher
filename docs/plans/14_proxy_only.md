@@ -19,7 +19,7 @@
 ## Background the implementer needs
 
 - **Two repos.** `claude_researcher` holds the public web template. Skills under `template/skills/` come from two places: most are exported from Dan's dotfiles (`~/code/dotfiles/nori-researcher/skills/`, whitelist in `~/code/dotfiles/export_profile_skills.py`) and must be edited **there**, never here; four are web-only and edited here: `branch-document-review`, `start-research-line`, `report-upstream-issue`, `resolve-runtime-issue` (also `add-deliverable`, `audit-status`, `audit-repo-structure`, `init-code-scaffold`, `iterative-writing-workflow`, `paper-processing-*`). Check `template/skills/.export_manifest.json`: a skill listed there is exported.
-- **The exporter commits straight to `claude_researcher` `main`** and refuses to run if the checkout is not a plain clone on `main` with no unpushed non-export commits. Run it from the main checkout, not from this worktree, and only on the Pro (the machine with the export flag).
+- **The exporter commits straight to `claude_researcher` `main`** and refuses to run if the checkout is not a plain clone on `main` with no unpushed non-export commits. It always works on the main checkout (`~/code/claude_researcher`), never on this worktree, and runs only on the Air (the machine holding `~/.claude_researcher.publisher`). It has no command-line entry point: `install.sh` runs it silently via `update_claude_permissions.py`; to see its output, call `export_profile_skills.auto_export(quiet=False)` from Python.
 - **RESEARCHER.md's persona block** (between its persona markers) is written by the exporter from dotfiles. Don't edit inside it.
 - **The access rules the template must teach** (from the convo's Evidence table):
   - The auto-mode classifier allows actions it can tie to something the user asked for and refuses ones the agent decided on itself. Text in Project Instructions or in this template does not count as the user asking; a line the user types in chat does.
@@ -112,7 +112,7 @@ BOOTSTRAP is the onboarding script for new users; most of its token material is 
 1. In `~/code/dotfiles/nori-researcher/skills/finishing-a-research-branch/SKILL.md` line ~131: replace "using the PAT from Project Instructions" with the REST calls through the proxy (no token header, `Content-Type: application/json` on writes), pointing at RESEARCHER.md §2.0c's `gh` → REST table.
 2. In dotfiles, fix the two prose mentions: `nori-researcher/_MAINTENANCE.md` line ~53 ("fetch via the user's PAT" → "fetch through the sandbox's GitHub proxy") and `notes/researcher_profile_maintenance.md` lines ~200, 231, 267 (substrate-mechanics examples).
 3. Run the dotfiles tests listed in dotfiles `CLAUDE.md` (at least `tests/test_export_profile_skills.py` and `tests/test_skill_surface_note.py`) with `uvx --python 3.12 pytest`. Commit on dotfiles `main`, push.
-4. On the Pro, from the main `claude_researcher` checkout on `main`, run the exporter (`python3 ~/code/dotfiles/export_profile_skills.py`) so the fix lands on `claude_researcher` `main`; then merge `main` into `proxy-only`.
+4. On the Air, with the main `claude_researcher` checkout on `main`, run the exporter so the fix lands on `claude_researcher` `main`: `python3 -c "import sys; sys.path.insert(0, '/Users/dan/code/dotfiles'); import export_profile_skills as e; print(e.auto_export(quiet=False))"` (or just run `install.sh`, which does the same silently). `python3 export_profile_skills.py` does nothing: the module has no `__main__`. Then merge `main` into `proxy-only`. *Done 2026-10-11 on the Air: export `024d02f`, merged into `proxy-only` as `6c3c362`.*
 
 ## Phase 6 — Validation on web
 
@@ -143,7 +143,7 @@ No code, so no unit tests. The checks are a grep gate, the existing suites, and 
 **Implementation Details**
 - Edit dotfiles-sourced skills in dotfiles, never in `template/skills/`; the exporter overwrites them.
 - Don't touch RESEARCHER.md's persona block.
-- The exporter commits to `claude_researcher` `main` from the main checkout on the Pro; merge `main` into `proxy-only` afterwards.
+- The exporter commits to `claude_researcher` `main` from the main checkout on the Air; merge `main` into `proxy-only` afterwards.
 - Every proxy REST write needs `-H "Content-Type: application/json"` (415 otherwise).
 - GraphQL (`gh issue …`, `gh pr …`) stays blocked; the `gh` → REST table in §2.0c stays.
 - Startup requests read only, BOOTSTRAP included; push is requested before the first write.
