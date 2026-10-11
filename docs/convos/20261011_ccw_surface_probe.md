@@ -79,6 +79,7 @@ From reading, not run here:
 ## Results
 
 - `docs/convos/20261011_ccw_surface_probe.md` (this file) and a `RESEARCH_LOG.md` line, pushed to `claude/claude-researcher-github-workflow-4zbkxm`. The push is the last GitHub test of the session; if this file is on GitHub, it passed.
+- [20261011_pr75_two_surfaces.md](20261011_pr75_two_surfaces.md): review note for the local agent, written at Dan's request after the probe. Argues that "the web sandbox" in PR #75 is two surfaces and recommends stating the target surface before merge.
 
 ### Findings for PR #75
 
