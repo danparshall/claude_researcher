@@ -255,7 +255,7 @@ Anthropic's GitHub proxy sits between the sandbox and GitHub. It attaches the us
 The tool's reply carries its own instructions (clone now, shallow, then call `register_repo_root`). Follow them, with these differences:
 
 - **Clone the project repo in full,** per §2.0b — resumption, `audit-docs` and `finish-convo` need history. Give the command a generous timeout (about 10 minutes). If a large repo will not finish, fall back to the shallow clone the tool suggests, then fetch all branches with bounded history so §3 can check out a line's branch: `git remote set-branches origin '*' && git fetch --depth=1000 origin`.
-- **Call `register_repo_root` for the project repo** once the full clone succeeds, with `{owner: "${USERNAME}", repo: "${REPO}", directory: "/home/claude/${REPO}"}`. It loads the repo's own `CLAUDE.md`, skills and plugins on the next turn. Where those conflict with this file, tell the user about the conflict and ask which to follow; don't silently pick one. If the call is denied or fails, read the repo's `CLAUDE.md` directly instead.
+- **Call `register_repo_root` for the project repo** once the full clone succeeds, with `{owner: "${USERNAME}", repo: "${REPO}", directory: "/home/claude/${REPO}"}`. It loads the repo's own `CLAUDE.md`, skills and plugins on the next turn. Where those conflict with this file, tell the user about the conflict and ask which to follow; don't silently pick one. If the tool isn't available (search your deferred tools first), or the call is denied or fails, read the repo's `CLAUDE.md` directly instead.
 - **Do not clone the config or home repo,** and don't register them. §2b and the task skills read them over REST.
 
 What the replies mean:
