@@ -8,7 +8,7 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 
 ## When to use
 
-Fire on any of: a `curl` returning 401/403/404/415 from `api.github.com`; a `git clone` / `git push` / `git pull` failing; a `gh` command or the add-repository tool refusing; the sandbox filesystem coming back empty mid-session; a file WebFetched from `raw.githubusercontent.com` disagreeing with what a recent commit implies; STATUS.md missing a field the runtime expects; SKILL_INDEX.md unreachable.
+Fire on any of: a `curl` returning 403/404/415 from `api.github.com`; a `git clone` / `git push` / `git pull` failing; a `gh` command or the add-repository tool refusing; the sandbox filesystem coming back empty mid-session; a file WebFetched from `raw.githubusercontent.com` disagreeing with what a recent commit implies; STATUS.md missing a field the runtime expects; SKILL_INDEX.md unreachable.
 
 The workflow is: look up the failure signature below → apply the recovery → surface to the user if the recovery requires their action or if the failure is unfamiliar.
 
@@ -103,7 +103,7 @@ Recovery: don't push to `main`. Open a PR via the Pulls API (see `finishing-a-re
 
 Symptom: RESEARCHER.md §2.0b clone errors out.
 
-Recovery: surface to user. Most likely the repo is not attached to the session (see the entries above); fix that first, because the Contents API fallback is refused for an unattached repo too. Second most likely, a `<REPO>` mismatch in Project Instructions. As a **degraded fallback**, operate against the Contents API per-file using the legacy recipes still documented at RESEARCHER.md §2c, §3, and inside `finishing-a-research-branch`. Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
+Recovery: surface to user. Most likely the repo is not attached to the session (see the entries above); fix that first, because the Contents API fallback is refused for an unattached repo too. Second most likely, a `<REPO>` mismatch in Project Instructions. As a **degraded fallback**, operate against the Contents API per-file (read fallbacks at RESEARCHER.md §2c and §3; paths in `template/reference/GH_TO_REST.md`). Tell the user you're in degraded mode: one commit per file, no `git diff` introspection, the noisy-history problem that the clone-first architecture was designed to fix.
 
 ## Sandbox state lost between turns / `/home/claude/${REPO}/` gone
 
