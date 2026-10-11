@@ -51,7 +51,9 @@ Don't probe a GitHub URL here: GitHub traffic goes through claude.ai's GitHub pr
 
 Expected outcomes:
 
-- **`HTTP/2 200`** — network access is already configured. Announce that, and continue to Step 2.
+The output may start with `HTTP/1.1 200 Connection Established`. That line is the sandbox's own proxy opening the connection, not the site's answer; read the status line after it.
+
+- **`HTTP/2 200`** (after any `Connection Established` line) — network access is already configured. Announce that, and continue to Step 2.
 - **Connection error**, or **4xx with `x-deny-reason: host_not_allowed`** — network access isn't configured. Continue to 1b below.
 
 Untested: whether an account with network access off can still reach GitHub through the proxy. If you see GitHub work while `example.com` fails, tell the user it's worth reporting upstream (`report-upstream-issue`), and continue with 1b anyway: paper downloads need network access.
@@ -160,7 +162,7 @@ Branch on result:
   - **No — first-time user.** Tell them: *"Then let's set up your user prefs first, then make a repo for your project."* Continue to Step 4 (interview).
   - **Yes** — the repo may have a different name, or the Claude GitHub App installation may not include it. Ask them to check on github.com, and if needed add it to the installation (github.com → Settings → Applications → Installed GitHub Apps → Claude → Configure → Repository access). Then call `list_repos` again.
 
-`list_repos` has not yet been tested in this step beyond its own description. If it behaves differently from the above, fall back to asking the user directly, and mention it so the step can be corrected (`report-upstream-issue`).
+`list_repos` and the add-repository tool both work in a chat outside any Project (tested 2026-10-11); `register_repo_root` was not available there, and this flow doesn't need it. If `list_repos` behaves differently from the above, fall back to asking the user directly, and mention it so the step can be corrected (`report-upstream-issue`).
 
 ---
 
