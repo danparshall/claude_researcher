@@ -171,7 +171,7 @@ cd /home/claude/${REPO}
 git remote set-branches origin '*'
 ```
 
-This is the shallow clone the add-repository reply asks for. `set-branches` only changes local config, so pushing a new branch later can record its tracking branch. When a step needs another branch (§3) or history (`git log` lookups in resumption, `audit-docs`, `finish-convo`), fetch it then: `git fetch --depth=1000 origin`.
+This is the shallow clone the add-repository reply asks for. `set-branches` only changes local config, so pushing a new branch later can record its tracking branch. When a step needs another branch (§3) or history (`git log` lookups in resumption, `audit-docs`, `finish-convo`), fetch it then: `git fetch --depth=1000 origin` (bounded; some repos block `--unshallow`). Before pushing a new branch, run `git fetch origin main` (or the default branch) so the push sends only the new commits: a push from a stale shallow clone re-sends the whole tree and is rejected with HTTP 413.
 
 Then call `register_repo_root` for it (§2.0c).
 
@@ -258,11 +258,13 @@ The tool's reply carries its own instructions (clone now, shallow, then call `re
 
 - **Clone the project repo shallow, as the reply says,** with the `set-branches` line from §2.0b. Give the command a generous timeout (about 10 minutes). Fetch more history only when a step needs it (§2.0b).
 - **Call `register_repo_root` for the project repo** once the clone succeeds, with `{owner: "${USERNAME}", repo: "${REPO}", directory: "/home/claude/${REPO}"}`. It loads the repo's own `CLAUDE.md`, skills and plugins on the next turn. Where those conflict with this file, tell the user about the conflict and ask which to follow; don't silently pick one. If the tool isn't available (load it by full name first, as above), or the call is denied or fails, read the repo's `CLAUDE.md` directly instead.
-- **Do not clone the config or home repo,** and don't register them. §2b and the task skills read them over REST.
+- **Do not clone the config or home repo,** and don't register them, even though their replies say "Clone it NOW". §2b and the task skills read them over REST.
+- **Don't check whether a repo exists** with `curl` or `git ls-remote` before attaching it: private repos answer 404 until attached. On an access error, don't retry the same repo; read the reply (below).
 
 What the replies mean:
 
 - **"appended"** → attached. The reply does not echo the access level.
+- **A reply saying a public repo is readable without attaching** → read it; nothing to attach. Request push later as usual if you need to write.
 - **"link your GitHub account"** → setup step 1 is missing.
 - **"was not found on github.com, or this session's GitHub credential doesn't have access to it"** → the repo doesn't exist under that name, or the App installation doesn't include it; the message can't tell which. Call the `list_repos` tool with part of the name as `query`: if it's listed, retry with the exact `owner/repo`; if not, ask the user.
 - **"Claude doesn't have GitHub access to `<repo>`", or pushes "will be refused"** → setup step 2 is missing, or the installation does not include this repo. Reads still work.
