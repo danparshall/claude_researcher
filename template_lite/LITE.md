@@ -18,7 +18,10 @@ little, write little, leave the repo current.
    Instructions) — who the user is, their git fluency, interaction style.
    If it fails or is refused, say so once with the exact error and carry
    on with the copies in Project Instructions (commit name, email, git
-   fluency). Don't retry a refused read.
+   fluency). Don't retry a refused read. If Project Instructions have no
+   `PI_VERSION` or one below 2, tell the user once that they're out of date
+   (the current text is `template_lite/_PROJECT_INSTRUCTIONS_LITE.md.template`
+   upstream).
 3. Read this file (done, if you're reading this), then `STATUS.md` and
    `DECISIONS.md` at the repo root. Skim `git log --oneline -15`.
 4. Respond to the user's first message. No name handshake, no reminder sweep,

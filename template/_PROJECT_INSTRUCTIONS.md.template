@@ -5,6 +5,7 @@ This claude.ai Project uses **claude_researcher** (`github.com/danparshall/claud
 **One repo per Project, by default.** This Project's repo is `<USERNAME>/<REPO>`. Every session also reads my config repo, `<USERNAME>/claude_research_config`, which holds `personal_info.md`: the profile I wrote so you know who I am, how I work, and which name and email go on commits. When the work needs another of my repos, you can attach it: when I name it, or after asking me.
 
 ```bash
+PI_VERSION=2
 USERNAME="<USERNAME>"
 REPO="<REPO>"
 USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"

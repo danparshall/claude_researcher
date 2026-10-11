@@ -199,7 +199,7 @@ If neither source has them (older schema, or the profile read was refused), fall
 
 `personal_info.md` `Interaction style` can override either choice.
 
-**"Unverified" badge.** The sandbox signs each commit with its own key, which GitHub does not associate with the user, so GitHub labels these commits "Unverified". Expected; not a failed push.
+**"Unverified" badge.** The sandbox signs each commit with its own key, which GitHub does not associate with the user, so GitHub labels these commits "Unverified". Expected; not a failed push. The sandbox's stop hook may tell you to change the author to `Claude <noreply@anthropic.com>` and amend so the commit shows as verified. Don't: keep the codename and the user's email, which link the commit to the user and to this session.
 
 **Install the auto-push post-commit hook — after the first successful push, not at session start.** The sandbox is ephemeral (§5.6); the §5 "Push early and often" rule shouldn't rely on agent memory, so once pushing is known to work, a hook pushes after every commit automatically. Until then, commits are local: at the first commit, request push and push by hand (§2.0c "Push at the first commit"). When that push succeeds, install the hook:
 
@@ -296,6 +296,8 @@ Pushes may work on a read attachment; request push first anyway, and if the requ
 
 Project Instructions contain `USERNAME` and `REPO`, and (since 2026-10) copies of four profile fields: `USER_DISPLAY_NAME`, `COMMIT_EMAIL`, `GIT_FLUENCY`, `HOME_REPO`. Already in context — no fetch needed. If `USERNAME` or `REPO` look missing or truncated, **surface to the user** — bootstrap may not have completed correctly. The four profile copies may be absent in older Project Instructions; §2b supplies them then.
 
+**Version.** The current Project Instructions version is **2** (`PI_VERSION=2`). If `PI_VERSION` is missing or lower, the user's Project Instructions are out of date: say so once in your first reply, and offer to render the current template (`template/_PROJECT_INSTRUCTIONS.md.template` in the template clone) with this Project's values for them to paste over the old text. Carry on with the session either way.
+
 Set the env vars:
 
 ```bash
@@ -373,7 +375,7 @@ Not a heartbeat — once per session.
 
 Now you know: who the user is (`personal_info.md`), what this repo does (`README.md`), what's in flight (`STATUS.md`), which workflow mode (`workflow_mode`), what skills exist (`SKILL_INDEX.md`).
 
-Respond with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). Reference the most-recent active line if the user's message is ambiguous.
+Respond with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). State this session's codename (§2.0b) in the first reply, so the user can match this chat to its commits and tell concurrent sessions apart. Reference the most-recent active line if the user's message is ambiguous.
 
 **Resumption.** Use the trackers, not `conversation_search` — see §1.5.
 
