@@ -81,4 +81,11 @@ D2's stop hook again asked to amend the author to `Claude <noreply@anthropic.com
 - Profile read: `personal_info.md` 1 of 4 allowed; `researcher_config.md` 3 of 3. Suggestive, not conclusive (Fisher exact p ≈ 0.14), and confounded with the template changes between the two batches.
 - Project-repo attach refused 3 of 7, config-repo attach 0 of 7, though both are read requests in the same turn. The "commit without asking" hypothesis is weakened: D3 had a neutral prompt.
 
-Pending: Dan's decision on the profile read (rename test, and/or move commit identity, fluency and home repo into Project Instructions); fresh reruns.
+## Repository Scope probe (fresh chat in `plan14-test`)
+
+The add-repository reply mentions a "Repository Scope" list and an "original set" of repos, which suggested repos might be put in scope before a session starts, with no attach call for the permission check to judge. Asked to quote that section, the agent said its context has no such section and no list of scoped repos. The only related text is the `add_repo` tool description, which mentions "the session's existing sources" without listing them. The list probably belongs to Claude Code sessions, where repos are chosen when the session starts. A claude.ai Project chat has no equivalent. Lead closed: in Projects every repo has to be attached during the session.
+
+## Decisions
+
+- Profile file rename: ticket #79 (read the new name, fall back to `personal_info.md` on 404). Not in plan 14.
+- Commit author: Dan doesn't mind what the author name is, as long as every commit and every chat carries the codename. The template already does both: the codename is `user.name`, and the first reply states it.
