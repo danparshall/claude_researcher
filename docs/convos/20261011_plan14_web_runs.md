@@ -26,4 +26,16 @@ Every classifier denial had the same form: "Permission for this action was denie
 - Every refused step is one the template tells the agent to do and the user's chat message didn't name (attach, full clone, profile read, push). The one write the user named (B's issue) went through. Plausible common cause: the classifier treats instructions from a fetched public repo (RESEARCHER.md) acting on private data as injection-like. Not confirmed.
 - Plan 14's watch item fired: the `personal_info.md` read was refused with [PII Data Handling] (C) and [Third-Party Attack] (B).
 
-Pending: C's response to a typed go-ahead; fresh reruns of B and C.
+## Run C, continued: typed go-aheads
+
+- Dan typed **"go ahead"**. Retry of the proxy-scratch read attach refused: **[Credential Exploration]** (same call, different label from the first time). Retry of the `personal_info.md` read refused: **[PII Data Handling]**.
+- Dan typed **"go ahead: attach proxy-scratch and read personal_info.md."** Attach → "appended". Profile read refused a third time: **[PII Data Handling]**. Agent dropped that step.
+- Rest of the session: full clone OK; `register_repo_root` not available in this session (it was in run A); STATUS/README/RESEARCH_LOG read; task-remind ran on the config repo (it holds a task issue; one reminder shown, skipped); README paragraph committed with the fallback identity `Claude (web, proxy-scratch, 20261011T1420, opus-5.5) <claude@anthropic.com>`; push request → `already_present`; hand push OK (`28a8020..c3e0956`); hook installed. Novice mode: committed without asking, as instructed.
+
+## Reading, updated
+
+- A bare "go ahead" cleared nothing. A go-ahead naming the action and repo cleared the attach. The template's wording ("a one-line go-ahead has cleared refused push requests") was revised to ask for a named go-ahead and to retry at most once.
+- The `personal_info.md` read: refused in B once and in C three times (including after a named go-ahead); succeeded in A. 2 of 3 sessions. The classifier sees the command, not the file content, so the filename in the URL may be what triggers [PII Data Handling]. A rename test (byte-identical `researcher_config.md` already in `claude_research_config`) would separate filename from content.
+- `register_repo_root` availability varies by session (present in A, absent in C and in the non-Project chat).
+
+Pending: Dan's decision on the profile read (rename test, and/or move commit identity, fluency and home repo into Project Instructions); fresh reruns.

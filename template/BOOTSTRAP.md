@@ -143,7 +143,7 @@ Tell the user:
 >
 > New chats start in whatever mode you last picked, in any Project, so choose auto once and new chats pick it up. A chat that was already open, or one where you switch modes later, keeps its own setting — if a chat starts asking you to approve lots of steps, check its mode.
 >
-> If the check ever refuses something you did want, I'll show you what it refused and ask. A one-line go-ahead typed in the chat, like 'I authorize push access to `<repo>`', has cleared it so far."
+> If the check ever refuses something you did want, I'll show you what it refused and ask. A one-line go-ahead typed in the chat that names the action and the repo, like 'request push for `<repo>`', has usually cleared it; a bare 'go ahead' often doesn't."
 
 The user may prefer to keep approving each step; that works too, just with more clicks. Don't push.
 

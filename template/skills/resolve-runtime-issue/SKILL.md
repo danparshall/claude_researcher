@@ -64,7 +64,7 @@ Symptom: a tool call is denied with a message naming a permission check rather t
 
 Cause: in auto mode, a classifier refuses actions it can't tie to something the user asked for. Project Instructions don't count as the user asking; a line the user types in chat does.
 
-Recovery: show the user the denial text and ask. Don't retry the same step, and don't route around it (a different tool, a read attachment in place of push). For a refused push request, a one-line go-ahead typed by the user in chat ("yes, request push for <repo>") has worked. See RESEARCHER.md §2.0c, Permission checks.
+Recovery: show the user the denial text and ask. Don't retry the same step, and don't route around it (a different tool, a read attachment in place of push). Suggest a go-ahead that names the action and the repo ("attach <owner>/<repo>", "request push for <owner>/<repo>"): typed in chat, that has cleared refused attach and push requests, while a bare "go ahead" has not. Retry once after it, no more. The read of `personal_info.md` has stayed refused even after a named go-ahead (2026-10-11). See RESEARCHER.md §2.0c, Permission checks.
 
 ## Connection error on `api.github.com` or `git clone`
 
