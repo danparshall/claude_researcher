@@ -38,4 +38,21 @@ Every classifier denial had the same form: "Permission for this action was denie
 - The `personal_info.md` read: refused in B once and in C three times (including after a named go-ahead); succeeded in A. 2 of 3 sessions. The classifier sees the command, not the file content, so the filename in the URL may be what triggers [PII Data Handling]. A rename test (byte-identical `researcher_config.md` already in `claude_research_config`) would separate filename from content.
 - `register_repo_root` availability varies by session (present in A, absent in C and in the non-Project chat).
 
+## Run C2 (repeat of C, fresh chat, after the tool-name fix, before the go-ahead wording fix)
+
+- proxy-scratch read attach refused: **[Permission Grant]**. Config repo attach in the same turn: "appended". `personal_info.md` read refused: **[PII Data Handling]**.
+- The agent suggested one sentence covering every refused step plus the coming push. Dan typed it: "Yes — attach danparshall/proxy-scratch, read my personal_info.md from claude_research_config, and push the README commit." Attach → "added". (Report pasted mid-session; outcome of the profile retry not yet known.)
+
+## Tally so far (first attempt, no go-ahead)
+
+| Step | A | B | C | C2 |
+|---|---|---|---|---|
+| Project repo read attach | ok | ok | refused | refused |
+| Config repo read attach | ok | ok | ok | ok |
+| Full clone | ok | refused | (not reached) | (not reached) |
+| `personal_info.md` read | ok | refused | refused | refused |
+| Push after push request | ok | refused | ok (after go-ahead) | ? |
+
+The project-repo attach was refused in both runs whose opening message said "commit whenever it makes sense, without asking me", and in neither of the others. Two samples each; suggestive only.
+
 Pending: Dan's decision on the profile read (rename test, and/or move commit identity, fluency and home repo into Project Instructions); fresh reruns.
