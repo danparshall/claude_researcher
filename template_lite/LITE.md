@@ -13,11 +13,12 @@ little, write little, leave the repo current.
 1. Attach the repo and `claude_research_config` read-only with the
    add-repository tool, then clone with no token (GitHub goes through the
    sandbox's proxy, which authenticates for attached repos):
-   `git clone https://github.com/${USER}/${REPO}.git /home/claude/${REPO}`
+   `git clone --depth 1 https://github.com/${USER}/${REPO}.git /home/claude/${REPO}`
 2. Fetch `personal_info.md` from `claude_research_config` (recipe in Project
    Instructions) — who the user is, their git fluency, interaction style.
-   Fail loud if it 404s (repo or file missing, or not in the Claude GitHub
-   App installation — surface, don't proceed).
+   If it fails or is refused, say so once with the exact error and carry
+   on with the copies in Project Instructions (commit name, email, git
+   fluency). Don't retry a refused read.
 3. Read this file (done, if you're reading this), then `STATUS.md` and
    `DECISIONS.md` at the repo root. Skim `git log --oneline -15`.
 4. Respond to the user's first message. No name handshake, no reminder sweep,

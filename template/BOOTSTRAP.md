@@ -461,12 +461,13 @@ The canonical Project Instructions text lives at:
 
 - `<USERNAME>` → the GitHub username from Step 2a
 - `<REPO>` → the research repo name from Step 5
+- `<USER_DISPLAY_NAME>`, `<COMMIT_EMAIL>`, `<GIT_FLUENCY>`, `<HOME_REPO>` → the same values you wrote into `personal_info.md` in Step 7 (`User display name`, `Git commit email`, `Git fluency`, `Home repo`)
 
 Present the rendered text to the user as a single code block. Tell them:
 
 > "Copy this entire block and paste it into your new Project's **Project Instructions** field. That puts it into every chat's context from the very first message, before any fetching happens. **Don't upload this as a file.**"
 
-**Verification affordance.** Once the user confirms the paste, ask them to spot-check that both substitutions are present in the pasted text — the literal strings `<USERNAME>` and `<REPO>` should NOT appear; the actual values should. If either placeholder is still literal, the runtime agent won't know which repo to attach — have them re-render and re-paste.
+**Verification affordance.** Once the user confirms the paste, ask them to spot-check that the substitutions are present in the pasted text — no `<…>` placeholder (`<USERNAME>`, `<REPO>`, `<COMMIT_EMAIL>` and the rest) should appear; the actual values should. If either placeholder is still literal, the runtime agent won't know which repo to attach — have them re-render and re-paste.
 
 ---
 

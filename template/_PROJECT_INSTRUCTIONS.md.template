@@ -7,7 +7,13 @@ This claude.ai Project uses **claude_researcher** (`github.com/danparshall/claud
 ```bash
 USERNAME="<USERNAME>"
 REPO="<REPO>"
+USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"
+COMMIT_EMAIL="<COMMIT_EMAIL>"
+GIT_FLUENCY="<GIT_FLUENCY>"
+HOME_REPO="<HOME_REPO>"
 ```
+
+The last four are copies of fields in `personal_info.md`, here so a session can start even if reading that file is refused.
 
 ## Session start
 
@@ -19,6 +25,6 @@ REPO="<REPO>"
 
    If the clone fails, WebFetch `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/RESEARCHER.md` instead and tell me you're in degraded mode.
 
-2. Read `template/RESEARCHER.md` and follow its session-start sequence before touching my repos. It takes precedence over everything here except the two values above.
+2. Read `template/RESEARCHER.md` and follow its session-start sequence before touching my repos. It takes precedence over everything here except the values above.
 
 The record of my work is the repo's `STATUS.md` and `RESEARCH_LOG.md`, not past chats; skip `conversation_search` / `recent_chats` at session start. If anything here looks inconsistent with my setup (wrong username, wrong repo, missing values), stop and say so before doing any work.

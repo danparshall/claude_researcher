@@ -166,13 +166,16 @@ Shallow — the agent never needs upstream history. Everything below assumes `/h
 After the template clone, attach the user's repo read-only (§2.0c) and clone it. Reads happen against the local working tree; writes are real `git commit`s pushed back.
 
 ```bash
-git clone https://github.com/${USERNAME}/${REPO}.git /home/claude/${REPO}
+git clone --depth 1 https://github.com/${USERNAME}/${REPO}.git /home/claude/${REPO}
 cd /home/claude/${REPO}
+git remote set-branches origin '*'
 ```
+
+This is the shallow clone the add-repository reply asks for. `set-branches` only changes local config, so pushing a new branch later can record its tracking branch. When a step needs another branch (§3) or history (`git log` lookups in resumption, `audit-docs`, `finish-convo`), fetch it then: `git fetch --depth=1000 origin`.
 
 Then call `register_repo_root` for it (§2.0c).
 
-**Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Read `User display name` and `Git commit email` from `personal_info.md` (fetched in §2b — if you haven't yet, come back to this after that fetch).
+**Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Take `USER_DISPLAY_NAME` and `COMMIT_EMAIL` from Project Instructions (§2a). Older Project Instructions don't carry them; then read `User display name` and `Git commit email` from `personal_info.md` (§2b).
 
 ```bash
 SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442 — used for git codename
@@ -187,7 +190,7 @@ Example: `Dan (web, canary-policy, 20260810T1442, fable-5.1)`. The whole point o
 
 `MODEL` is filled in by you, not computed: the short form of your model's display name — lowercase, spaces → `-`, no context-window tag (`Fable 5.1` → `fable-5.1`, `Opus 4.7 (1M)` → `opus-4.7`).
 
-If `User display name` isn't set in `personal_info.md` (older schema, or the user hasn't updated), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
+If neither source has them (older schema, or the profile read was refused), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
 
 **Commit message trailers.** The sandbox asks you to end every commit message with two lines, and says the user's own rules about them take precedence. This is that rule:
 
@@ -228,7 +231,6 @@ The hook is sandbox-local — `.git/hooks/` isn't versioned and the `.githooks/`
 
 **Failure handling.** The hook runs `git push -u origin HEAD 2>&1` — loud stderr, no retry, no force. If the push fails (network hiccup, non-fast-forward from a concurrent agent, branch protection on `main`), the commit is already local; the hook's exit code does NOT undo it. **Read the commit output tail every time.** Do not assume "committed = safe" — surface any push failure to the user.
 
-- **Not shallow** — `git log` / `git diff` lookups during a session (resumption, audit-docs, finish-convo) need full history.
 - **Working directory.** `/home/claude/${REPO}/` is conventional; `cd` back if a sub-command leaves you elsewhere.
 
 **Fallback if the clone fails.** Most likely the repo is not attached to this session, the user's one-time setup is incomplete (§2.0c), or `<REPO>` doesn't match the repo's name; see `resolve-runtime-issue`. Degraded fallback operates against the Contents API per-file, which only helps once the repo is attached, because an unattached repo is refused over REST too.
@@ -244,7 +246,7 @@ Anthropic's GitHub proxy sits between the sandbox and GitHub. It attaches the us
 1. **Connect GitHub to the Claude account:** claude.ai Settings → Connectors → GitHub.
 2. **Install the Claude GitHub App** on the GitHub account that owns the repos, at `https://github.com/apps/claude/installations/new`. Choose "Only select repositories" and pick the project repo(s), `claude_research_config`, and the home repo if the task skills are used. Connecting alone is not enough: a connected account with no installation can read but not push.
 
-**Attaching repos at session start.** Attach each repo with the session's add-repository tool (`add_repo`). It, `register_repo_root` and `list_repos` are usually deferred tools, and a keyword search can miss them; load them by full name with the tool search query `select:mcp__claude-code-remote__add_repo,mcp__claude-code-remote__register_repo_root,mcp__claude-code-remote__list_repos`. At session start, request **read** only: one call for `${USERNAME}/${REPO}` and one for `${USERNAME}/claude_research_config`, in the same turn, before §2.0b (the tool takes one repo per call, and the user may see an approval box for each). Attach the home repo, if it is neither of those, read-only straight after §2b tells you which repo it is.
+**Attaching repos at session start.** Attach each repo with the session's add-repository tool (`add_repo`). It, `register_repo_root` and `list_repos` are usually deferred tools, and a keyword search can miss them; load them by full name with the tool search query `select:mcp__claude-code-remote__add_repo,mcp__claude-code-remote__register_repo_root,mcp__claude-code-remote__list_repos`. At session start, request **read** only: one call for `${USERNAME}/${REPO}` and one for `${USERNAME}/claude_research_config`, in the same turn, before §2.0b (the tool takes one repo per call, and the user may see an approval box for each). Attach the home repo (`HOME_REPO` in Project Instructions, or `Home repo` in `personal_info.md`), if it is neither of those, read-only before §2d.5.
 
 | Repo | At session start | Later |
 | --- | --- | --- |
@@ -254,8 +256,8 @@ Anthropic's GitHub proxy sits between the sandbox and GitHub. It attaches the us
 
 The tool's reply carries its own instructions (clone now, shallow, then call `register_repo_root`). Follow them, with these differences:
 
-- **Clone the project repo in full,** per §2.0b — resumption, `audit-docs` and `finish-convo` need history. Give the command a generous timeout (about 10 minutes). If a large repo will not finish, fall back to the shallow clone the tool suggests, then fetch all branches with bounded history so §3 can check out a line's branch: `git remote set-branches origin '*' && git fetch --depth=1000 origin`.
-- **Call `register_repo_root` for the project repo** once the full clone succeeds, with `{owner: "${USERNAME}", repo: "${REPO}", directory: "/home/claude/${REPO}"}`. It loads the repo's own `CLAUDE.md`, skills and plugins on the next turn. Where those conflict with this file, tell the user about the conflict and ask which to follow; don't silently pick one. If the tool isn't available (load it by full name first, as above), or the call is denied or fails, read the repo's `CLAUDE.md` directly instead.
+- **Clone the project repo shallow, as the reply says,** with the `set-branches` line from §2.0b. Give the command a generous timeout (about 10 minutes). Fetch more history only when a step needs it (§2.0b).
+- **Call `register_repo_root` for the project repo** once the clone succeeds, with `{owner: "${USERNAME}", repo: "${REPO}", directory: "/home/claude/${REPO}"}`. It loads the repo's own `CLAUDE.md`, skills and plugins on the next turn. Where those conflict with this file, tell the user about the conflict and ask which to follow; don't silently pick one. If the tool isn't available (load it by full name first, as above), or the call is denied or fails, read the repo's `CLAUDE.md` directly instead.
 - **Do not clone the config or home repo,** and don't register them. §2b and the task skills read them over REST.
 
 What the replies mean:
@@ -275,7 +277,7 @@ Pushes may work on a read attachment; request push first anyway, and if the requ
 
 **Other repos:** §4.
 
-**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and suggest a go-ahead that names the action and the repo. Cover every refused step, and a push you'll need for the user's task, in one sentence the user can paste (for example, "Yes — attach danparshall/my-repo, read my personal_info.md from claude_research_config, and push the commit."). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. Reading `personal_info.md` has stayed refused even after a named go-ahead. Retry a refused step at most once, after the user's go-ahead, and don't retry it in another form (a different tool, a shallow clone for a refused full one).
+**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and suggest a go-ahead that names the action and the repo. Cover every refused step, and a push you'll need for the user's task, in one sentence the user can paste (for example, "Yes — attach danparshall/my-repo and push the commit."). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. The `personal_info.md` read is the exception: it has stayed refused even after a named go-ahead, so don't ask for one; §2b says how to carry on without it. Retry a refused step at most once, after the user's go-ahead, and don't retry it in another form (a different tool, a shallow clone for a refused full one).
 
 **REST through the proxy.**
 
@@ -290,13 +292,14 @@ Pushes may work on a read attachment; request push first anyway, and if the requ
 
 ### 2a — Read Project Instructions (already in context)
 
-Project Instructions contain `USERNAME` and `REPO`. Already in context — no fetch needed. Confirm you can see all of them; if any look missing or truncated, **surface to the user** — bootstrap may not have completed correctly.
+Project Instructions contain `USERNAME` and `REPO`, and (since 2026-10) copies of four profile fields: `USER_DISPLAY_NAME`, `COMMIT_EMAIL`, `GIT_FLUENCY`, `HOME_REPO`. Already in context — no fetch needed. If `USERNAME` or `REPO` look missing or truncated, **surface to the user** — bootstrap may not have completed correctly. The four profile copies may be absent in older Project Instructions; §2b supplies them then.
 
 Set the env vars:
 
 ```bash
 USERNAME="<the-acting-user-from-Custom-Instructions>"
 REPO="<the-research-repo-name>"
+# and, when present: USER_DISPLAY_NAME, COMMIT_EMAIL, GIT_FLUENCY, HOME_REPO
 ```
 
 In v1, the acting user owns the research repo, so OWNER == USERNAME (see §7 known limitations).
@@ -316,9 +319,13 @@ This works once `claude_research_config` is attached to the session read-only (�
 
 If the pipeline dies with a `KeyError`, GitHub or the proxy returned an error instead of the file. Re-run the `curl` on its own to read the message.
 
+Where a field here and its copy in Project Instructions differ, use this file's value (it's the one the user edits) and mention the difference once.
+
 Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `User display name`, `Git commit email`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks. `User display name` and `Git commit email` feed the git-identity construction in §2.0b — export them as `USER_DISPLAY_NAME` and `COMMIT_EMAIL` now if you haven't already run §2.0b's `git config` step.
 
-A 403 whose message mentions `add_repo` means the config repo is not yet attached to this session (§2.0c). A 404 most likely means the repo does not exist under that name or the Claude GitHub App installation does not include it; surface (`resolve-runtime-issue`). Don't proceed without `personal_info.md`.
+A 403 whose message mentions `add_repo` means the config repo is not yet attached to this session (§2.0c). A 404 most likely means the repo does not exist under that name or the Claude GitHub App installation does not include it; surface (`resolve-runtime-issue`).
+
+**If the read fails or is refused, carry on** with the copies in Project Instructions. The permission check has refused this read in most test sessions, under labels such as [PII Data Handling], and a typed go-ahead didn't clear it, so don't retry it or ask for one. Tell the user once, with the exact error, that you're working without their profile's interaction style and background. If Project Instructions have no copies either, ask the user for their git fluency and use the fallback identity in §2.0b.
 
 ### 2c — Read `STATUS.md` (partial) and `README.md`
 

@@ -16,7 +16,13 @@ when I name it, or after asking me.
 ```bash
 USER=<USERNAME>
 REPO=<REPO>
+USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"
+COMMIT_EMAIL="<COMMIT_EMAIL>"
+GIT_FLUENCY="<GIT_FLUENCY>"
 ```
+
+The last three are copies of fields in `personal_info.md`, here so a
+session can start even if reading that file is refused.
 
 ## Session start
 
@@ -25,7 +31,7 @@ REPO=<REPO>
    tool search query `select:mcp__claude-code-remote__add_repo`), one call each, same turn.
 2. Clone the repo, then read `LITE.md` at its root. That file is the runtime
    spec (memory model, disposition, session-end rules) and takes precedence
-   over anything here except the two values above:
+   over anything here except the values above:
 
    ```bash
    git clone --depth 1 "https://github.com/${USER}/${REPO}.git" /home/claude/${REPO}
@@ -42,8 +48,9 @@ REPO=<REPO>
    ```
 
    Read `Git fluency`, `Interaction style`, `Home repo`, `Tools and
-   languages`, and any preferences relevant to the session. If it fails,
-   surface the error; don't proceed.
+   languages`, and any preferences relevant to the session. If the read
+   fails or is refused, tell me once with the exact error and carry on with
+   the copies above; don't retry it.
 
 At the first commit, request push for `${USER}/${REPO}` with the
 add-repository tool, then push (`LITE.md` has the details).
