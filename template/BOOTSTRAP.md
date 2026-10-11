@@ -149,7 +149,7 @@ The user may prefer to keep approving each step; that works too, just with more 
 
 ## Step 3 — Check whether `claude_research_config` already exists
 
-Find out whether the user is a returning user (with prefs already set up by an earlier bootstrap) or a first-timer (needs the interview). Call the `list_repos` tool (part of the session's GitHub tools, next to the add-repository tool; search your deferred tools if it isn't listed) with `query: "claude_research_config"`.
+Find out whether the user is a returning user (with prefs already set up by an earlier bootstrap) or a first-timer (needs the interview). Call the `list_repos` tool (part of the session's GitHub tools, next to the add-repository tool; if it isn't listed, load it by full name with the tool search query `select:mcp__claude-code-remote__add_repo,mcp__claude-code-remote__register_repo_root,mcp__claude-code-remote__list_repos`, since a keyword search can miss it) with `query: "claude_research_config"`.
 
 Don't use the add-repository tool for this check: its reply is the same for a repo that doesn't exist and for one Claude can't access ("was not found on github.com, or this session's GitHub credential doesn't have access to it").
 
@@ -281,7 +281,7 @@ Wait for confirmation.
 
 ### 6c — Attach and verify
 
-Attach each repo to this chat with the add-repository tool (`add_repo`; search your deferred tools if it isn't listed), **read access**, one call per repo, in the same turn. Don't clone them; Step 7 writes over REST. The tool's reply suggests cloning and calling `register_repo_root`; skip both here.
+Attach each repo to this chat with the add-repository tool (`add_repo`; loaded in Step 3 — if not, use the tool search query from Step 3), **read access**, one call per repo, in the same turn. Don't clone them; Step 7 writes over REST. The tool's reply suggests cloning and calling `register_repo_root`; skip both here.
 
 What the replies mean, and the fixes, are in `RESEARCHER.md` §2.0c ("What the replies mean"). The common ones here: "link your GitHub account" → Step 2b isn't done; "was not found … or … doesn't have access" → the name is wrong or the App installation doesn't include the repo (6b).
 

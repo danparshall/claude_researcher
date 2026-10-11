@@ -21,8 +21,8 @@ REPO=<REPO>
 ## Session start
 
 1. Attach `${USER}/${REPO}` and `${USER}/claude_research_config` read-only
-   with the add-repository tool (`add_repo`; search your deferred tools if
-   it isn't listed), one call each, same turn.
+   with the add-repository tool (`add_repo`; if it isn't listed, load it with the
+   tool search query `select:mcp__claude-code-remote__add_repo`), one call each, same turn.
 2. Clone the repo, then read `LITE.md` at its root. That file is the runtime
    spec (memory model, disposition, session-end rules) and takes precedence
    over anything here except the two values above:
