@@ -1,6 +1,6 @@
 # Plan 14 implementation (proxy-only)
 
-**Date:** 2026-10-10 to 2026-10-11
+**Date:** 2026-10-10 to 2026-10-12
 **Branch:** proxy-only
 **Surface:** Claude Code
 **Machine:** pro (exporter run on the Air)
@@ -24,8 +24,36 @@ Phase 6 ran seven web sessions plus two probes; the run-by-run record is [202610
 - Project-repo attach is refused in about 3 of 7 sessions, while the config-repo attach in the same turn never was. No fix in Projects: a probe found no "Repository Scope" list in Project chats, so every repo is attached during the session. The named go-ahead clears it.
 - Profile file rename to `researcher_config.md` with a fallback: #79 (3/3 allowed vs 1/4 for `personal_info.md`; small sample, confounded).
 - Pinning and other PAT/web_fetch-era cruft: #77.
-- A Claude Code on the web probe (Dan, pending) to compare what that surface sees.
+- Claude Code on the web as the target surface: #80, #81 (see below).
 - Run D (lite) and run E (BOOTSTRAP read-through) deferred to after merge.
+
+## Close-out and merge prep (2026-10-11)
+
+Repository Scope probe in a Project chat found no such section (lead closed). Rename ticketed as #79; Dan's rule on authorship recorded on #77 (any author name, as long as every commit and chat carries the codename). Grep gate clean apart from history, 14 tests passing, `tools/repin.py` run (BOOTSTRAP → `a315b0b`, README → `3b7d518`), #72's checklist updated, PR #75 description rewritten and marked ready. Not merged.
+
+## Claude Code on the web (2026-10-11/12)
+
+Dan asked what the workflow should target now that claude.ai/code exists, rather than defaulting to Project chats. Three probes in `danparshall/proxy-scratch` (seeded with a `CLAUDE.md` marker and a repo skill `probe-hello`):
+
+- **A first session, from Dan, on `claude_researcher`.** Its notes are on branch `claude/claude-researcher-github-workflow-4zbkxm` (`docs/convos/20261011_ccw_surface_probe.md`, `20261011_pr75_two_surfaces.md`, not merged here). Findings:
+  - The repo is pre-attached and cloned at `/home/user/<repo>`; the system prompt has the Repository Scope list.
+  - A random `claude/…` branch is assigned.
+  - Non-GitHub hosts are blocked under the Default environment.
+  - The GraphQL refusal advertises "CCR" REST routes for review threads, auto-merge and draft toggles.
+- **Probe 1** (`claude/pensive-mayer-3uh6j7`):
+  - The repo `CLAUDE.md` and the repo skill load.
+  - Pushing to an existing non-assigned branch works with the user's permission.
+  - PR tools exist; there is a deep-research skill; WebSearch works.
+  - Paper hosts get 403 and the PDF upload never arrived.
+- **Network fix.** Dan created a `Research` environment with Network access = Full. The chat setting "Capabilities → Domain allowlist" doesn't apply to claude.ai/code.
+- **Probe 2** (`claude/affectionate-cerf-nfc7l9`): "grab arXiv 1706.03762 and add it" worked first try by `curl`.
+- **Probe 3** (`claude/jolly-brown-vxl40v`): `add-paper`, uploaded as a claude.ai account skill, appeared as `anthropic-skills:add-paper` and was chosen unprompted. Its companion skills were missing, the paper-naming preference didn't reach it, and the sandbox stop hook overrode the skill's "leave committing to the user".
+
+Dan's objections, both accepted:
+- Account skills need a manual re-upload per change, so they can't be how updates ship. The candidate is the environment's Setup script cloning the template into `~/.claude/skills/`; untested.
+- Random assigned branch names conflict with RESEARCHER.md §3 Branch resolution.
+
+Ticketed for later: #80 (move to claude.ai/code? findings) and #81 (skill updates via setup script; §3 branch model).
 
 ## Process notes
 
