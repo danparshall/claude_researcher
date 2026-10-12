@@ -296,7 +296,7 @@ Pushes may work on a read attachment; request push first anyway, and if the requ
 
 Project Instructions contain `USERNAME` and `REPO`, and (since 2026-10) copies of four profile fields: `USER_DISPLAY_NAME`, `COMMIT_EMAIL`, `GIT_FLUENCY`, `HOME_REPO`. Already in context — no fetch needed. If `USERNAME` or `REPO` look missing or truncated, **surface to the user** — bootstrap may not have completed correctly. The four profile copies may be absent in older Project Instructions; §2b supplies them then.
 
-**Version.** The current Project Instructions version is **2** (`PI_VERSION=2`). If `PI_VERSION` is missing or lower, the user's Project Instructions are out of date: say so once in your first reply, and offer to render the current template (`template/_PROJECT_INSTRUCTIONS.md.template` in the template clone) with this Project's values for them to paste over the old text. Carry on with the session either way.
+**Version.** The current Project Instructions version is **2.0** (`PI_VERSION="2.0"`), also shown in their title line. A bare integer means that major version with minor 0 (`PI_VERSION=2` is 2.0). If `PI_VERSION` is missing or lower, the user's Project Instructions are out of date: say so once in your first reply, and offer to render the current template (`template/_PROJECT_INSTRUCTIONS.md.template` in the template clone) with this Project's values for them to paste over the old text. Carry on with the session either way.
 
 Set the env vars:
 
