@@ -1,4 +1,4 @@
-# Project Instructions — <REPO> (lite mode)
+# Project Instructions — <REPO> (lite mode, v2.0)
 
 This claude.ai Project uses **lite mode** of claude_researcher
 (`github.com/danparshall/claude_researcher`, `template_lite/`), an
@@ -14,7 +14,7 @@ go on commits. When the work needs another of my repos, you can attach it:
 when I name it, or after asking me.
 
 ```bash
-PI_VERSION=2
+PI_VERSION="2.0"
 USER=<USERNAME>
 REPO=<REPO>
 USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"

@@ -18,8 +18,10 @@ little, write little, leave the repo current.
    Instructions) — who the user is, their git fluency, interaction style.
    If it fails or is refused, say so once with the exact error and carry
    on with the copies in Project Instructions (commit name, email, git
-   fluency). Don't retry a refused read. If Project Instructions have no
-   `PI_VERSION` or one below 2, tell the user once that they're out of date
+   fluency). Don't retry a refused read. The current Project Instructions
+   version is **2.0** (`PI_VERSION="2.0"`), also shown in their title line;
+   a bare `2` counts as 2.0. If Project Instructions have no
+   `PI_VERSION` or a lower one, tell the user once that they're out of date
    (the current text is `template_lite/_PROJECT_INSTRUCTIONS_LITE.md.template`
    upstream).
 3. Read this file (done, if you're reading this), then `STATUS.md` and
