@@ -5,7 +5,7 @@ One row per screenshot in this directory. Update the date + variant when re-capt
 | File | Captured | UI variant |
 |------|----------|------------|
 | `claude_egress_settings.png` | 2026-06-04 | claude.ai Pro account, Capabilities pane — "Allow network egress" toggle on, "Domain allowlist: All domains" with confirmation banner *"Claude can access all domains on the internet."* |
-| `github_pat_read_write_flip.png` | 2026-06-04 | github.com fine-grained PAT page with Administration (Read and write), Contents (Read and write), Metadata (Read-only, Required) — the desired final configuration |
+| `github_pat_read_write_flip.png` | 2026-06-04 | **Retired 2026-10-10** (plan 14, proxy-only): no longer referenced; the web workflow no longer uses a PAT. Kept until Dan decides whether to delete it. Was: github.com fine-grained PAT page with Administration (Read and write), Contents (Read and write), Metadata (Read-only, Required). |
 
 ## Why this file
 
@@ -13,7 +13,7 @@ The claude.ai egress UI and the GitHub PAT UI have both changed multiple times i
 
 ## Where these are used
 
-Both screenshots are referenced from `README.md` (`## Quick start` → "Setup at a glance") — they're user-facing visual aids shown before the user pastes the bootstrap prompt. They are **not** referenced from `template/BOOTSTRAP.md` (the agent fetches BOOTSTRAP via `web_fetch`, which returns markdown source rather than rendered images; the agent can't show the images to the user even if BOOTSTRAP linked them).
+`claude_egress_settings.png` is referenced from `README.md` (`## Quick start` → "Setup at a glance") — they're user-facing visual aids shown before the user pastes the bootstrap prompt. They are **not** referenced from `template/BOOTSTRAP.md` (the agent fetches BOOTSTRAP via `web_fetch`, which returns markdown source rather than rendered images; the agent can't show the images to the user even if BOOTSTRAP linked them).
 
 ## When to re-capture
 
