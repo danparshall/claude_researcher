@@ -1,0 +1,30 @@
+# Informational CI — never blocks a merge.
+#
+# The hard gates for the skill export live upstream in the dotfiles exporter
+# (SKILL_INDEX check, leak gate, manifest hash) and its git pre-commit hook.
+# This workflow is defense in depth: it re-runs the profile-side manifest
+# test on push so an exporter regression shows up here rather than on the
+# next sync_check drift report. Steps use `continue-on-error: true` by
+# design (skillset-sync-paper-format plan 01, Design choice 3).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  skill-manifest:
+    name: Skill manifest + SKILL_INDEX (informational)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: tools/test_skill_manifest.py
+        continue-on-error: true
+        run: python3 tools/test_skill_manifest.py
