@@ -176,22 +176,68 @@ This is the shallow clone the add-repository reply asks for. `set-branches` only
 
 Then call `register_repo_root` for it (§2.0c).
 
-**Per-session codename.** Before setting `user.name`, capture ONE session-start timestamp — it goes into both the git identity *and* the convo filename (§2e), so the two cross-reference by inspection. Take `USER_DISPLAY_NAME` and `COMMIT_EMAIL` from Project Instructions (§2a). Older Project Instructions don't carry them; then read `User display name` and `Git commit email` from `personal_info.md` (§2b).
+**Per-session codename — written once, never rebuilt.** The session's identity (date, ids, chat link, codename, convo name) lives in one file on `/home/claude`. If the file exists, source it and use what it says, even if `${REPO}` in Project Instructions no longer matches the codename's repo slot. A stale repo slot still tells the user where to look for the session's other work.
+
+Why a file, and why on `/home/claude`: moving a chat to another claude.ai Project keeps the session but lazily reboots the sandbox, a few idle minutes later. `/home/claude` survives the reboot (this file, your clones, their per-repo config and hooks). `/root` does not, so global git config comes back as `Claude <noreply@anthropic.com>`. An agent that rebuilds its codename after the reboot gets a new timestamp, and its commits stop matching the session. The user greps for these values across chats, logs and commits. **They never change within a session**, even if the session is reassigned to another Project or repo. Only `CONVO` is ever rewritten (§2e).
+
+When writing the file, take `USER_DISPLAY_NAME` and `COMMIT_EMAIL` from Project Instructions (§2a). Older Project Instructions don't carry them; then read `User display name` and `Git commit email` from `personal_info.md` (§2b).
 
 ```bash
-SESSION_TS=$(date -u +%Y%m%dT%H%M)      # e.g., 20260810T1442 — used for git codename
-SESSION_DATE=$(date -u +%Y%m%d)          # e.g., 20260810   — used for convo filenames
-MODEL=<short form of the model you are running as, e.g. fable-5.1>
-CODENAME="${USER_DISPLAY_NAME} (web, ${REPO}, ${SESSION_TS}, ${MODEL})"
-git config user.email "${COMMIT_EMAIL}"
-git config user.name  "${CODENAME}"
+ID_DIR=/home/claude/.session-identity
+ID_FILE="$ID_DIR/${CLAUDE_CODE_SESSION_ID}.env"
+if [ -f "$ID_FILE" ]; then
+    . "$ID_FILE"                         # reuse; never rebuild
+else
+    SESSION_TS=$(date -u +%Y%m%dT%H%M)   # e.g., 20260810T1442 — in the codename
+    SESSION_DATE=$(date -u +%Y%m%d)      # e.g., 20260810   — in convo filenames
+    MODEL=<short form of the model you are running as, e.g. fable-5.1>
+    CODENAME="${USER_DISPLAY_NAME} (web, ${REPO}, ${SESSION_TS}, ${MODEL})"
+    CHAT_LINK="https://claude.ai/code/session_${CLAUDE_CODE_REMOTE_SESSION_ID#cse_}"
+    mkdir -p "$ID_DIR"
+    cat > "$ID_FILE" <<EOF
+SESSION_DATE='${SESSION_DATE}'
+SESSION_TS='${SESSION_TS}'
+SESSION_ID='${CLAUDE_CODE_SESSION_ID}'
+REMOTE_SESSION_ID='${CLAUDE_CODE_REMOTE_SESSION_ID}'
+CHAT_LINK='${CHAT_LINK}'
+CODENAME='${CODENAME}'
+COMMIT_EMAIL='${COMMIT_EMAIL}'
+CONVO='pending'
+EOF
+fi
 ```
 
-Example: `Dan (web, canary-policy, 20260810T1442, fable-5.1)`. The whole point of the codename format is traceability when the user runs multiple concurrent web agents against the same repo — `git log --format="%an %s"` shows exactly which session, and which model, each commit came from. Convo filenames use the date-only `SESSION_DATE` (§2e); the codename's HHMM fragment is what disambiguates concurrent sessions in the git log.
+Example codename: `Dan (web, canary-policy, 20260810T1442, fable-5.1)`. The codename exists for traceability when the user runs several web agents against the same repo: `git log --format="%an %s"` shows which session, and which model, made each commit. Convo filenames use the date-only `SESSION_DATE` (§2e); the codename's HHMM is what tells concurrent sessions apart in the git log.
 
-`MODEL` is filled in by you, not computed: the short form of your model's display name — lowercase, spaces → `-`, no context-window tag (`Fable 5.1` → `fable-5.1`, `Opus 4.7 (1M)` → `opus-4.7`).
+`MODEL` is filled in by you, not computed, once, when the file is written: the short form of your model's display name — lowercase, spaces → `-`, no context-window tag (`Fable 5.1` → `fable-5.1`, `Opus 4.7 (1M)` → `opus-4.7`). It records the model at session start and is not updated if the model changes.
 
-If neither source has them (older schema, or the profile read was refused), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
+`CHAT_LINK` is derived from `CLAUDE_CODE_REMOTE_SESSION_ID` (`cse_<X>` → `https://claude.ai/code/session_<X>`). If that variable is empty, copy the link from the `Claude-Session:` line the sandbox asks you to add to commits.
+
+If neither source has the display name and email (older schema, or the profile read was refused), fall back to `Claude` for the base and `claude@anthropic.com` for the email, and mention the fallback in your first user-visible message so they can update the schema.
+
+**In every clone — the session's first and any later one (§4), after a Project move too:** set the identity per repo from the file, and install the author guard right away, not after the first push. Never use `git config --global` for identity: global config is reset on reboot.
+
+```bash
+git config user.name  "${CODENAME}"
+git config user.email "${COMMIT_EMAIL}"
+HOOKS_DIR=$(git rev-parse --git-path hooks)
+GUARD="$HOOKS_DIR/commit-msg"
+if git ls-files --error-unmatch "$GUARD" >/dev/null 2>&1; then
+    echo "WARNING: $GUARD is tracked by this repo — not overwriting; no author guard in this clone."
+elif [ -f /home/claude/.claude_researcher_template/template/hooks/commit-msg ]; then
+    mkdir -p "$HOOKS_DIR"
+    cp /home/claude/.claude_researcher_template/template/hooks/commit-msg "$GUARD"
+    chmod +x "$GUARD"
+    case "$HOOKS_DIR" in
+        .git/*|/*) ;;
+        *) grep -qxF "/$GUARD" .git/info/exclude 2>/dev/null || echo "/$GUARD" >> .git/info/exclude ;;
+    esac
+else
+    echo "WARNING: template not cloned (§2.0a fallback) — no author guard in this clone."
+fi
+```
+
+Tell the user about either warning. The guard refuses any commit whose author isn't `CODENAME`, and any commit when the identity file is missing. Its message names the fix; follow it. Don't rebuild the codename and don't bypass the guard with `--no-verify`. The tracked source at `template/hooks/commit-msg` carries the full rationale.
 
 **Commit message trailers.** The sandbox asks you to end every commit message with two lines, and says the user's own rules about them take precedence. This is that rule:
 
@@ -376,11 +422,27 @@ Not a heartbeat — once per session.
 
 Now you know: who the user is (`personal_info.md`), what this repo does (`README.md`), what's in flight (`STATUS.md`), which workflow mode (`workflow_mode`), what skills exist (`SKILL_INDEX.md`).
 
-Respond with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). State this session's codename (§2.0b) in the first reply, so the user can match this chat to its commits and tell concurrent sessions apart. Reference the most-recent active line if the user's message is ambiguous.
+**The fixed line.** Your first reply opens with one line built from the identity file (§2.0b), word for word in this shape:
+
+```
+Session: <SESSION_DATE as YYYY-MM-DD> · <SESSION_ID> · <CHAT_LINK> · <CODENAME> · convo <CONVO>
+```
+
+e.g. `Session: 2026-08-10 · 4f0c…e21 · https://claude.ai/code/session_01Ab… · Dan (web, canary-policy, 20260810T1442, fable-5.1) · convo pending`.
+
+The user greps for these values across chats, logs and commits, so the line matches one session to its commits and tells concurrent sessions apart. **The values never change within a session, even if the chat is moved to another Project or repo.** Only the convo field changes (below). Show the line again, unchanged apart from the convo field, after any of these: you notice the chat was moved to another Project (Project Instructions name a different repo, or the sandbox rebooted), you make a new clone, the context was compacted, or the convo name changes.
+
+Then respond with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). Reference the most-recent active line if the user's message is ambiguous.
 
 **Resumption.** Use the trackers, not `conversation_search` — see §1.5.
 
-**Convo name.** In your first response, create a name for this session's convo from the user's opening message and announce it — don't wait for approval; the user will say if they want a different one. If the task isn't clear yet, name it when the first artifact is written. **Format is `${SESSION_DATE}_<short-slug>.md`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
+**Convo name.** In your first response, create a name for this session's convo from the user's opening message and announce it — don't wait for approval; the user will say if they want a different one. If the task isn't clear yet, leave it `pending` and name it when the first artifact is written. **Format is `${SESSION_DATE}_<short-slug>.md`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
+
+The name lives in the identity file's `CONVO` field, the one field that is ever rewritten. It is set once, and finish-convo may rename it once more. Each time, rewrite only that field and show the fixed line again:
+
+```bash
+sed -i "s/^CONVO=.*/CONVO='<name>'/" "/home/claude/.session-identity/${CLAUDE_CODE_SESSION_ID}.env"
+```
 
 - Both modes: `${SESSION_DATE}_<short-slug>.md` (e.g., `20260810_managed_retreat_planning.md`)
 
@@ -388,7 +450,7 @@ Also suggest a human-readable **chat title** derived from the slug so the WebUI 
 
 **Slug → title mapping:** drop the `SESSION_DATE` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
 
-Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930, fable-5.1)`."*
+Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned)."* The codename commits are authored under is already in the fixed line.
 
 The user can rename it or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without an announced name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
 

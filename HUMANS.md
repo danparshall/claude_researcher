@@ -87,6 +87,16 @@ The reason is structural: the agent cannot see the title of the claude.ai chat f
 
 If you don't expect to produce durable artifacts in a session — a quick lookup, a short chat — just tell the agent "no need to log this one" when it announces the name.
 
+### The `Session:` line
+
+The agent's first reply opens with one line like this:
+
+```
+Session: 2026-08-10 · 4f0c…e21 · https://claude.ai/code/session_01Ab… · Dan (web, canary-policy, 20260810T1442, fable-5.1) · convo 20260810_managed_retreat_planning
+```
+
+It holds the date, the session id, a link back to this chat, the codename the agent commits under, and the convo name. Each value is something you can search for. Search your repos' `git log` for the codename to find every commit this chat made, or search your chat history for the session id. None of the values change for the life of the chat, not even if you move it to another Project. The repo inside the codename then still names the repo where the session started, which tells you where to look for the rest of its work. Only the convo name can change, and when it does the agent shows the line again. If you ever see two different codenames from one chat, something has gone wrong: tell the agent.
+
 ### Use `add-paper` for PDFs you actually want engaged with
 
 Dropping a PDF into chat just shows it to the current conversation. The `add-paper` skill — invoked by saying "add this paper" or similar — does something more useful: renames the file to your canonical format, extracts the text, writes a summary, indexes it against your reading list. The next session can ask about that paper without you re-uploading anything. If you're going to do real work with a paper, run it through `add-paper` once at the start.
