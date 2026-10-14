@@ -145,7 +145,7 @@ copies may carry deliberate per-repo customizations.
 ## Never list
 
 Lite will never grow *automatic* overhead: research lines / branches-as-lines,
-session-start skills manifests, convo-name handshakes, task reminders,
+session-start skills manifests, convo naming at session start, task reminders,
 mandatory wrap-up ceremony, per-branch docs scaffolds, calibration tiers.
 On-demand skill use (above) is fine. If a repo starts needing the rest,
 graduate it to claude_researcher — don't add features here.

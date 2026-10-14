@@ -79,13 +79,13 @@ The agent uses your research repo's `STATUS.md` and `RESEARCH_LOG.md` as the can
 
 Each research line gets a short hyphenated name — `managed-retreat`, `cap-and-trade-microeconomics`. Pick ones you'll recognize months later. `temp` and `working` are tempting in the moment but unhelpful when you have a dozen lines accumulated.
 
-### Why you'll be asked to name the conversation
+### Why the agent names the conversation
 
-Within the first message or two, the agent will propose a name for this session — something like `20260511_managed_retreat_planning`. Accept it or counter-propose; the exact name matters less than the fact that one gets established early.
+In its first reply, the agent will announce a name for this session — something like `20260511_managed_retreat_planning`. It won't wait for approval; tell it if you want a different one. The exact name matters less than the fact that one gets established early.
 
-The reason is structural: the agent cannot see the title of the claude.ai chat from inside the chat. That title — the one you can edit in the sidebar — is invisible from the agent's side. So without a user-confirmed name established by handshake, there's no stable identifier connecting the various artifacts the agent might create this session: the conversation summary in `docs/convos/`, any plan documents in `docs/plans/`, any results files, the STATUS recent-sessions entry. The handshake creates that join key. Later, when you or a future agent wants to ask "what was the reasoning behind that decision?", the trail leads back through the convo name to the recorded reasoning.
+The reason is structural: the agent cannot see the title of the claude.ai chat from inside the chat. That title — the one you can edit in the sidebar — is invisible from the agent's side. So without a name established at the start, there's no stable identifier connecting the various artifacts the agent might create this session: the conversation summary in `docs/convos/`, any plan documents in `docs/plans/`, any results files, the STATUS recent-sessions entry. The announced name is that join key. Later, when you or a future agent wants to ask "what was the reasoning behind that decision?", the trail leads back through the convo name to the recorded reasoning.
 
-If you don't expect to produce durable artifacts in a session — a quick lookup, a short chat — just tell the agent "no need to log this one" when it asks. The handshake is fast and easy to opt out of.
+If you don't expect to produce durable artifacts in a session — a quick lookup, a short chat — just tell the agent "no need to log this one" when it announces the name.
 
 ### Use `add-paper` for PDFs you actually want engaged with
 

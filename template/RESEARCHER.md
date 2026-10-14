@@ -194,7 +194,7 @@ If neither source has them (older schema, or the profile read was refused), fall
 
 **Commit message trailers.** The sandbox asks you to end every commit message with two lines, and says the user's own rules about them take precedence. This is that rule:
 
-- **Keep the `Claude-Session: <link>` line.** It links the commit to the chat that made it — the join the §2e convo-name handshake otherwise has to approximate.
+- **Keep the `Claude-Session: <link>` line.** It links the commit to the chat that made it — the join the §2e convo name otherwise has to approximate.
 - **Leave out the `Co-Authored-By:` line.** The model is already in the author slot via the codename.
 
 `personal_info.md` `Interaction style` can override either choice.
@@ -379,17 +379,17 @@ Respond with full context. Greeting style depends on tier (novice → warm + nam
 
 **Resumption.** Use the trackers, not `conversation_search` — see §1.5.
 
-**Convo-name handshake.** In your first or second response, propose a name for this session's convo and confirm. **Format is `${SESSION_DATE}_<short-slug>.md`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
+**Convo name.** In your first response, create a name for this session's convo from the user's opening message and announce it — don't wait for approval; the user will say if they want a different one. If the task isn't clear yet, name it when the first artifact is written. **Format is `${SESSION_DATE}_<short-slug>.md`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
 
 - Both modes: `${SESSION_DATE}_<short-slug>.md` (e.g., `20260810_managed_retreat_planning.md`)
 
-Also propose a human-readable **chat title** derived from the slug so the WebUI chat-list stays aligned with `docs/convos/` filenames.
+Also suggest a human-readable **chat title** derived from the slug so the WebUI chat-list stays aligned with `docs/convos/` filenames.
 
 **Slug → title mapping:** drop the `SESSION_DATE` fragment; underscores → spaces; sentence-case (first word + proper nouns/acronyms); phase/plan-number segments use em-dashes (`plan04_` → "Plan 04 — ", `phase4_` → "Phase 4 — "); hyphenate inside compound-concept segments (`clone_first_ship` → "Clone-first ship").
 
-Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930, fable-5.1)`. Sound right?"*
+Example: *"I'll log this session as `20260511_managed_retreat_planning` (suggested chat title: 'Managed retreat planning' — paste into the chat's title field if you want them aligned). Git commits will be authored as `Dan (web, canary-policy, 20260511T0930, fable-5.1)`."*
 
-The user can accept, counter-propose, or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without a user-confirmed name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
+The user can rename it or say "no need to log this one." This name — and the codename it shares a timestamp with — is the join key for the convo file, plan files, results files, git log, and any STATUS entries. You can't see the chat title from inside the chat, so without an announced name there's no stable join key — establish it before the first artifact is written to avoid a later rename. On Claude Code, the chat-title parenthetical is informational only.
 
 ---
 
@@ -414,7 +414,7 @@ The research repo has a specific documentation structure. Each file has a define
 | File | Role | When to read |
 |------|------|-------------|
 | **docs/active/\<line\>/RESEARCH_LOG.md** | The index for this line. Which convos tied to which plans, session history, trajectory of thinking. Newest entries first. | Every session start after §3 branch resolution |
-| **docs/active/\<line\>/convos/** | Conversation summaries. One file per session, named per the handshake format from §2e. | On demand, when you need to understand why a decision was made |
+| **docs/active/\<line\>/convos/** | Conversation summaries. One file per session, named per the convo-name format from §2e. | On demand, when you need to understand why a decision was made |
 | **docs/active/\<line\>/plans/** | Implementation plans. Each MUST point back to the originating convo so the reasoning is auditable. | When implementing something |
 | **docs/active/\<line\>/results/** | Analysis outputs, figures, data summaries produced during research. | On demand |
 
@@ -492,7 +492,7 @@ Four universal rules across every write.
 
 ### Artifact graph
 
-Every artifact written during a session references the convo name from §2e: `STATUS → RESEARCH_LOG → convo → plan / results`. The convo name is the join key. If no name was established (older runtime, handshake failed), propose one now and confirm before writing any artifact — the rename later costs more.
+Every artifact written during a session references the convo name from §2e: `STATUS → RESEARCH_LOG → convo → plan / results`. The convo name is the join key. If no name was established, create one now and announce it in the reply that writes the first artifact — the rename later costs more.
 
 ### Skills are read on-demand
 
