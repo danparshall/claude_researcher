@@ -10,7 +10,7 @@
 
 **Architecture:** One write-once identity file per session holds date, ids, chat link, codename and convo name. On web it lives on `/home/claude` (survives the reboot), and every clone gets a per-repo `user.name` from it plus a `commit-msg` guard that refuses any other author. On CLI the existing `session_identity.py` startup hook writes the same fields, including the launch repo, and the commit template reads fixed values instead of recomputing.
 
-**Branch:** web half on `convo-name-announce` in `claude_researcher` (worktree `/Users/dan/code/claude_researcher/.worktrees/convo-name-announce`), which also carries the unmerged convo-name rule this builds on. CLI half on a new dotfiles branch `session-identity-lock` (worktree `/Users/dan/code/dotfiles/.worktrees/session-identity-lock`, create with the using-git-worktrees skill).
+**Branch:** web half on `session-identity-lock` in `claude_researcher` (worktree `/Users/dan/code/claude_researcher/.worktrees/session-identity-lock`), branched from main after the convo-name rule merged (PR #88). CLI half on a new dotfiles branch `session-identity-lock` (worktree `/Users/dan/code/dotfiles/.worktrees/session-identity-lock`, create with the using-git-worktrees skill).
 
 **Tech Stack:** POSIX sh (sandbox hook), bash snippets in RESEARCHER.md, Python 3.12 + pytest (dotfiles hook and a hook test here).
 
@@ -51,7 +51,7 @@ Session: 2026-10-14 · <session id> · <chat link | transcript path> · <codenam
 
 NOTE: I will write *all* tests before I add any implementation behavior.
 
-## Tasks — web (claude_researcher, branch `convo-name-announce`)
+## Tasks — web (claude_researcher, branch `session-identity-lock`)
 
 1. Write `tools/test_commit_msg_guard.py` per the testing plan. Run; confirm it fails (hook absent).
 2. Add `template/hooks/commit-msg` (sh): source `/home/claude/.session-identity/$CLAUDE_CODE_SESSION_ID.env`; compare `git var GIT_AUTHOR_IDENT` name with `CODENAME`; refuse with a one-line fix (`git config user.name "<codename>"`). Header comment: why it exists, link to this plan. Run tests; pass. Commit.
@@ -96,5 +96,7 @@ NOTE: I will write *all* tests before I add any implementation behavior.
 3. CLI repo slot when launched outside any repo (e.g. `~`): directory basename (`dan`)? Or `none`?
 4. Should the guard also check the email, or only the name?
 5. Existing sessions mid-flight when this ships have no identity file: web setup will create one on their next setup pass, possibly with a new timestamp. Acceptable one-time break?
+
+**Answers (Dan, 2026-10-14):** 1. Freeze. 2. Rule only; no re-install into existing clones. 3. Directory basename. 4. Name only (no objection raised to the default). 5. Accept the one-time break.
 
 ---

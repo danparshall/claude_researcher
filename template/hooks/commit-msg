@@ -1,0 +1,45 @@
+#!/bin/sh
+# Author guard: refuse any commit whose author is not this session's
+# codename. Installed by RESEARCHER.md §2.0b into every clone the web
+# session makes, at clone time — .git/hooks/commit-msg, or, when
+# core.hooksPath is set (paper-collection repos: .githooks), into that
+# directory, listed in .git/info/exclude so it is never committed.
+#
+# Rationale: moving a chat to another claude.ai Project reboots the
+# sandbox lazily. /home/claude survives (identity file, clones, their
+# per-repo config and hooks); /root does not, so global git config comes
+# back as `Claude <noreply@anthropic.com>`. A clone made after the move
+# without the §2.0b setup would commit under that name, or the agent
+# would rebuild a new codename. Either way the commits stop matching the
+# session. This hook makes that a loud refusal instead of a silent
+# mis-attribution. Plan: docs/plans/16_session_identity_lock.md.
+#
+# The identity file is write-once (only CONVO is ever rewritten), so the
+# codename it holds is the one the session announced. A missing file or
+# session id refuses too: an unguarded commit is the failure this
+# prevents. `git commit -n` skips the hook; that is deliberate, not drift.
+#
+# SESSION_IDENTITY_DIR overrides the directory, for tests.
+
+DIR="${SESSION_IDENTITY_DIR:-/home/claude/.session-identity}"
+
+if [ -z "$CLAUDE_CODE_SESSION_ID" ]; then
+    echo "commit-msg guard: CLAUDE_CODE_SESSION_ID is not set, so this session's identity file can't be found. Run the codename setup in RESEARCHER.md §2.0b, then commit again." >&2
+    exit 1
+fi
+
+FILE="$DIR/$CLAUDE_CODE_SESSION_ID.env"
+if [ ! -f "$FILE" ]; then
+    echo "commit-msg guard: no session identity file at $FILE. Restore it with the codename setup in RESEARCHER.md §2.0b, then commit again." >&2
+    exit 1
+fi
+
+. "$FILE"
+
+IDENT=$(git var GIT_AUTHOR_IDENT) || exit 1
+AUTHOR="${IDENT%% <*}"
+
+if [ "$AUTHOR" != "$CODENAME" ]; then
+    echo "commit-msg guard: author is '$AUTHOR', but this session's codename is '$CODENAME' (from $FILE). Fix: git config user.name \"$CODENAME\", then commit again." >&2
+    exit 1
+fi
