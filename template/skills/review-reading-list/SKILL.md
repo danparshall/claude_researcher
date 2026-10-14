@@ -7,7 +7,7 @@ description: Use when the user says "what's on my reading list," "read the readi
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Show the reading list
 2. Wait for the user to pick an item — do NOT auto-pick

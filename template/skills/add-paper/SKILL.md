@@ -7,7 +7,7 @@ description: Use when adding a paper (or a blog post or thread worth keeping) to
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Obtain the source
 2. Extract text

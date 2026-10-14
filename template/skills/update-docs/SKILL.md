@@ -7,12 +7,12 @@ description: Use when checkpointing research progress mid-session — creates or
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Work out where the session's record goes, its convo name, and its identity.
 
 - **Line or not.** If the session worked in a research line (a `docs/active/<line>/` directory exists for it), everything below goes under that directory. If it had no line — a repo that has lines, but this session was a one-off fix or maintenance — convo docs go in `docs/convos/`, results in `docs/results/`, and the log entry in a repo-root `RESEARCH_LOG.md`.
-- **Convo name.** The name the user confirmed at session start (both surfaces propose one in the first reply). Format: `YYYYMMDD_<short-slug>`. If none was established, propose one now and confirm before writing any files — do not invent a provisional name; a later rename costs more than asking.
+- **Convo name.** The name announced at session start (or given by the user). Format: `YYYYMMDD_<short-slug>`. If none was established, create one from what the session did and announce it in the reply that writes the files.
 - **Session identity.** The session codename (the `user.name` on this session's commits) and, on Claude Code, the transcript path — both announced at session start; with the session-identity hook installed, `~/.claude/session-identity/<session_id>.env` holds them. On claude.ai, the session URL if you have it. Write `—` for anything you don't have.
 - **Machine.** `hostname -s` on Claude Code; `sandbox` on claude.ai.
 

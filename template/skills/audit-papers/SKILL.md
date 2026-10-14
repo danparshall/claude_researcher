@@ -7,7 +7,7 @@ description: Use when auditing the papers/ collection — runs the paper-index c
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-CRITICAL: Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Run the paper-index check; report structural problems and fix only what the user approves
 2. Agree the scope of the accuracy pass with the user

@@ -7,7 +7,7 @@ description: Use when a research repo will hold papers and has no PAPER_SUMMARIE
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Check what already exists
 2. Create papers/ and papers/text/

@@ -7,7 +7,7 @@ description: Use when starting a session, or when the user says "check reminders
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Detect GH user and `home_repo`
 2. Query current repo + `home_repo` (metadata only)

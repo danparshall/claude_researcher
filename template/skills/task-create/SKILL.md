@@ -7,7 +7,7 @@ description: Use when the user says "add a task," "add task," "capture this," "c
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Detect context (repo, branch, convo doc, GH user)
 2. Draft title + summary

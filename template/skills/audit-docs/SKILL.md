@@ -7,7 +7,7 @@ description: Use when auditing docs/active/ structure for consistency — checks
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Inventory all branch directories under docs/active/.
 2. For each active branch, check convo/plan/results consistency.

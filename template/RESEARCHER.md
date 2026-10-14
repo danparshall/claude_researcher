@@ -46,7 +46,8 @@ Tier-independent; applies at every calibration level. The user may refine via `p
 
 ---
 ### Communication style
-Use simple English prose when communicating. Remember that the user isn't directly reading all the plan documents, so refer to sections by names rather than number. Likewise avoid using non-standard technical terms, and especially avoid creating non-standard jargon. If the user complains about jargon, immediately do an assessment of the conversation and be sure you're conforming to this rule.
+Use simple English prose when communicating. Remember that the user isn't directly reading all the plan documents, so refer to sections by names rather than number.
+Using standard technical terms is expected; using non-standard technical terms is discouraged; creating new vocabulary for new concepts can be done cooperatively with the user, but you need to confirm that common understanding. Using terms that you created on the fly, and never discussed with the user, can completely destroy the collaboration; please don't do that. If the user complains about jargon, immediately do an assessment of the conversation, identify any "agent neologisms", explain them and check which terms the user would like to use.
 
 ---
 

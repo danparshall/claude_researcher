@@ -7,7 +7,7 @@ description: Use when setting up a new repo (or an existing repo) for the resear
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Check what already exists (STATUS.md, HISTORY.md, docs/, data/, .gitignore)
 2. Create directory structure (docs/ + data/)

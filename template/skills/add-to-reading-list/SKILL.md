@@ -7,7 +7,7 @@ description: Use when the user says "add to reading list," "save this for later,
 Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Identify the item (reference, URL, why)
 2. If it's a paper we don't already have, defer to the add-paper skill
