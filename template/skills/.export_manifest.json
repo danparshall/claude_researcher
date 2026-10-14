@@ -1,5 +1,5 @@
 {
-  "nori_version": "1.0.28",
+  "nori_version": "1.0.30",
   "skills": {
     "add-paper": {
       "SKILL.md": "f4b2e38a4a3069b875a30c565bdad19b39f20d1f5d5a6c7b89c8f711c44e2b74"
@@ -21,7 +21,7 @@
       "condense_check.py": "4ba1aaf0e8e769e91257cbcd7cbcfc91ff72be55a28f329b2fb21738b31cbe95"
     },
     "creating-debug-tests-and-iterating": {
-      "SKILL.md": "617eac405ed7f321239dfc99a1ab037557674f1fe4596cae22a15da46f324576"
+      "SKILL.md": "727d96ffd3ef5011143484e37873bb16b0467834c5fcf009251a2097b5e413a6"
     },
     "finish-convo": {
       "SKILL.md": "bb069ca14cac5f785ff0f7f7b4b62020328a2f7163f0b582f4c788ae3edffe8c",
@@ -31,7 +31,7 @@
       "SKILL.md": "8523c0f84e512ff289f5a92d1b5230d81ae92fafcadc1df1195df68d1edd8204"
     },
     "handle-large-tasks": {
-      "SKILL.md": "19114eee4d6c4c0a68bd758a23c99ed3ea12620d9893fd31343a4d70be43647b"
+      "SKILL.md": "9889638f67fd3532a06611d09d4adbe544a82e2b2415f7f97320ae970bf23f12"
     },
     "init-paper-collection": {
       "SKILL.md": "16cb60091b2577b86924ae30104423a6eb0d3ba416642b78b445dc36b36c2c4d",
@@ -63,7 +63,7 @@
       "SKILL.md": "17105517b5d2a8ab9abd8003e3f5fefc5823d6d5a880a506b7b675d511d5b4a2"
     },
     "root-cause-tracing": {
-      "SKILL.md": "6c2a28cfcec6fe8a24a4e23dbe3a20a93f6c7e9d4ee437d9981fc7b19a4d9bc7"
+      "SKILL.md": "4367d6af7d434a29528a194f111816d5cdebed7badc6d84960674ddbc1030337"
     },
     "systematic-debugging": {
       "SKILL.md": "4a480f9604d14be2a3dc3ce36ef9bbf8628a6b72a82721f6344bb368a776a860"
@@ -78,10 +78,10 @@
       "SKILL.md": "5379063121f55fcb01b0717277bc3a013537185fec56cf6831b1f3f25aa978ce"
     },
     "test-driven-development": {
-      "SKILL.md": "0cb17de5019dcdcfbaa353df830e1986a0bd2c6c922977852be57e8192dc9f08"
+      "SKILL.md": "9ab3ded022aa6e42265a3a2ac0bd2ddebeac6816e9336e94e963a9b5c7e16f86"
     },
     "testing-anti-patterns": {
-      "SKILL.md": "703a681838d1adb4a36c8ae15508166de76e2b4d3311211ecc05e4baa51bf1db"
+      "SKILL.md": "eb6477113c0ec6f55d5e9b5e032f8e28db8a55388002a2133ee0d7f38683f3a1"
     },
     "update-docs": {
       "SKILL.md": "4353f0d02bc843c12ad69bbc0e108b766ea875937de26587940235853b8cfa64"

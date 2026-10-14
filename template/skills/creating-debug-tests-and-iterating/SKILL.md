@@ -4,7 +4,7 @@ description: Use this skill when faced with a difficult debugging task where you
 ---
 
 <required>
-*CRITICAL* Add the following steps to your task list:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 <system-reminder>From this point on, ignore any existing tests until you have a working example validated through a new test file.</system-reminder>
 1. Write a script that interacts with the application *from the outside*. The script should not call any internals. It should only interact with the external interfaces.

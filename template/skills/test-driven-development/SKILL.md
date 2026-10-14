@@ -4,7 +4,7 @@ description: Use when implementing any feature or bugfix, before writing impleme
 ---
 
 <required>
-*CRITICAL* Add the following steps to your task list:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Write failing tests (RED phase)
 

@@ -4,7 +4,7 @@ description: Use when writing or changing tests, adding mocks, or tempted to add
 ---
 
 <required>
-Add the following steps to your task tracking tool.
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Verify that every assertion on a mock checks real behavior, not just that the mock exists; delete or unmock any assertion that only checks mock existence.
 2. Check whether any method you added to a production class is called only by tests; if it is, move it to a test utility — a test-only `destroy()`/`reset()` on a production class can fire in production.

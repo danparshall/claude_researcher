@@ -4,7 +4,7 @@ description: Use when errors occur deep in execution and you need to trace back 
 ---
 
 <required>
-When a bug surfaces deep in the call stack, add these steps to your task list and work them in order. Do not patch the frame where the error throws; trace to the original trigger and fix there.
+When a bug surfaces deep in the call stack, add these steps to your task tracker and work them in order. Do not patch the frame where the error throws; trace to the original trigger and fix there.
 
 1. Observe the symptom: capture the exact error, where it fires, and the bad value involved.
 2. Find the immediate cause: the line that directly produces the error.
