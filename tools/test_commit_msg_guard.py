@@ -57,6 +57,7 @@ class CommitMsgGuardTest(unittest.TestCase):
     def _git(self, *args, cwd=None):
         return subprocess.run(
             ["git", *args],
+            check=False,
             cwd=cwd or self.repo,
             env=self.env,
             capture_output=True,

@@ -49,6 +49,8 @@ Session: 2026-10-14 · <session id> · <chat link | transcript path> · <codenam
 
 **Acceptance (manual, web):** repeat the two-message probe from the convo with the real RESEARCHER.md: start in Project A, commit, move to Project B, idle ≥5 min, confirm the reboot (`boot_id` changed), clone B's repo per the new rule, commit in both clones. Expect: one codename on every commit, the fixed line repeated unchanged, a `Claude`-author commit refused.
 
+**Acceptance status:** NOT RUN. Both halves were merged without it on 2026-10-14 (Dan: no time; check later). Tracked in [#89](https://github.com/danparshall/claude_researcher/issues/89). Until it passes, the web mechanics rest on the convo's two probe chats plus the automated guard tests.
+
 NOTE: I will write *all* tests before I add any implementation behavior.
 
 ## Tasks — web (claude_researcher, branch `session-identity-lock`)
