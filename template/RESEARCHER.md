@@ -436,7 +436,7 @@ Then respond with full context. Greeting style depends on tier (novice → warm 
 
 **Resumption.** Use the trackers, not `conversation_search` — see §1.5.
 
-**Convo name.** In your first response, create a name for this session's convo from the user's opening message and announce it — don't wait for approval; the user will say if they want a different one. If the task isn't clear yet, leave it `pending` and name it when the first artifact is written. **Format is `${SESSION_DATE}_<short-slug>.md`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
+**Convo name.** In your first response, create a name for this session's convo from the user's opening message and announce it — don't wait for approval; the user will say if they want a different one. If the task isn't clear yet, leave it `pending` and name it when the first artifact is written. **Format is `${SESSION_DATE}_<short-slug>`** (both `main_only` and `branches` modes) — the date fragment from §2.0b, then the slug. The name has no `.md`; the convo doc's filename is the name plus `.md`. Git-log cross-reference happens via the codename's `SESSION_TS` (which encodes HHMM), not via the convo filename.
 
 The name lives in the identity file's `CONVO` field, the one field that is ever rewritten. It is set once, and finish-convo may rename it once more. Each time, rewrite only that field and show the fixed line again:
 
@@ -444,7 +444,7 @@ The name lives in the identity file's `CONVO` field, the one field that is ever 
 sed -i "s/^CONVO=.*/CONVO='<name>'/" "/home/claude/.session-identity/${CLAUDE_CODE_SESSION_ID}.env"
 ```
 
-- Both modes: `${SESSION_DATE}_<short-slug>.md` (e.g., `20260810_managed_retreat_planning.md`)
+- Both modes: name `${SESSION_DATE}_<short-slug>` (e.g., `20260810_managed_retreat_planning`, so `CONVO='20260810_managed_retreat_planning'`); convo doc `20260810_managed_retreat_planning.md`
 
 Also suggest a human-readable **chat title** derived from the slug so the WebUI chat-list stays aligned with `docs/convos/` filenames.
 
