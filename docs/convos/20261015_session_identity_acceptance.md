@@ -33,13 +33,13 @@ The test: one web chat started in Project `moosenger`, committed on a scratch br
 - Commits went on a scratch branch `acceptance-89` in each repo, not `main`.
 - Plan 16's acceptance status updated to passed; #89 closed; dotfiles STATUS row `session-identity-lock` moved to Archived.
 - Recorded on main, following the precedent for no-line sessions here.
+- After the first checkpoint: #74 closed (its check passed in this run). Session-start reminders skipped. The §2e `.md` fix went on branch `convo-name-no-md` as PR #91 (52f3e21: the name has no `.md`, the convo doc's filename is name + `.md`), finished per finishing-a-development-branch and merged at Dan's request (merge commit 3958458). Dan was given `gh api -X DELETE` commands for the two `acceptance-89` branches.
 
 ## Results
 - Commit evidence is in Provisional Findings (SHAs on GitHub); no results files.
 
 ## Open Questions
-- Delete the two `acceptance-89` branches (moosenger, daydreaming) on GitHub; the sandbox proxy refuses branch deletion.
-- Fix the `.md` in §2e's convo-name format.
-- Close #74 now that its check passed?
+- Delete the two `acceptance-89` branches (moosenger, daydreaming); Dan has the commands.
+- Leftover merged worktree for Dan to remove: `.worktrees/convo-name-no-md`.
 - Is the two-reboot pattern after a move deterministic? One run.
 - Still open from the build convo: the identity-file heredoc breaks on a display name containing an apostrophe; tarragon still needs `/sync-dotfiles` + `install.sh`.
