@@ -12,8 +12,8 @@ Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in
 1. Work out where the session's record goes, its convo name, and its identity.
 
 - **Line or not.** If the session worked in a research line (a `docs/active/<line>/` directory exists for it), everything below goes under that directory. If it had no line — a repo that has lines, but this session was a one-off fix or maintenance — convo docs go in `docs/convos/`, results in `docs/results/`, and the log entry in a repo-root `RESEARCH_LOG.md`.
-- **Convo name.** The name announced at session start (or given by the user). Format: `YYYYMMDD_<short-slug>`. If none was established, create one from what the session did and announce it in the reply that writes the files.
-- **Session identity.** The session codename (the `user.name` on this session's commits) and, on Claude Code, the transcript path — both announced at session start; with the session-identity hook installed, `~/.claude/session-identity/<session_id>.env` holds them. On claude.ai, the session URL if you have it. Write `—` for anything you don't have.
+- **Convo name.** The name announced at session start (or given by the user). Format: `YYYYMMDD_<short-slug>`. If none was established, create one from what the session did and announce it in the reply that writes the files. If the session has an identity file (below), its `CONVO` field holds the name; when you set it from `pending`, write it there and show the `Session:` line again.
+- **Session identity.** Read it from the session's identity file when there is one, never rebuild it: on Claude Code `~/.claude/session-identity/<session_id>.env`, on claude.ai `/home/claude/.session-identity/$CLAUDE_CODE_SESSION_ID.env`. Take `CODENAME` (the `user.name` on this session's commits), and `TRANSCRIPT_PATH` (Claude Code) or `CHAT_LINK` (claude.ai). Without a file, use the codename and path announced at session start. Write `—` for anything you don't have.
 - **Machine.** `hostname -s` on Claude Code; `sandbox` on claude.ai.
 
 2. Create or update the conversation summary at `<line dir>/convos/<convo-name>.md`:
