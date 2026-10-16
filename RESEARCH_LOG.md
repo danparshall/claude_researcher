@@ -2,6 +2,8 @@
 
 Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`.
 
+- 2026-10-16: [Dan (pro, claude_researcher, 20261016T1103, opus-5.5)] Worktree cleanup: 9 merged worktrees cleared for Dan to remove; `github-mcp-migration` retired as overtaken by the sandbox proxy and merged as a record (#93); PreCompact probe results merged as a record (#94), hook work moved to dotfiles #116 and #42 closed. — docs/convos/20261016_worktree_cleanup.md
+
 - 2026-10-15: [Dan (pro, claude_researcher, 20261015T2312, opus-5.5)] The site was ahead of the repo; PR #92 brings upstream the All-or-Only-select App choice (#87) and the 10-13 setup screenshots (#85), deletes the PAT screenshot, fixes HUMANS' skill count and repins BOOTSTRAP (untested by a fresh setup); 9 stale remote branches deleted, merged worktrees left to Dan's script. — docs/convos/20261015_docs_sync_and_branch_cleanup.md
 - 2026-10-15: [Dan (pro, claude_researcher, 20261015T2022, opus-5.5)] Plan 16 web acceptance passed (#89): one chat moved moosenger → daydreaming across two reboots kept one codename on all three commits in both clones, refused a `Claude`-author commit, and carried no Co-Authored-By (#74); `CLAUDE_PROJECT_UUID` lags a move by one reboot, and §2e's convo-name format wrongly included `.md` (fixed, #91). — docs/convos/20261015_session_identity_acceptance.md
 
