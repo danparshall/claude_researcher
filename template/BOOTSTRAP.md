@@ -275,7 +275,12 @@ Connecting GitHub (Step 2b) lets Claude read; the Claude GitHub App is what lets
 
 - **First-time users** — tell them:
 
-  > "One more one-time step: install the Claude GitHub App. Open https://github.com/apps/claude/installations/new, choose your account, pick **Only select repositories**, and select `claude_research_config` and `<RESEARCH_REPO>`. Then click **Install**. (If you set a different home repo for personal tasks in the interview, select it too.)"
+  > "One more one-time step: install the Claude GitHub App. Open https://github.com/apps/claude/installations/new and choose your account. Under repository access you have two choices:
+  >
+  > - **All repositories** is simpler: when you start a new research project later, there's nothing more to do on GitHub.
+  > - **Only select repositories** limits what a bad instruction or a mistake could reach. It's the cautious choice if your GitHub account also holds unrelated private work. If you pick it, select `claude_research_config` and `<RESEARCH_REPO>` (and, if you set a different home repo for personal tasks in the interview, that one too).
+  >
+  > Either way, each chat works only on the repos it has attached, and attaching asks for your permission. Then click **Install**."
 
 - **Returning users** — the App is probably installed already. If it was installed with **Only select repositories**, the new repo has to be added: github.com → Settings → Applications → Installed GitHub Apps → Claude → Configure → Repository access → add `<RESEARCH_REPO>` → Save. With **All repositories**, nothing more is needed.
 

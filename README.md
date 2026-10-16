@@ -22,7 +22,21 @@ Paste the prompt below into a fresh chat in [claude.ai](https://claude.ai). The 
 
 *2. Connect GitHub to Claude* (claude.ai Settings → Connectors → GitHub). claude.ai holds the connection on its side; you never paste a password or token into a chat.
 
-*3. Create two private repos on GitHub* (`claude_research_config` and one for your first project) and *install the Claude GitHub App* on them, at [github.com/apps/claude](https://github.com/apps/claude/installations/new) with "Only select repositories". The bootstrap tells you exactly what to click and when.
+![claude.ai Settings — Connectors list with GitHub Integration connected](template/reference/screenshots/claude_connectors_github.png)
+
+*3. Create two private repos on GitHub* (`claude_research_config` and one for your first project):
+
+![GitHub's new-repository page with the visibility menu open and Private highlighted](template/reference/screenshots/github_new_repo_private.png)
+
+*4. Install the Claude GitHub App* at [github.com/apps/claude](https://github.com/apps/claude/installations/new). It's what lets Claude save to your repos. Choose **All repositories** (simpler: new projects need no extra step) or **Only select repositories** (the cautious choice if your account also holds unrelated private work). Either way, each chat works only on the repos it has attached.
+
+![The Claude GitHub App's settings — its permissions, and Repository access with All and Only select options](template/reference/screenshots/github_app_repo_access.png)
+
+*5. Optional: set the chat's permission mode to Auto,* so you aren't approving every routine step. A safety check still pauses anything that looks unsafe.
+
+![claude.ai chat box with the permission-mode menu open and Auto selected](template/reference/screenshots/claude_permission_mode_auto.png)
+
+The bootstrap tells you exactly what to click and when.
 
 **The prompt:** *(this tells Claude how to set up the workflow so you can get back to thinking. You don't need to read it — but you can.)*
 

@@ -4,16 +4,21 @@ One row per screenshot in this directory. Update the date + variant when re-capt
 
 | File | Captured | UI variant |
 |------|----------|------------|
-| `claude_egress_settings.png` | 2026-06-04 | claude.ai Pro account, Capabilities pane — "Allow network egress" toggle on, "Domain allowlist: All domains" with confirmation banner *"Claude can access all domains on the internet."* |
-| `github_pat_read_write_flip.png` | 2026-06-04 | **Retired 2026-10-10** (plan 14, proxy-only): no longer referenced; the web workflow no longer uses a PAT. Kept until Dan decides whether to delete it. Was: github.com fine-grained PAT page with Administration (Read and write), Contents (Read and write), Metadata (Read-only, Required). |
+| `claude_egress_settings.png` | 2026-10-13 | claude.ai Pro account, Settings → Capabilities — "Allow network egress" on, domain allowlist "All domains". Some text is highlighted from a selection. |
+| `claude_connectors_github.png` | 2026-10-13 | claude.ai Settings → Connectors — GitHub Integration showing a checkmark as connected. |
+| `github_new_repo_private.png` | 2026-10-13 | github.com/new — visibility menu open with Private highlighted. |
+| `github_app_repo_access.png` | 2026-10-13 | The installed Claude GitHub App's configure page: its permissions, and Repository access offering both "All repositories" and "Only select repositories". |
+| `claude_permission_mode_auto.png` | 2026-10-13 | claude.ai chat box with the permission-mode menu open and Auto selected. |
+
+`github_pat_read_write_flip.png` was retired 2026-10-10 (plan 14, proxy-only) and deleted 2026-10-15; it is in git history if ever needed.
 
 ## Why this file
 
-The claude.ai egress UI and the GitHub PAT UI have both changed multiple times in recent months (claude.ai per PR [#8](https://github.com/danparshall/claude_researcher/pull/8) history, GitHub historically). Screenshots inevitably go stale. This log records what was captured and when, so the next person updating them knows what to re-capture and against which UI variant.
+The claude.ai settings UI and GitHub's UI have both changed multiple times. Screenshots inevitably go stale. This log records what was captured and when, so the next person updating them knows what to re-capture and against which UI variant.
 
 ## Where these are used
 
-`claude_egress_settings.png` is referenced from `README.md` (`## Quick start` → "Setup at a glance") — they're user-facing visual aids shown before the user pastes the bootstrap prompt. They are **not** referenced from `template/BOOTSTRAP.md` (the agent fetches BOOTSTRAP via `web_fetch`, which returns markdown source rather than rendered images; the agent can't show the images to the user even if BOOTSTRAP linked them).
+All five are shown in `README.md` (`## Quick start` → "Setup at a glance") and, as copies, on clauderesearch.ai (`site-claude-researcher/images/`). Re-capture both places together. They are **not** referenced from `template/BOOTSTRAP.md`: the agent reads BOOTSTRAP as markdown source and can't show images to the user.
 
 ## When to re-capture
 

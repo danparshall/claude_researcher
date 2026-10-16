@@ -107,7 +107,7 @@ The agent calibrates to it — your role, your tools, your interaction style. If
 
 ### Top 5 skills to know
 
-The project includes [19 skills](template/skills/SKILL_INDEX.md), loaded on demand when their triggers fire. You don't need to know any of them by name to use the project — but a few come up so often that knowing them speeds things up:
+The project includes [35 skills](template/skills/SKILL_INDEX.md), loaded on demand when their triggers fire. You don't need to know any of them by name to use the project — but a few come up so often that knowing them speeds things up:
 
 - **`finish-convo`** — runs at the end of every session. Writes a permanent record of the conversation, updates `STATUS.md`, commits the result. Triggered by phrases like "let's wrap," "good stopping point," or "save and stop." The single most-used skill in the project.
 - **`brainstorming`** — refines a rough idea via structured Socratic questioning before committing to a direction. Useful before any non-trivial design conversation; invoke explicitly with "let's brainstorm this." Counters the agent's instinct to produce a polished plan too early.
