@@ -1,5 +1,7 @@
 # PreCompact hook probes — empirical results
 
+> **Closed out 2026-10-16 — work moved to dotfiles.** The hook itself is now tracked as [danparshall/dotfiles#116](https://github.com/danparshall/dotfiles/issues/116) (built in dotfiles `claude-hooks/`); [#42](https://github.com/danparshall/claude_researcher/issues/42) is closed in its favour. This file is merged to main as the evidence record. The sidecar convo linked below was never committed on any branch, so that link does not resolve.
+
 **Sidecar to:** [`20260813_precompact_update_docs_hook.md`](20260813_precompact_update_docs_hook.md) (session convo; this file is the raw-findings record so the convo doc can stay narrative).
 **Context:** [Issue #42](https://github.com/danparshall/claude_researcher/issues/42) — wire PreCompact to auto-run `update-docs` before context compaction.
 **Environment:** Claude Code **2.1.233**, macOS (darwin-x64, `Dans-MacBook-Pro`), 2026-08-16. Sacrificial sessions: `claude -p`, model haiku, fresh project dirs under `/tmp/precompact-probes/` (probe designs, hook scripts, and logs preserved there; filler corpus regenerable via seeded `gen_bigfiles.py`). Raw hook logs are NOT vendored into this public repo — PostCompact payloads embed compaction summaries quoting the operator's private CLAUDE.md; redacted excerpts only.
