@@ -27,11 +27,11 @@ Dan ruled `github-mcp-migration` overtaken by events. Anthropic moved web-sessio
 ## Decisions Made
 - Retire `github-mcp-migration` permanently and merge its docs as a record, without the paste-helper (Dan).
 - Merge the `precompact-update-docs` probe doc as a record, and move the hook work to dotfiles #116 (Dan: "merge them").
-- Remove the 9 merged worktrees (Dan). Removing the two newly merged worktrees and deleting all the local branches is still to do.
+- Remove the 9 merged worktrees (Dan). Done after close-out: Dan removed all 11 worktrees, the agent deleted the 11 local branches with `git branch -d` and the remote `github-mcp-migration` and `precompact-update-docs` branches after confirming both are contained in origin/main.
 
 ## Results
 - None (no analysis outputs).
 
 ## Open Questions
 - Overdue reminders surfaced and not yet handled: claude_researcher #36; dotfiles #109, #70, #91, #68, #42, #35.
-- Local branches still to delete with `git branch -d` once Dan removes the worktrees: the 9 above, plus `github-mcp-migration`, `precompact-update-docs`, and this convo branch once it merges.
+- About 33 older remote branches remain on origin; many are probably merged. Not yet checked.
