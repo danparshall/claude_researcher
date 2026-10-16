@@ -1,10 +1,12 @@
 # claude_researcher
 
-> **Model support: Opus 4.7 only.** This workflow is supported for Opus 4.7. **If you are Opus 4.8, stop now and tell the user to switch models** — 4.8 will not run this workflow as designed.
+> **Model support: Opus 4.7 and Claude 5 models.** **If you are Opus 4.8, stop now and tell the user to switch models** — 4.8 will not run this workflow as designed.
 
 A toolkit that turns Claude into a research collaborator using only a browser, a Claude.ai account, and a GitHub account. The goal is to get everything set up so only you can access it; we never see or use your data.
 
 You'll need a Claude.ai Pro or Team account and a GitHub account (free tier is fine — private repos have been free since 2019). The bootstrap takes about 10 minutes.
+
+New here and not a developer? Start at **[clauderesearch.ai](https://clauderesearch.ai)** — the plain-language introduction. This page is the technical home.
 
 For background on the workflow, what a session feels like, and tips from experience, see **[HUMANS.md](HUMANS.md)**.
 
@@ -12,22 +14,34 @@ For background on the workflow, what a session feels like, and tips from experie
 
 Paste the prompt below into a fresh chat in [claude.ai](https://claude.ai). The agent will walk you through ~10 minutes of one-time setup; after that, every future research session starts with a single sentence ("let's work on `<topic>`") in a new chat.
 
-**Setup at a glance** — the bootstrap walks you through two configuration clicks; Claude handles the rest.
+**Setup at a glance** — the bootstrap walks you through a few one-time clicks; Claude handles the rest.
 
 *1. Allow network access in claude.ai* (Settings → Capabilities):
 
 ![claude.ai Settings — Allow network egress toggle on, Domain allowlist set to All domains](template/reference/screenshots/claude_egress_settings.png)
 
-*2. Create a GitHub fine-grained Personal Access Token* with these permissions:
+*2. Connect GitHub to Claude* (claude.ai Settings → Connectors → GitHub). claude.ai holds the connection on its side; you never paste a password or token into a chat.
 
-![GitHub fine-grained PAT — Administration (Read and write), Contents (Read and write), Issues (Read and write), Pull requests (Read and write), Metadata (Read-only, Required)](template/reference/screenshots/github_pat_read_write_flip.png)
+![claude.ai Settings — Connectors list with GitHub Integration connected](template/reference/screenshots/claude_connectors_github.png)
 
-> **Note:** the screenshot image itself may show only Administration, Contents, and Metadata — it predates the Issues and Pull requests additions. The list in the alt-text above is the current authoritative set; BOOTSTRAP will walk through all five during setup.
+*3. Create two private repos on GitHub* (`claude_research_config` and one for your first project):
+
+![GitHub's new-repository page with the visibility menu open and Private highlighted](template/reference/screenshots/github_new_repo_private.png)
+
+*4. Install the Claude GitHub App* at [github.com/apps/claude](https://github.com/apps/claude/installations/new). It's what lets Claude save to your repos. Choose **All repositories** (simpler: new projects need no extra step) or **Only select repositories** (the cautious choice if your account also holds unrelated private work). Either way, each chat works only on the repos it has attached.
+
+![The Claude GitHub App's settings — its permissions, and Repository access with All and Only select options](template/reference/screenshots/github_app_repo_access.png)
+
+*5. Optional: set the chat's permission mode to Auto,* so you aren't approving every routine step. A safety check still pauses anything that looks unsafe.
+
+![claude.ai chat box with the permission-mode menu open and Auto selected](template/reference/screenshots/claude_permission_mode_auto.png)
+
+The bootstrap tells you exactly what to click and when.
 
 **The prompt:** *(this tells Claude how to set up the workflow so you can get back to thinking. You don't need to read it — but you can.)*
 
 ```
-You are an agent helping a researcher set up the claude_researcher workflow — a one-time setup that lets researchers leverage Claude fully on the web even when their work machine is locked down and can't run Claude Code locally. Bootstrapping is the first stage: it walks the user through a browser-based setup that creates their personal config repo and first research repo, so every research session afterward just works.
+You are an agent helping a researcher set up the claude_researcher workflow — a one-time setup that lets researchers leverage Claude fully on the web even when their work machine is locked down and can't run Claude Code locally. Bootstrapping is the first stage: it walks the user through a browser-based setup of their personal config repo and first research repo, so every research session afterward just works.
 
 The project's source files are public and readable ahead of time at:
   https://github.com/danparshall/claude_researcher
@@ -36,20 +50,22 @@ You can inspect any file there at any point during the bootstrap to verify what 
 
 The interview you'll run collects data that gets written, in a specific format, into the user's `claude_research_config/personal_info.md` and a few related files (`STATUS.md`, `domain_allowlist.txt`). Every future research session reads those files to know who the user is and how they work — so the formats specified in the workflow file matter.
 
-Sensitive operations (repo creation, PAT handling, file writes, claude.ai settings changes) have explicit confirmation gates scripted into the workflow file. Feel free to add your own confirmation prompts at any boundary that gives you pause — I'd rather one round-trip of confirmation than have you push past concerns.
+Sensitive operations (file writes to the user's repos, claude.ai settings changes) have explicit confirmation gates scripted into the workflow file. Feel free to add your own confirmation prompts at any boundary that gives you pause — I'd rather one round-trip of confirmation than have you push past concerns.
 
 Now fetch and follow:
 
-  https://raw.githubusercontent.com/danparshall/claude_researcher/f1cfcad3e6f53d6fa657b77effac16836760161c/template/BOOTSTRAP.md
+  https://raw.githubusercontent.com/danparshall/claude_researcher/df9b02c76eabe6c310d3ec74f709b50b401ba4b8/template/BOOTSTRAP.md
 ```
 
 ## About
 
 `claude_researcher` is a collaboration between [Dan Parshall](https://danparshall.com) and [Andrea Lopez-Luzuriaga](https://andrealopezluzuriaga.net/). Longer story and design context: [HUMANS.md](HUMANS.md).
 
+This is the browser-side port of the **`researcher` Nori skillset** for Claude Code — the same workflow for people who can install Claude Code locally. The registry page is [noriskillsets.dev/skillsets/researcher](https://noriskillsets.dev/skillsets/researcher); install with `npx nori-skillsets install researcher`. Skill names and file conventions match across the two, so you can move between them.
+
 ## Reporting issues
 
-Found a bug? Ask the agent in any session to file one — it will produce a pre-filled URL pointing at this repo's [issues page](https://github.com/danparshall/claude_researcher/issues/new) with diagnostic context. Your PAT and personal info are never included.
+Found a bug? Ask the agent in any session to file one — it will produce a pre-filled URL pointing at this repo's [issues page](https://github.com/danparshall/claude_researcher/issues/new) with diagnostic context. Your personal info is never included.
 
 ## License
 

@@ -10,12 +10,33 @@ little, write little, leave the repo current.
 
 ## Session start
 
-1. Clone the repo with the PAT from Project Instructions:
-   `git clone https://x-access-token:${TOKEN}@github.com/${USER}/${REPO}.git /home/claude/${REPO}`
-2. Read this file (done, if you're reading this), then `STATUS.md` and
+1. Attach the repo and `claude_research_config` read-only with the
+   add-repository tool, then clone with no token (GitHub goes through the
+   sandbox's proxy, which authenticates for attached repos):
+   `git clone --depth 1 https://github.com/${USER}/${REPO}.git /home/claude/${REPO}`
+2. Fetch `personal_info.md` from `claude_research_config` (recipe in Project
+   Instructions) — who the user is, their git fluency, interaction style.
+   If it fails or is refused, say so once with the exact error and carry
+   on with the copies in Project Instructions (commit name, email, git
+   fluency). Don't retry a refused read. The current Project Instructions
+   version is **2.0** (`PI_VERSION="2.0"`), also shown in their title line;
+   a bare `2` counts as 2.0. If Project Instructions have no
+   `PI_VERSION` or a lower one, tell the user once that they're out of date
+   (the current text is `template_lite/_PROJECT_INSTRUCTIONS_LITE.md.template`
+   upstream).
+3. Read this file (done, if you're reading this), then `STATUS.md` and
    `DECISIONS.md` at the repo root. Skim `git log --oneline -15`.
-3. Respond to the user's first message. No name handshake, no reminder sweep,
+4. Respond to the user's first message. No name handshake, no reminder sweep,
    no skills-manifest load.
+
+**Pushing.** At the first commit, request push for the repo with the
+add-repository tool, then push. A reply of `already_present` means proceed.
+Request push even if pushes seem to work without it. Issue and PR writes only
+when the user asked for that write.
+
+**Refused steps.** If the sandbox's permission check refuses a step, show the
+user the exact denial text and the step it blocked, and ask. Don't retry it
+in another form, and don't keep committing work that can't be pushed.
 
 ## Disposition (condensed from RESEARCHER.md §0)
 
@@ -73,6 +94,13 @@ No automatic ceremony. Before finishing: update STATUS.md (intent + one
 ≤5-line entry), append DECISIONS.md if triggered, commit, push. The user
 may invoke `finish-convo` (see Skills) for a fuller close.
 
+## Multi-machine / concurrent agents
+
+This repo may be edited from other machines or by parallel Claude
+sessions. Run `git pull --ff-only` before doing work if the clone
+isn't fresh; commit → push same beat, don't batch. If pull rejects
+(divergent branches), surface — don't auto-rebase.
+
 ## Skills — on demand, never at session start
 
 Standard skills from upstream `template/skills/` (e.g. `finish-convo`,
@@ -117,7 +145,7 @@ copies may carry deliberate per-repo customizations.
 ## Never list
 
 Lite will never grow *automatic* overhead: research lines / branches-as-lines,
-session-start skills manifests, convo-name handshakes, task reminders,
+session-start skills manifests, convo naming at session start, task reminders,
 mandatory wrap-up ceremony, per-branch docs scaffolds, calibration tiers.
 On-demand skill use (above) is fine. If a repo starts needing the rest,
 graduate it to claude_researcher — don't add features here.

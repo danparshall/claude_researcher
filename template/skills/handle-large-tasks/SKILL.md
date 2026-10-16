@@ -4,7 +4,7 @@ description: Use this skill to split large plans into smaller chunks. This skill
 ---
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 - Announce that you are creating subagents.
 - Construct a plan for each subagent.

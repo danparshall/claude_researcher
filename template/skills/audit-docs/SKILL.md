@@ -1,32 +1,13 @@
 ---
 name: audit-docs
-description: Check docs/active/ structure for consistency — every convo indexed in RESEARCH_LOG, every plan linked to a convo, no orphaned files. Prompts the user for discrepancies rather than auto-fixing.
+description: Use when auditing docs/active/ structure for consistency — checks that every convo is indexed in RESEARCH_LOG, every plan is linked to a convo, and no files are orphaned. Prompts the user for discrepancies rather than auto-fixing.
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the `git add` / `git commit` / `git push` commands in this skill directly from that working tree. Translate local skill paths like `/Users/<user>/.claude/skills/...` to the template clone at `/home/claude/.claude_researcher_template/template/skills/...`. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you translate `git add` / `git commit` / `git push` into the Contents API recipes from your Project Instructions.
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (operating against the wrong working tree, or using the wrong write path for the environment) is higher than the cost of one round-trip clarification.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
 1. Inventory all branch directories under docs/active/.
 2. For each active branch, check convo/plan/results consistency.
@@ -67,7 +48,7 @@ For each active branch, check:
 
 ## Step 3: Report and prompt
 
-**CRITICAL: Do NOT auto-fix discrepancies.** The user may be running multiple sessions in parallel. A "missing" convo might still be open in another tab.
+<system-reminder>Do NOT auto-fix discrepancies. The user may be running sessions in parallel — a "missing" convo might still be open in another tab.</system-reminder>
 
 Present findings grouped by severity:
 
@@ -80,7 +61,6 @@ Present findings grouped by severity:
 **Possible orphans (check with user):**
 ```
 - convos/20260315_pilot_analysis.md is not in RESEARCH_LOG.md
-  (Could be an open session in another tab — want me to add it to the log?)
 ```
 
 **Structural issues:**
@@ -89,7 +69,7 @@ Present findings grouped by severity:
 - convo 20260312_exploration.md is missing the Summary section
 ```
 
-Ask: "Want me to fix any of these? (Note: some may be from sessions still in progress.)"
+Ask: "Want me to fix any of these?"
 
 ## Step 4: Fix approved items only
 

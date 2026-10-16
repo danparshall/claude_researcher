@@ -1,40 +1,22 @@
 ---
 name: update-docs
-description: Checkpoint research progress mid-session — create/update convo summary, save results with provenance, update RESEARCH_LOG (and, in main_only mode only, a capped STATUS one-liner). Core operation that finish-convo builds on.
+description: Use when checkpointing research progress mid-session — creates or updates the convo summary, saves results with provenance, and writes the session's one-line RESEARCH_LOG entry. Never writes STATUS.md (a LITE repo's `## Sessions` entry is the one exception). Core operation that finish-convo builds on.
 ---
 
-## Runtime detection
-
-Before following the rest of this skill, determine your environment:
-
-```bash
-if [ "$IS_SANDBOX" = "yes" ] || [ -d "/mnt/skills/public" ]; then
-  echo "claude.ai sandbox"
-elif [ "$CLAUDECODE" = "1" ]; then
-  echo "Claude Code"
-else
-  echo "unknown — surface to user before proceeding"
-fi
-```
-
-Both environments set positive markers; the probe checks for either side affirmatively rather than inferring from absence. If neither fires, something is misconfigured (env vars stripped, custom shell, etc.) and silently picking a branch is worse than surfacing the question.
-
-**If `claude.ai sandbox`:** the user's project repo is already cloned at `/home/claude/<REPO>/` per `RESEARCHER.md` §2.0b — run the `git add` / `git commit` / `git push` commands in this skill directly from that working tree. Translate local skill paths like `/Users/<user>/.claude/skills/...` to the template clone at `/home/claude/.claude_researcher_template/template/skills/...`. Only if the §2.0b clone failed (degraded REST fallback, surfaced to the user) do you translate `git add` / `git commit` / `git push` into the Contents API recipes from your Project Instructions.
-
-**If `Claude Code`:** follow the skill body as-is.
-
-**If `unknown`:** stop and surface to the user. Don't guess which environment you're in — the cost of a wrong guess (operating against the wrong working tree, or using the wrong write path for the environment) is higher than the cost of one round-trip clarification.
+`{{skills_dir}}` is `~/.claude/skills` on Claude Code and `/home/claude/.claude_researcher_template/template/skills` in the claude.ai sandbox.
+Sandbox-specific notes (REST for Issues/Pulls, the post-commit push hook) are in RESEARCHER.md.
 
 <required>
-*CRITICAL* Add the following steps to your Todo list using TodoWrite:
+*CRITICAL* Add the following steps to your task tracker: TaskCreate (claude), update_plan (codex), etc.
 
-1. Determine the current branch name and convo name.
+1. Work out where the session's record goes, its convo name, and its identity.
 
-The convo name is the user-confirmed identifier established during the §2e handshake at session start (see `template/RESEARCHER.md`). It links every artifact you write this session — the convo summary, any plans, results files, the RESEARCH_LOG entry, the STATUS line — and its `SESSION_TS` fragment (basic-format ISO 8601, `YYYYMMDDTHHMM`) matches the timestamp inside the git-commit author name RESEARCHER.md §2.0b set for this session. Format: `${SESSION_TS}_<short-slug>` for `main_only` repos, or `<short-slug>_${SESSION_TS}` for `branches`-mode repos.
+- **Line or not.** If the session worked in a research line (a `docs/active/<line>/` directory exists for it), everything below goes under that directory. If it had no line — a repo that has lines, but this session was a one-off fix or maintenance — convo docs go in `docs/convos/`, results in `docs/results/`, and the log entry in a repo-root `RESEARCH_LOG.md`.
+- **Convo name.** The name announced at session start (or given by the user). Format: `YYYYMMDD_<short-slug>`. If none was established, create one from what the session did and announce it in the reply that writes the files. If the session has an identity file (below), its `CONVO` field holds the name; when you set it from `pending`, write it there and show the `Session:` line again.
+- **Session identity.** Read it from the session's identity file when there is one, never rebuild it: on Claude Code `~/.claude/session-identity/<session_id>.env`, on claude.ai `/home/claude/.session-identity/$CLAUDE_CODE_SESSION_ID.env`. Take `CODENAME` (the `user.name` on this session's commits), and `TRANSCRIPT_PATH` (Claude Code) or `CHAT_LINK` (claude.ai). Without a file, use the codename and path announced at session start. Write `—` for anything you don't have.
+- **Machine.** `hostname -s` on Claude Code; `sandbox` on claude.ai.
 
-If for some reason no convo name was established (older runtime version that pre-dates the handshake, the §2e step was skipped, or the user initially opted out and now wants to log the session), propose one now and confirm with the user before writing any files. Do not invent a provisional name; the rename later costs more than asking now.
-
-2. Create or update the conversation summary at `docs/active/<branch-name>/convos/<convo-name>.md`:
+2. Create or update the conversation summary at `<line dir>/convos/<convo-name>.md`:
 
 ```markdown
 # [Convo Name]
@@ -42,6 +24,8 @@ If for some reason no convo name was established (older runtime version that pre
 **Date:** YYYY-MM-DD
 **Branch:** branch-name
 **Surface:** claude.ai | claude-code
+**Machine:** <hostname -s, or sandbox>
+**Session:** <codename> · <transcript path or —> · <claude.ai session URL or —>
 
 ## Summary
 2-3 paragraphs of what was discussed and explored this session.
@@ -69,45 +53,35 @@ If updating an existing convo file (mid-session checkpoint), append new findings
 3. Save any results produced this session.
 
 If the session produced tables, figures, analysis outputs, or data summaries:
-- Save each to `docs/active/<branch-name>/results/`
-- Name with date prefix: `YYYYMMDD_description.md` (for tables), `.png`/`.pdf` (for figures). Date-only is fine here — results files aren't joined against git commits, so the compact ISO date suffices.
-- Each results file should include a provenance header pointing at this session's convo file:
+- Save each to `<line dir>/results/`, named with a date prefix: `YYYYMMDD_description.md` (tables), `.png`/`.pdf` (figures)
+- Each results file starts with a provenance header pointing at this session's convo file:
 
 ```markdown
 <!-- Generated during: convos/<convo-name>.md -->
 ```
 
-- Add links to these results in the convo file's "Results" section
-- For markdown tables: save as `.md` files in results/
+- Link each one from the convo file's "Results" section
 - For figures/plots: save the image file AND a brief `.md` companion describing what it shows and how it was generated
 
 If no results were produced, skip this step.
 
-4. Append session entry to `docs/active/<branch-name>/RESEARCH_LOG.md`:
+4. Write the session's log entry — **one line**, at the TOP of the log (below the header), newest first:
 
 ```markdown
-## Session: YYYYMMDDTHHMM — [convo-name]
-### Topics Explored
-- Brief bullet points (can reference the full convo file for detail)
-
-### Provisional Findings
-- Key takeaways from this session
-
-### Results
-- Links to any results files (e.g., `results/20260321_distribution_table.md`)
-
-### Next Steps
-- What to try next session
+- YYYY-MM-DD: [<codename>] <one sentence: what the session did and found> — convos/<convo-name>.md
 ```
 
-Place the new entry at the TOP of the log (below the header), so the most recent session is first.
+- In a line: `docs/active/<line>/RESEARCH_LOG.md`.
+- No line: the repo-root `RESEARCH_LOG.md`, linking `docs/convos/<convo-name>.md`. If the file is absent, create it with the header `# RESEARCH_LOG` and the line "Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`."
 
-If updating an existing RESEARCH_LOG entry (mid-session checkpoint), update in place rather than creating a duplicate.
+Topics, findings, results, and next steps belong in the convo doc, not the log. Log → convo doc → transcript is the chain that reconstructs any session. Mid-session checkpoint: if this convo already has a log line, update it in place.
 
-5. Session summary — mode-dependent. Check `workflow_mode` in STATUS.md's header (absent = `branches`).
+5. If `paper_index.toml` exists at the repo root, run `python3 {{skills_dir}}/paper-index/paper_index.py check .`. If it is red, fix it (usually `paper_index.py index .`) before anything is committed.
 
-- **`branches` mode: do NOT touch STATUS.md.** The session summary is the RESEARCH_LOG entry you wrote in step 4 — that IS the session record. STATUS.md is written only by the `start-research-line` and merge ceremonies (see RESEARCHER.md §2c boundary). Do not add STATUS.md to this skill's commit.
-- **`main_only` mode:** append a one-liner under `## Recent Sessions`. Format: `- YYYY-MM-DD: explored X, found Y — <link to convo or log>`. Hard cap: ≤2 lines per entry; detail belongs in the convo doc / RESEARCH_LOG. If the section exceeds ~20 entries, offer to roll the oldest into a per-year archive file. Do NOT rewrite STATUS.md conclusions — just append.
+6. STATUS.md:
+
+- **LITE repo (`LITE.md` at the root):** write the ≤5-line STATUS `## Sessions` entry per `LITE.md` and stop here.
+- **Otherwise: do not write STATUS.md.** The log line is the session record. STATUS.md is written only when a line opens or closes.
 </required>
 
 # Common Mistakes
@@ -120,10 +94,14 @@ If updating an existing RESEARCH_LOG entry (mid-session checkpoint), update in p
 - Problem: A table or figure in results/ has no context — future agents don't know what question it was answering
 - Fix: Every results file has a provenance header; every convo lists its results
 
-**Writing STATUS.md in branches mode**
-- Problem: The skill historically appended a Recent Sessions one-liner every session; entries drifted to diary length, branch copies of STATUS forked from main's, and merges conflicted (this exact failure motivated the orchestrator model — claude_researcher#38).
-- Fix: In `branches` mode, update-docs never writes STATUS.md. In `main_only` mode, ONLY append the capped one-liner; never rewrite existing content.
+**Writing STATUS.md from a session**
+- Problem: When every session appends to STATUS.md, it grows into a diary nobody can read at session start — one repo's reached 208 KB and had to be grepped — and branch copies conflict at merge.
+- Fix: Sessions write the convo doc and one log line. STATUS.md changes only when a line opens or closes (LITE repos excepted, per `LITE.md`).
 
-**Creating a duplicate RESEARCH_LOG entry on second update-docs call**
-- Problem: Mid-session checkpoint creates a second entry for the same session
-- Fix: Check if an entry for this convo-name already exists; update it in place
+**Writing a multi-paragraph log entry**
+- Problem: The log is read at every session start; long entries push the recent ones out of reach.
+- Fix: One line linking the convo doc; the detail goes there.
+
+**Creating a duplicate log entry on a second update-docs call**
+- Problem: A mid-session checkpoint adds a second line for the same session
+- Fix: Check whether this convo already has a line; update it in place
