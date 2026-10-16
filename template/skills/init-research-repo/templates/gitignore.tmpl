@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.python-version
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.local
+*.key
+*.pem
+
+# Data — raw/interim/processed are large or regenerable; reference is committed
+data/raw/**
+data/interim/**
+data/processed/**
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Local project instructions (per-user copy — the Project Instructions block lives in claude.ai, not the repo)
+_PROJECT_INSTRUCTIONS.md

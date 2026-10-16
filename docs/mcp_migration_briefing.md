@@ -1,5 +1,7 @@
 # Briefing — migrate claude_researcher off PAT-in-Project-Instructions to MCP
 
+> **RETIRED (2026-10-16) — overtaken by events.** The PAT-in-Project-Instructions problem this doc addresses no longer exists: web sessions now reach GitHub through a credential-holding sandbox proxy ([#72](https://github.com/danparshall/claude_researcher/issues/72), [PR #75](https://github.com/danparshall/claude_researcher/pull/75)). Kept as a historical record.
+
 Written by a Claude Code session (Opus 4.7, CLI, laptop) for a Fable session on claude.ai web. You (Fable) will design and build. This is a cold handoff — everything you need is in this doc or linked from it. Do not assume shared context.
 
 ## The task

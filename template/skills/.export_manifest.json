@@ -1,0 +1,94 @@
+{
+  "nori_version": "1.0.30",
+  "skills": {
+    "add-paper": {
+      "SKILL.md": "f4b2e38a4a3069b875a30c565bdad19b39f20d1f5d5a6c7b89c8f711c44e2b74"
+    },
+    "add-to-reading-list": {
+      "SKILL.md": "63e52c9a5f116c85eae8bd3d3dab2fa1ce071b30838fcf6fe98151884afb9cde"
+    },
+    "audit-docs": {
+      "SKILL.md": "9c17554e96731a1eb3badf52ff66b4576656a9d6c5a7ae6462c94cf7e6f99361"
+    },
+    "audit-papers": {
+      "SKILL.md": "2066bf903a5f9af28eadbeb39a84417fdd4906152bb54983d6e3ba12c3a6ae9d"
+    },
+    "brainstorming": {
+      "SKILL.md": "6fc284f830bc66e024e5074e2499314f77d5d9a5c5b4bd3187fa588cae322f6d"
+    },
+    "condense-summary": {
+      "SKILL.md": "64bbe9c4543e5ebec60ec789f6bfc90a8e8f4affb2b0309855d6d25811d2b084",
+      "condense_check.py": "4ba1aaf0e8e769e91257cbcd7cbcfc91ff72be55a28f329b2fb21738b31cbe95"
+    },
+    "creating-debug-tests-and-iterating": {
+      "SKILL.md": "727d96ffd3ef5011143484e37873bb16b0467834c5fcf009251a2097b5e413a6"
+    },
+    "finish-convo": {
+      "SKILL.md": "dde40919cf6ff4d0e596c9ba34a8f81e6f6314247ce7ca0ad16f484ccd44944d",
+      "resolve_append_conflict.py": "24ea0e1157ce66d6686a205ed730478ca00afdd5e43cdff83d952daaf786426d"
+    },
+    "finishing-a-research-branch": {
+      "SKILL.md": "8523c0f84e512ff289f5a92d1b5230d81ae92fafcadc1df1195df68d1edd8204"
+    },
+    "handle-large-tasks": {
+      "SKILL.md": "9889638f67fd3532a06611d09d4adbe544a82e2b2415f7f97320ae970bf23f12"
+    },
+    "init-paper-collection": {
+      "SKILL.md": "16cb60091b2577b86924ae30104423a6eb0d3ba416642b78b445dc36b36c2c4d",
+      "templates/PAPER_INDEX.md.tmpl": "0c8efa4bc9f11564cefa21b1045c8bc33ef34fdf1907557922dc9c1df3b68c84",
+      "templates/PAPER_SUMMARIES.md.tmpl": "5171ca019bad1e48c226472d54a6af9ac876d1ade15a879e5b9601135b479bae",
+      "templates/paper_index.toml.tmpl": "f46431fac55359533dc91a800ca25994fedd2e08e2105b700aec993cfc7da4b1"
+    },
+    "init-research-repo": {
+      "SKILL.md": "2a622732c271728d976bd1e6bf4f6e1ed0e489e3bb8836265cad5b512975c160",
+      "templates/data_readme.md.tmpl": "6fb94357da4838968074e27c3e0d45bb19c696a93fbee8b24ac9a803bef28fb8",
+      "templates/gitignore.tmpl": "e28c9de552eff9e0f0a90ad310c3b28b090de9a2b6a717adf02f20a145138596",
+      "templates/history_seed.md.tmpl": "c0ee517d213d0469c4470b750d3eab27f03e28c12b3c07d2306e3423d2cf135f",
+      "templates/research_log_seed.md.tmpl": "3fab18546b99504bab708b07d6276bd5e02065a8cc68ddab8d141dea016c8c20",
+      "templates/status_seed.md.tmpl": "0cd5e73f09f55b605aaba77a81faca19713b343d449b143f43f9c04647ad9df1"
+    },
+    "paper-index": {
+      "SKILL.md": "f856c299afa8a8789ae9afd131781ff052622969cb5f29d55cd5f01963e36bbe",
+      "count_papers.py": "05d5339883c92bc38e8515e8234e4917fe0b7b372e18ca7e65c8b67a51a33c63",
+      "fanout_apply.py": "cb6a7cb1f9959335eaa639e3e6037caac75fe5241cf74024de3724dbc84c95b5",
+      "fanout_make_prompts.py": "75133b2fae0199d2240fc6179c003cc1972857a65575fbbb03339491e808c40f",
+      "fanout_verify.py": "5ef98d2ef67867cf93ecd16b0adf85af1c16e8802b349047dbb8fb130d345a8c",
+      "gen_index.py": "0c70d396ae18080a622aef459f30a4f0074fecf1c3c99a3465674e25a471ab79",
+      "paper_index.py": "6e52f4d625902ee2b9d4663722a52c2a4f640cbcfe7063325cc5d3ec47086ee5"
+    },
+    "receiving-code-review": {
+      "SKILL.md": "dacf1cdde565614c16681a673a99bef3365625e2cd0efa5e82819bdef6ca85db"
+    },
+    "review-reading-list": {
+      "SKILL.md": "17105517b5d2a8ab9abd8003e3f5fefc5823d6d5a880a506b7b675d511d5b4a2"
+    },
+    "root-cause-tracing": {
+      "SKILL.md": "4367d6af7d434a29528a194f111816d5cdebed7badc6d84960674ddbc1030337"
+    },
+    "systematic-debugging": {
+      "SKILL.md": "4a480f9604d14be2a3dc3ce36ef9bbf8628a6b72a82721f6344bb368a776a860"
+    },
+    "task-create": {
+      "SKILL.md": "58a46c55e009bbdac9fa9a7fd43a1acd86b5eba23a1aaec34e186365ba4a4947"
+    },
+    "task-remind": {
+      "SKILL.md": "9b9f0a5d73e9599c5f03d647aea9fe121cd5a01c95e8803f613b4c1e3c4f5d13"
+    },
+    "task-triage": {
+      "SKILL.md": "5379063121f55fcb01b0717277bc3a013537185fec56cf6831b1f3f25aa978ce"
+    },
+    "test-driven-development": {
+      "SKILL.md": "9ab3ded022aa6e42265a3a2ac0bd2ddebeac6816e9336e94e963a9b5c7e16f86"
+    },
+    "testing-anti-patterns": {
+      "SKILL.md": "eb6477113c0ec6f55d5e9b5e032f8e28db8a55388002a2133ee0d7f38683f3a1"
+    },
+    "update-docs": {
+      "SKILL.md": "1f063df99222dac6bc1e388d6892805a8692ccc753af546e4789686e3137c493"
+    },
+    "write-a-plan": {
+      "SKILL.md": "6287e7acee9d184f466b40232829b98d2abdde75e79b42e83e2f8d4d111034c5"
+    }
+  },
+  "source_sha": "ab73b58c6cf4935840169b127cbbd702e08ec82b"
+}

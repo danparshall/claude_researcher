@@ -1,6 +1,8 @@
 #!/bin/sh
 # Auto-push after commit. Installed by RESEARCHER.md §2.0b into
-# the user's research-repo clone at .git/hooks/post-commit.
+# the user's research-repo clone at .git/hooks/post-commit — or, when
+# core.hooksPath is set (paper-collection repos: .githooks), into that
+# directory, listed in .git/info/exclude so it is never committed.
 #
 # Rationale: the web sandbox at /home/claude/ is thrown away at
 # session end (RESEARCHER.md §5.6). Commits that never reach

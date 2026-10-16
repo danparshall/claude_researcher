@@ -22,9 +22,9 @@ https://github.com/danparshall/claude_researcher/issues/new?title=<urlencoded-ti
 
 ## Body — MUST NOT include
 
-Scoped to *public-upstream issue bodies* — the `danparshall/claude_researcher` issue tracker is world-readable. This list does not apply to in-session PAT handling against the user's own repos (that's a separate, calibrated workflow in RESEARCHER.md §2).
+Scoped to *public-upstream issue bodies* — the `danparshall/claude_researcher` issue tracker is world-readable. This list does not apply to work in the user's own repos.
 
-- The user's PAT (`TOKEN`).
+- Any credential (tokens, passwords, API keys).
 - The contents of `personal_info.md` beyond the `git_fluency` tier.
 - The contents of any user research repo (papers, convos, plans, results).
 - The user's GitHub username if they'd prefer not to be identified — **ask if unclear.**

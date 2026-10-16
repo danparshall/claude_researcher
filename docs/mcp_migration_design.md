@@ -1,5 +1,7 @@
 # Design — token-dispenser MCP server; connector rewrite deferred
 
+> **RETIRED (2026-10-16) — overtaken by events.** The PAT-in-Project-Instructions problem this doc addresses no longer exists: web sessions now reach GitHub through a credential-holding sandbox proxy ([#72](https://github.com/danparshall/claude_researcher/issues/72), [PR #75](https://github.com/danparshall/claude_researcher/pull/75)). Kept as a historical record.
+
 **Date:** 2026-08-31
 **Branch:** github-mcp-migration
 **Depends on:** [`mcp_migration_briefing.md`](mcp_migration_briefing.md) (problem statement), [`mcp_verification_report.md`](mcp_verification_report.md) (facts)

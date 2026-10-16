@@ -1,5 +1,7 @@
 # Verification report — the four MCP-migration unknowns
 
+> **RETIRED (2026-10-16) — overtaken by events.** The PAT-in-Project-Instructions problem this doc addresses no longer exists: web sessions now reach GitHub through a credential-holding sandbox proxy ([#72](https://github.com/danparshall/claude_researcher/issues/72), [PR #75](https://github.com/danparshall/claude_researcher/pull/75)). Kept as a historical record.
+
 **Date:** 2026-08-31
 **Branch:** github-mcp-migration
 **Author:** Fable session (CLI, pro), responding to `docs/mcp_migration_briefing.md`

@@ -1,0 +1,26 @@
+# data/
+
+Data lifecycle follows the [Cookiecutter Data Science](https://cookiecutter-data-science.drivendata.org/opinions/) convention. **Raw data is immutable — never edit files in `raw/` by hand.** Analysis is a DAG: if `interim/` or `processed/` is deleted, it should regenerate from `raw/` plus code in `src/` / `scripts/` / `notebooks/`.
+
+## Layout
+
+- `raw/` — original, immutable inputs (downloaded datasets, vendor exports, scraped snapshots). Gitignored.
+- `interim/` — in-progress transforms; scratch space between raw and processed. Gitignored.
+- `processed/` — canonical, downstream-consumable datasets. Gitignored by default; commit small stable ones if they're expensive to regenerate.
+- `reference/` — small lookup tables and code lists (country codes, taxonomies, unit conversions). **Committed** — treat as documentation.
+
+## Provenance
+
+For every dataset in `raw/`, add a section here so a fresh collaborator (or a future agent) knows where it came from:
+
+### <dataset-name>
+
+- Source: <URL or vendor>
+- Retrieved: <YYYY-MM-DD>
+- License / terms: <if applicable>
+- Retrieval command / script: <e.g., `scripts/fetch_<name>.py`>
+- Hash: <sha256 of the file or archive, if reproducibility matters>
+
+## External sync (optional)
+
+If you sync `raw/` (or the whole `data/`) externally — e.g., Syncthing to a shared home-directory location, an S3 bucket, or a shared drive — document the arrangement here. The default assumption is that `raw/` files come from re-running the retrieval commands above.

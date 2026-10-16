@@ -1,6 +1,6 @@
 # HUMANS.md
 
-The long-form companion to the README. If the README is "how to start," this is "why this exists, what to expect, and how to get the most out of it."
+The long-form companion to the README. If the README is "how to start," this is "why this exists, what to expect, and how to get the most out of it." For a shorter, plain-language introduction, see [clauderesearch.ai](https://clauderesearch.ai).
 
 ## What this is
 
@@ -26,7 +26,7 @@ Anthropic ships a CLI tool called Claude Code for developers. It introduced a co
 
 Around this pattern, ecosystems grew. **Nori** is an open-source bundle of skills built by [tilework-tech](https://github.com/tilework-tech/nori-skillsets), oriented primarily toward software engineering — test-driven development, debugging, code review, plan-writing, large-task handling. A Claude Code user installs Nori and instantly has a curated set of working styles backed by the agent. It's been formative for how a lot of people think about agent-assisted work.
 
-Nori has a sub-skillset called **Researcher** — maintained by Dan Parshall, including many academic-specific skills — aimed at researchers using Claude Code locally for paper triage, multi-session reasoning, and writing. That's where the design DNA of this project comes from; **`claude_researcher` is basically as close as we could get to that skillset in a web-only format.** We took Researcher's patterns — `STATUS.md`, `RESEARCH_LOG.md`, on-demand skills, the convention of capturing conversations and plans as durable artifacts — and rebuilt them for an environment where the user doesn't have a terminal. The Project Instructions field on a Claude.ai Project plays the role of the Code `CLAUDE.md` convention; a public GitHub repo (this one) plays the role of `~/.claude/skills/`; the sandbox's network access plays the role of local filesystem reads.
+Nori has a sub-skillset called **Researcher** ([noriskillsets.dev/skillsets/researcher](https://noriskillsets.dev/skillsets/researcher)) — maintained by Dan Parshall, including many academic-specific skills — aimed at researchers using Claude Code locally for paper triage, multi-session reasoning, and writing. That's where the design DNA of this project comes from; **`claude_researcher` is basically as close as we could get to that skillset in a web-only format.** We took Researcher's patterns — `STATUS.md`, `RESEARCH_LOG.md`, on-demand skills, the convention of capturing conversations and plans as durable artifacts — and rebuilt them for an environment where the user doesn't have a terminal. The Project Instructions field on a Claude.ai Project plays the role of the Code `CLAUDE.md` convention; a public GitHub repo (this one) plays the role of `~/.claude/skills/`; the sandbox's network access plays the role of local filesystem reads.
 
 The result is the same working pattern, ported to the browser. The web is the immediately-available option — no install, no terminal, just a claude.ai Project — and it's enough on its own for research workflows. Claude Code is an option that opens up later if you install it locally: full Nori SWE skillset, offline access, code-friendly tools. This project's conventions carry across both web and Code (skill names match, file conventions are the same, mental model carries over), so Code adds to what you have rather than replacing it.
 
@@ -79,13 +79,23 @@ The agent uses your research repo's `STATUS.md` and `RESEARCH_LOG.md` as the can
 
 Each research line gets a short hyphenated name — `managed-retreat`, `cap-and-trade-microeconomics`. Pick ones you'll recognize months later. `temp` and `working` are tempting in the moment but unhelpful when you have a dozen lines accumulated.
 
-### Why you'll be asked to name the conversation
+### Why the agent names the conversation
 
-Within the first message or two, the agent will propose a name for this session — something like `20260511_managed_retreat_planning`. Accept it or counter-propose; the exact name matters less than the fact that one gets established early.
+In its first reply, the agent will announce a name for this session — something like `20260511_managed_retreat_planning`. It won't wait for approval; tell it if you want a different one. The exact name matters less than the fact that one gets established early.
 
-The reason is structural: the agent cannot see the title of the claude.ai chat from inside the chat. That title — the one you can edit in the sidebar — is invisible from the agent's side. So without a user-confirmed name established by handshake, there's no stable identifier connecting the various artifacts the agent might create this session: the conversation summary in `docs/convos/`, any plan documents in `docs/plans/`, any results files, the STATUS recent-sessions entry. The handshake creates that join key. Later, when you or a future agent wants to ask "what was the reasoning behind that decision?", the trail leads back through the convo name to the recorded reasoning.
+The reason is structural: the agent cannot see the title of the claude.ai chat from inside the chat. That title — the one you can edit in the sidebar — is invisible from the agent's side. So without a name established at the start, there's no stable identifier connecting the various artifacts the agent might create this session: the conversation summary in `docs/convos/`, any plan documents in `docs/plans/`, any results files, the STATUS recent-sessions entry. The announced name is that join key. Later, when you or a future agent wants to ask "what was the reasoning behind that decision?", the trail leads back through the convo name to the recorded reasoning.
 
-If you don't expect to produce durable artifacts in a session — a quick lookup, a short chat — just tell the agent "no need to log this one" when it asks. The handshake is fast and easy to opt out of.
+If you don't expect to produce durable artifacts in a session — a quick lookup, a short chat — just tell the agent "no need to log this one" when it announces the name.
+
+### The `Session:` line
+
+The agent's first reply opens with one line like this:
+
+```
+Session: 2026-08-10 · 4f0c…e21 · https://claude.ai/code/session_01Ab… · Dan (web, canary-policy, 20260810T1442, fable-5.1) · convo 20260810_managed_retreat_planning
+```
+
+It holds the date, the session id, a link back to this chat, the codename the agent commits under, and the convo name. Each value is something you can search for. Search your repos' `git log` for the codename to find every commit this chat made, or search your chat history for the session id. None of the values change for the life of the chat, not even if you move it to another Project. The repo inside the codename then still names the repo where the session started, which tells you where to look for the rest of its work. Only the convo name can change, and when it does the agent shows the line again. If you ever see two different codenames from one chat, something has gone wrong: tell the agent.
 
 ### Use `add-paper` for PDFs you actually want engaged with
 
@@ -97,12 +107,12 @@ The agent calibrates to it — your role, your tools, your interaction style. If
 
 ### Top 5 skills to know
 
-The project includes [19 skills](template/skills/SKILL_INDEX.md), loaded on demand when their triggers fire. You don't need to know any of them by name to use the project — but a few come up so often that knowing them speeds things up:
+The project includes [35 skills](template/skills/SKILL_INDEX.md), loaded on demand when their triggers fire. You don't need to know any of them by name to use the project — but a few come up so often that knowing them speeds things up:
 
 - **`finish-convo`** — runs at the end of every session. Writes a permanent record of the conversation, updates `STATUS.md`, commits the result. Triggered by phrases like "let's wrap," "good stopping point," or "save and stop." The single most-used skill in the project.
 - **`brainstorming`** — refines a rough idea via structured Socratic questioning before committing to a direction. Useful before any non-trivial design conversation; invoke explicitly with "let's brainstorm this." Counters the agent's instinct to produce a polished plan too early.
 - **`add-paper`** — ingests a PDF into your literature collection: renames the file to your canonical format, extracts the text, writes a summary, indexes it. Triggered by phrases like "add this paper" or "save this PDF." Run any paper you'll do real work with through this once at the start.
-- **`write-a-plan`** — when a conversation has produced something concrete enough to implement, this skill captures it as a plan document a future agent (with no prior context) can follow. Especially useful when you want to run the implementation in a fresh session — the plan carries the reasoning, not just the to-dos.
+- **`write-a-plan`** — when a conversation has produced something concrete enough to implement, this skill captures it as a plan document a future agent (with no prior context) can follow. Especially useful when you want to run the implementation in a fresh session — the plan carries the reasoning, not just the to-dos. See *Plan in one chat, do the work in another* below.
 - **`iterative-writing-workflow`** — sets up the project structure for a writing deliverable that involves both research and production (white paper, policy note, report, academic paper). Tracks progress across sessions.
 
 ### When in doubt, wrap and start fresh
@@ -110,3 +120,7 @@ The project includes [19 skills](template/skills/SKILL_INDEX.md), loaded on dema
 Context windows are finite, and a long session accumulates entropy. If the agent feels off, the conversation has wandered, or you're about to start a meaningfully different topic — say "let's wrap." The `finish-convo` skill writes a permanent record of the conversation; the next chat picks up cleanly from there. The wrap is cheap, the long-session drift isn't.
 
 **Never let a session run long enough to trigger compaction.** When the chat approaches its context limit, claude.ai summarizes earlier turns into a lossy synopsis and discards the originals — and you don't get to audit what was thrown away. Compacted sessions feel fine for a few turns and then start producing work that quietly misses earlier context. The fix is structural: as soon as you see the chat getting long, wrap with `finish-convo` and start fresh. The permanent record in your repo carries the real reasoning forward; an in-chat compacted summary is a lossy substitute.
+
+### Plan in one chat, do the work in another
+
+When a conversation lands on something concrete to do (a draft to write, a batch of papers to process, an analysis to run), ask the agent to write it up as a plan ("let's write a plan for this"), then wrap. When it wraps, the agent gives you a one-line handoff to paste into a fresh chat. The new chat starts with a full context window and reads the plan, which keeps the reasoning and drops the dead ends. The hour you spent arguing about what to do is valuable, but it's also exactly what fills the context window: planning and doing in the same long chat is how you end up mid-task when compaction hits.
