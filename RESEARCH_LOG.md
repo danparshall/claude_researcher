@@ -2,6 +2,7 @@
 
 Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`.
 
+- 2026-10-15: [Dan (pro, claude_researcher, 20261015T2312, opus-5.5)] The site was ahead of the repo; PR #92 brings upstream the All-or-Only-select App choice (#87) and the 10-13 setup screenshots (#85), deletes the PAT screenshot, fixes HUMANS' skill count and repins BOOTSTRAP (untested by a fresh setup); 9 stale remote branches deleted, merged worktrees left to Dan's script. — docs/convos/20261015_docs_sync_and_branch_cleanup.md
 - 2026-10-15: [Dan (pro, claude_researcher, 20261015T2022, opus-5.5)] Plan 16 web acceptance passed (#89): one chat moved moosenger → daydreaming across two reboots kept one codename on all three commits in both clones, refused a `Claude`-author commit, and carried no Co-Authored-By (#74); `CLAUDE_PROJECT_UUID` lags a move by one reboot, and §2e's convo-name format wrongly included `.md` (fixed, #91). — docs/convos/20261015_session_identity_acceptance.md
 
 - 2026-10-15: [Dan (pro, claude_researcher, 20261014T2059, opus-5.5)] Plan 16 implemented and merged without its web acceptance run: commit-msg author guard + write-once identity and fixed `Session:` line on web (#90), CLI hook rewrite (dotfiles #123); acceptance tracked in #89, skill export awaits the Air. — docs/convos/20261014_session_identity_lock_build.md
