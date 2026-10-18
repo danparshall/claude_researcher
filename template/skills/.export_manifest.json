@@ -24,7 +24,7 @@
       "SKILL.md": "727d96ffd3ef5011143484e37873bb16b0467834c5fcf009251a2097b5e413a6"
     },
     "finish-convo": {
-      "SKILL.md": "dde40919cf6ff4d0e596c9ba34a8f81e6f6314247ce7ca0ad16f484ccd44944d",
+      "SKILL.md": "26cf668469731499dbbae1fe629a96d9be3178812da11b296105655ea8c59c13",
       "resolve_append_conflict.py": "24ea0e1157ce66d6686a205ed730478ca00afdd5e43cdff83d952daaf786426d"
     },
     "finishing-a-research-branch": {
@@ -90,5 +90,5 @@
       "SKILL.md": "6287e7acee9d184f466b40232829b98d2abdde75e79b42e83e2f8d4d111034c5"
     }
   },
-  "source_sha": "ab73b58c6cf4935840169b127cbbd702e08ec82b"
+  "source_sha": "f45a86538bc7a14d7632189b6b3a6fc4c8a895b4"
 }
