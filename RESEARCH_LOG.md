@@ -2,6 +2,8 @@
 
 Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`.
 
+- 2026-10-19: [Dan (air, claude_researcher, 20261019T1127, opus-5.5)] Confirmed the Oct 13 proxy-only site changes were live, then turned #36 into a clauderesearch.ai privacy update: a You / AI provider / GitHub data-flow diagram plus training and encryption-at-rest Q&As (site `c449119`, live). A legal check kept Anthropic marks off the page. Filed #101 (AGENTS.md), #102 (other providers), #103 (synth-data); closed #36. — docs/convos/20261019_site_data_flow_diagram.md
+
 - 2026-10-14: [Dan (air, claude_researcher, 20261014T1942, opus-5.5)] Reviewed Andrea's PR #76 (her v2.5 kit as `incoming/`) by a per-skill comparison against our template; most of her new behavior hangs off her FOLDER_MAP/typed-index structure, so the plan is to not merge the folder and to split the useful material into claude_researcher ports, a new claude_writing repo, and a new claim-check repo distilled from pat-helper, verification's power-side claim check and her two verification skills; design tickets with outlines filed as #98 (writing) and #99 (claim-check). — docs/convos/20261014_andrea_incoming_pr_review.md
 
 - 2026-10-16: [Dan (pro, claude_researcher, 20261016T1103, opus-5.5)] Worktree cleanup: 9 merged worktrees cleared for Dan to remove; `github-mcp-migration` retired as overtaken by the sandbox proxy and merged as a record (#93); PreCompact probe results merged as a record (#94), hook work moved to dotfiles #116 and #42 closed. — docs/convos/20261016_worktree_cleanup.md
