@@ -53,6 +53,8 @@ Reading `~/code/pat-helper` (multi-model paper review, with claim checking as on
 
 The two new-repo design tickets were filed here, each with an outline sketch in its body, to be transferred once the repos exist. The rest of the proposed ticket list was offered for Dan's later review and not filed: close PR #76 with a note to Andrea; port the paper-summary additions; add the dangling-reference scan to finish-convo; add the brainstorming turn rules; add the audit labels and modes; comment on #6; hand-check a sample of the power-side ledger; pull pat-helper's mechanical checks into a shared script.
 
+PR #76 was closed on Dan's instruction on 2026-10-19, with a comment to Andrea explaining the split and asking whether she wants to co-own claude_writing. The branch `andrea-incoming-starter-v2.5` was left in place.
+
 ## Captured Tasks
 
 - [#98: Design and create claude_writing repo (drafting + deliverables kit)](https://github.com/danparshall/claude_researcher/issues/98) — captured 2026-10-19
