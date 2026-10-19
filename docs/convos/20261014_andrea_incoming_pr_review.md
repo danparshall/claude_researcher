@@ -47,4 +47,13 @@ Reading `~/code/pat-helper` (multi-model paper review, with claim checking as on
 - Contamination: the light tool must not see pat-helper's or the ledger's verdicts on the same draft.
 - Prior art on splitting text into claims: FActScore (Min et al. 2023), SAFE (Wei et al. 2024). These are from memory and not yet looked up.
 - Next steps offered: draft the PR #76 note to Andrea, or brainstorm the claim-check repo starting from the verdict vocabulary.
-- Fired reminders surfaced at session start and not yet handled: claude_researcher #74, #42, #36; dotfiles #109, #91, #70, #68, #42, #35.
+- Fired reminders surfaced at session start and not yet handled: claude_researcher #74, #42, #36; dotfiles #109, #91, #70, #68, #42, #35. (By 2026-10-19, #74 and #42 had been handled elsewhere.)
+
+## Addendum (2026-10-19)
+
+The two new-repo design tickets were filed here, each with an outline sketch in its body, to be transferred once the repos exist. The rest of the proposed ticket list was offered for Dan's later review and not filed: close PR #76 with a note to Andrea; port the paper-summary additions; add the dangling-reference scan to finish-convo; add the brainstorming turn rules; add the audit labels and modes; comment on #6; hand-check a sample of the power-side ledger; pull pat-helper's mechanical checks into a shared script.
+
+## Captured Tasks
+
+- [#98: Design and create claude_writing repo (drafting + deliverables kit)](https://github.com/danparshall/claude_researcher/issues/98) — captured 2026-10-19
+- [#99: Design and create claim-check repo (lighter sibling of pat-helper)](https://github.com/danparshall/claude_researcher/issues/99) — captured 2026-10-19
