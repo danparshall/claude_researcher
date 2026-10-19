@@ -2,7 +2,7 @@
 
 Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`.
 
-- 2026-10-14: [Dan (air, claude_researcher, 20261014T1942, opus-5.5)] Reviewed Andrea's PR #76 (her v2.5 kit as `incoming/`) by a per-skill comparison against our template; most of her new behavior hangs off her FOLDER_MAP/typed-index structure, so the plan is to not merge the folder and to split the useful material into claude_researcher ports, a new claude_writing repo, and a new claim-check repo distilled from pat-helper, verification's power-side claim check and her two verification skills. — docs/convos/20261014_andrea_incoming_pr_review.md
+- 2026-10-14: [Dan (air, claude_researcher, 20261014T1942, opus-5.5)] Reviewed Andrea's PR #76 (her v2.5 kit as `incoming/`) by a per-skill comparison against our template; most of her new behavior hangs off her FOLDER_MAP/typed-index structure, so the plan is to not merge the folder and to split the useful material into claude_researcher ports, a new claude_writing repo, and a new claim-check repo distilled from pat-helper, verification's power-side claim check and her two verification skills; design tickets with outlines filed as #98 (writing) and #99 (claim-check). — docs/convos/20261014_andrea_incoming_pr_review.md
 
 - 2026-10-16: [Dan (pro, claude_researcher, 20261016T1103, opus-5.5)] Worktree cleanup: 9 merged worktrees cleared for Dan to remove; `github-mcp-migration` retired as overtaken by the sandbox proxy and merged as a record (#93); PreCompact probe results merged as a record (#94), hook work moved to dotfiles #116 and #42 closed. — docs/convos/20261016_worktree_cleanup.md
 
