@@ -19,4 +19,8 @@ The rules in RESEARCHER.md §2.0c ("REST through the proxy") apply to every row:
 | `gh pr checks` | `GET /repos/{owner}/{repo}/commits/<sha>/check-runs` |
 | `gh pr merge <N>` | `PUT /repos/{owner}/{repo}/pulls/<N>/merge` with `{"merge_method"}` |
 
+**When a merge is refused.** A 405 or 422 from `…/pulls/<N>/merge` means the merge is blocked, usually by branch protection (collaborator mode). Stop and give the user the PR's `html_url` from the create response.
+
+**Degraded REST fallback** (the §2.0b clone failed). A skill step that moves or deletes files with `git` becomes one Contents-API `PUT` per new path and one `DELETE` per old path. Say you are in degraded mode before starting.
+
 Issue listing, creation and editing, the label lookup, the search refusal, and PR create, view, checks and merge were exercised in the sandbox on 2026-10-07. The comment, close and label-create rows are the standard REST calls but had not yet been run there when this was written.

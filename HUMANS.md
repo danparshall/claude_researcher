@@ -107,13 +107,12 @@ The agent calibrates to it — your role, your tools, your interaction style. If
 
 ### Top 5 skills to know
 
-The project includes [35 skills](template/skills/SKILL_INDEX.md), loaded on demand when their triggers fire. You don't need to know any of them by name to use the project — but a few come up so often that knowing them speeds things up:
+The project includes [31 skills](template/skills/SKILL_INDEX.md), loaded on demand when their triggers fire. You don't need to know any of them by name to use the project — but a few come up so often that knowing them speeds things up:
 
 - **`finish-convo`** — runs at the end of every session. Writes a permanent record of the conversation, updates `STATUS.md`, commits the result. Triggered by phrases like "let's wrap," "good stopping point," or "save and stop." The single most-used skill in the project.
 - **`brainstorming`** — refines a rough idea via structured Socratic questioning before committing to a direction. Useful before any non-trivial design conversation; invoke explicitly with "let's brainstorm this." Counters the agent's instinct to produce a polished plan too early.
 - **`add-paper`** — ingests a PDF into your literature collection: renames the file to your canonical format, extracts the text, writes a summary, indexes it. Triggered by phrases like "add this paper" or "save this PDF." Run any paper you'll do real work with through this once at the start.
 - **`write-a-plan`** — when a conversation has produced something concrete enough to implement, this skill captures it as a plan document a future agent (with no prior context) can follow. Especially useful when you want to run the implementation in a fresh session — the plan carries the reasoning, not just the to-dos. See *Plan in one chat, do the work in another* below.
-- **`iterative-writing-workflow`** — sets up the project structure for a writing deliverable that involves both research and production (white paper, policy note, report, academic paper). Tracks progress across sessions.
 
 ### When in doubt, wrap and start fresh
 

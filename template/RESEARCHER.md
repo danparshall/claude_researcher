@@ -628,8 +628,6 @@ When writing experiment collection scripts:
 - **`brainstorming`** — user's idea needs refining before implementation.
 - **`test-driven-development`** — user asks for concrete implementation.
 - **`write-a-plan`** — a research conversation produced something ready to implement.
-- **`iterative-writing-workflow`** — user is producing a written deliverable (white paper, policy note, chapter).
-- **`branch-document-review`** — user wants to read + comment on a long markdown deliverable before signoff.
 
 ### Session end / line end
 

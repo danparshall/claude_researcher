@@ -27,7 +27,7 @@ This file records which document-processing and analysis tools are available in 
 - **Version observed:** 3.1.3 (features: `-server +lua`)
 - **Install:** not required; `apt-get install -y pandoc` if ever absent (root access in sandbox makes this work)
 - **Verify:** `which pandoc && pandoc --version | head -1`
-- **Wave dependency:** Wave 4 (`branch-document-review` regeneration step in `docs/plans/02_skill_ports.md`)
+- **Wave dependency:** none now — its one consumer, `branch-document-review`, was removed from the template on 2026-10-21
 - **Notes:** This was the medium-confidence item in Plan 04 — turned out to be a non-issue. The `pypandoc` Python wrapper fallback documented in the plan is therefore unnecessary on the primary path; keep it in the workaround table below in case of future regressions.
 
 ### python-docx
@@ -55,7 +55,6 @@ These workarounds are documented for completeness. None are needed today; every 
 | If primary is unavailable | Use instead | Notes |
 |---|---|---|
 | `pandoc` (system binary) | `pip install pypandoc --break-system-packages` | Bundles its own pandoc binary; install command is `pip install pypandoc --break-system-packages`; verify with `python3 -c "import pypandoc; print(pypandoc.get_pandoc_version())"`. |
-| `pandoc` (no install path works) | `difflib` (stdlib) | Wave 4 `branch-document-review` redesign — diff raw markdown directly instead of rendering to docx for visual diff. Existing AITaxBID source already has a `difflib` path. |
 | `python-docx` | `mammoth` | docx → HTML conversion (read-only); raw OOXML write fallback if write needed. |
 | `pypdf` | `pdfminer.six` | secondary PDF text-extraction library. |
 | `--break-system-packages` removed in future Ubuntu base | `pipx` install, or per-project venv | document the new posture in this file when it happens. |
