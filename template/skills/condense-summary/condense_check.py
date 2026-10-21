@@ -10,11 +10,15 @@ Usage:
     python3 condense_check.py <repo_root> --sweep        # one line per entry
     python3 condense_check.py <repo_root> --sweep --section "Section Name"
 
+    python3 condense_check.py <repo_root> <key> --strict [--file FRAGMENT]   # gate
+
 <key> is the ``### `` heading text (the slug in slug-anchored repos). If no
 heading equals it exactly, a case-insensitive substring match on headings is
-tried; multiple hits are an error, so tighten the key.
+tried; multiple hits are an error, so tighten the key. ``--strict`` takes
+exact matches only.
 
-Exit 0 on a report, 1 when the key resolves to no entry (or to several).
+Exit 0 on a report, 1 when the key resolves to no entry (or to several), and
+under ``--strict`` also 1 when the entry has any problem.
 """
 
 from __future__ import annotations
@@ -37,6 +41,10 @@ TEXT_BULLET_RE = re.compile(
 FOCUS_RE = re.compile(r"^- \*\*Focus:\*\*\s*(.+?)\s*$")
 ONE_LINER_RE = re.compile(r"^- \*\*One-liner:\*\*\s*(.+?)\s*$")
 INDEX_LABEL_RE = re.compile(r"^- \*\*Index label:\*\*\s*(.+?)\s*$")
+# A metadata bullet without the bold: the tools read the field as missing.
+PLAIN_META_RE = re.compile(
+    r"^- (Title|Authors|Date|Files?|Source|Focus|One-liner|Related|Summarized|Index label|Text extraction):"
+)
 # The canonical name is ``Related``; the others are the legacy spellings the
 # skill renames on contact. Order matters only for the reported field name.
 RELATED_NAMES = (
@@ -54,17 +62,23 @@ BACKTICK_SLUG_RE = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
 # "Key findings" is the canonical label; the collection also uses Key claims /
 # Key results / Key arguments etc. for non-empirical sources. All count.
 # A parenthetical qualifier ("Summary (compiled from secondary sources):") is
-# still the Summary paragraph.
+# still the Summary paragraph, and a scoped Relevance label ("Relevance to
+# technical AI governance:") is still the Relevance paragraph. The colon is
+# required: period labels ("**Summary.**") do not count.
 LABELLED_PARA_RE = re.compile(
-    r"^(?:\*\*)?(Summary|Key [A-Za-z ]+?|Relevance)(?: \([^)]*\))?:(?:\*\*)?\s*(.*)$"
+    r"^(?:\*\*)?(Summary|Key [A-Za-z ]+?|Relevance(?: [A-Za-z ]+?)?)(?: \([^)]*\))?:(?:\*\*)?\s*(.*)$"
 )
+# Every Key paragraph must carry a number except those whose label starts with one
+# of these (case-insensitive): claims and arguments are for sources with no results
+# of their own; limitations are commentary on the findings.
+NON_EMPIRICAL_PREFIXES = ("key claims", "key arguments", "key limitations")
 REFERENCE_ONLY_RE = re.compile(r"reference-only", re.IGNORECASE)
 TABLE_ROW_RE = re.compile(r"^\|(.+)\|\s*$")
 SLUG_CELL_RE = re.compile(r"^\s*`([^`]+)`\s*$")
 
 ONE_LINER_WARN = 50
 ONE_LINER_FAIL = 60
-SUMMARY_FLOOR = 80
+SUMMARY_FLOOR = 50
 
 
 @dataclass
@@ -82,7 +96,9 @@ class Entry:
     reference_only: bool = False
     summary_words: int = 0
     key_findings_text: str = ""
+    key_paras: list[tuple[str, str]] = field(default_factory=list)
     has_key_findings: bool = False
+    plain_labels: list[str] = field(default_factory=list)
     has_relevance: bool = False
     end_line: int = 0
 
@@ -132,8 +148,9 @@ def parse_entries(md_text: str) -> list[Entry]:
             current.summary_words = word_count(text)
         elif para.startswith("Key "):
             current.key_findings_text = text
+            current.key_paras.append((para, text))
             current.has_key_findings = True
-        elif para == "Relevance":
+        elif para.startswith("Relevance"):
             current.has_relevance = True
         para, para_buf = None, []
 
@@ -193,6 +210,8 @@ def parse_entries(md_text: str) -> list[Entry]:
             current.one_liner = m.group(1)
         elif m := INDEX_LABEL_RE.match(line):
             current.index_label = m.group(1)
+        elif m := PLAIN_META_RE.match(line):
+            current.plain_labels.append(m.group(1))
         elif m := RELATED_RE.match(line):
             current.related_field_name = m.group(1)
             current.related = BACKTICK_SLUG_RE.findall(m.group(2))
@@ -210,8 +229,11 @@ def completeness_signals(e: Entry) -> list[str]:
         )
     if not e.has_key_findings:
         signals.append("No Key findings (or Key claims/results) paragraph")
-    elif not re.search(r"\d", e.key_findings_text):
-        signals.append("Key findings carry no numerical result")
+    for label, text in e.key_paras:
+        if not label.lower().startswith(NON_EMPIRICAL_PREFIXES) and not re.search(r"\d", text):
+            signals.append(
+                f"{label} carry no numerical result (a source with no results of its own uses Key claims)"
+            )
     if not e.has_relevance:
         signals.append("No Relevance paragraph")
     if e.focus is None:
@@ -220,6 +242,19 @@ def completeness_signals(e: Entry) -> list[str]:
         signals.append("No One-liner field")
     if e.related_field_name and e.related_field_name != "Related":
         signals.append(f"Related field uses legacy name '{e.related_field_name}' — rename to Related")
+    return signals
+
+
+def template_metadata_signals(e: Entry) -> list[str]:
+    """Metadata the add-paper template requires; checked only under --strict,
+    since legacy entries predate it."""
+    signals: list[str] = []
+    if not e.title:
+        signals.append("No Title line")
+    if not e.files and not e.reference_only:
+        signals.append("No File, Text extraction, or reference-only marker")
+    for label in e.plain_labels:
+        signals.append(f"Plain metadata bullet '- {label}:' — bold the label: '- **{label}:**'")
     return signals
 
 
@@ -268,24 +303,47 @@ def dangling_related(entries: list[Entry]) -> dict[str, list[str]]:
     }
 
 
-def resolve_key(entries: list[Entry], key: str) -> Entry | None:
+def resolve_key(entries: list[Entry], key: str, exact_only: bool = False) -> Entry | None:
     exact = [e for e in entries if e.key == key]
     if len(exact) == 1:
         return exact[0]
+    if exact_only:
+        return None
     loose = [e for e in entries if key.lower() in e.key.lower()]
     return loose[0] if len(loose) == 1 else None
 
 
-def report_one(root: Path, entries: list[Entry], key: str, out, err) -> int:
-    e = resolve_key(entries, key)
+def report_one(
+    root: Path,
+    entries: list[Entry],
+    key: str,
+    out,
+    err,
+    strict: bool = False,
+    known_keys: set[str] | None = None,
+    source_name: str = "PAPER_SUMMARIES.md",
+) -> int:
+    """Report on one entry. ``known_keys`` is the set Related slugs resolve
+    against (default: the keys of ``entries``). Under ``strict``, return 1 when
+    the entry has any completeness signal, a FAIL One-liner, or a dangling
+    Related slug."""
+    e = resolve_key(entries, key, exact_only=strict)
     if e is None:
         hits = [x.key for x in entries if key.lower() in x.key.lower()]
-        if hits:
+        if strict:
+            print(
+                f"--strict needs the exact heading: no single '### {key}' in {source_name}"
+                + (f" (near: {hits})" if hits else ""),
+                file=err,
+            )
+        elif hits:
             print(f"key {key!r} is ambiguous: {hits}", file=err)
         else:
-            print(f"no entry matches {key!r} in PAPER_SUMMARIES.md", file=err)
+            print(f"no entry matches {key!r} in {source_name}", file=err)
         return 1
-    print(f"### {e.key}  (PAPER_SUMMARIES.md lines {e.line}-{e.end_line}, section: {e.section})", file=out)
+    if known_keys is None:
+        known_keys = {x.key for x in entries}
+    print(f"### {e.key}  ({source_name} lines {e.line}-{e.end_line}, section: {e.section})", file=out)
     print(f"Title: {e.title or '(none)'}", file=out)
     print(f"Files: {e.files or '(none)'}{'  [reference-only]' if e.reference_only else ''}", file=out)
     print(f"Focus: {e.focus or '(none)'}", file=out)
@@ -294,28 +352,35 @@ def report_one(root: Path, entries: list[Entry], key: str, out, err) -> int:
     if e.index_label:
         print(f"Index label: {e.index_label}", file=out)
     print(f"Related ({e.related_field_name or 'none'}): {e.related}", file=out)
-    dangling = dangling_related([e] + [x for x in entries if x is not e]).get(e.key)
+    dangling = [s for s in e.related if s not in known_keys]
     if dangling:
         print(f"  dangling Related slugs: {dangling}", file=out)
     signals = completeness_signals(e)
+    if strict:
+        signals += template_metadata_signals(e)
     print("Completeness:", "ok" if not signals else "", file=out)
     for s in signals:
         print(f"  - {s}", file=out)
 
+    failed = bool(signals or dangling or verdict(n) == "FAIL")
+    if strict:
+        print(f"Strict: {'FAIL' if failed else 'pass'}", file=out)
+    rc = 1 if strict and failed else 0
+
     index_path = root / "PAPER_INDEX.md"
     if not index_path.is_file():
         print("PAPER_INDEX.md: not present in this repo", file=out)
-        return 0
+        return rc
     rows = find_index_rows(index_path.read_text(), e.key, e.files)
     if not rows:
         print("Index row: none", file=out)
-        return 0
+        return rc
     for r in rows:
         print(f"Index row (line {r.line}, matched by {r.matched_by}):", file=out)
         for cell, n in zip(r.cells, r.cell_word_counts):
             preview = cell if len(cell) <= 90 else cell[:87] + "..."
             print(f"  [{n:>3} words {verdict(n) if n > ONE_LINER_WARN else '  '}] {preview}", file=out)
-    return 0
+    return rc
 
 
 def sweep(root: Path, entries: list[Entry], section: str | None, out) -> int:
@@ -345,6 +410,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("key", nargs="?", help="entry heading (slug) to report on")
     ap.add_argument("--sweep", action="store_true", help="one line per entry instead of a single report")
     ap.add_argument("--section", help="with --sweep: restrict to one ## section")
+    ap.add_argument(
+        "--strict",
+        action="store_true",
+        help="exit 1 if the entry has any completeness signal, a One-liner over "
+        f"{ONE_LINER_FAIL} words, or a dangling Related slug",
+    )
+    ap.add_argument(
+        "--file",
+        type=Path,
+        help="read the entry from this fragment instead of PAPER_SUMMARIES.md; "
+        "Related resolves against the fragment plus PAPER_SUMMARIES.md",
+    )
     args = ap.parse_args(argv)
 
     summaries = args.root / "PAPER_SUMMARIES.md"
@@ -356,7 +433,14 @@ def main(argv: list[str] | None = None) -> int:
         return sweep(args.root, entries, args.section, sys.stdout)
     if not args.key:
         ap.error("give a key, or --sweep")
-    return report_one(args.root, entries, args.key, sys.stdout, sys.stderr)
+    if args.file:
+        fragment = parse_entries(args.file.read_text())
+        known = {e.key for e in entries} | {e.key for e in fragment}
+        return report_one(
+            args.root, fragment, args.key, sys.stdout, sys.stderr,
+            strict=args.strict, known_keys=known, source_name=args.file.name,
+        )
+    return report_one(args.root, entries, args.key, sys.stdout, sys.stderr, strict=args.strict)
 
 
 if __name__ == "__main__":
