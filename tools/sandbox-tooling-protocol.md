@@ -6,7 +6,7 @@ Methodology for keeping [`template/reference/SANDBOX_TOOLING.md`](../template/re
 
 A tool earns a row when:
 
-- A current or near-future skill port depends on its presence (e.g. `add-paper` needs `pypdf`, `branch-document-review` needs `pandoc`).
+- A current or near-future skill port depends on its presence (e.g. `add-paper` needs `pypdf`).
 - A re-verification would catch a regression that meaningfully affects the workflow (e.g. `git` for clone-first session start).
 
 A tool's row stays after its dependent skill ships, so future drift remains visible. Remove a row only if the dependent skill is itself removed.

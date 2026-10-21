@@ -2,7 +2,7 @@
 
 This is the manifest of skills available in `claude_researcher`. The runtime agent fetches this file at session start (per `RESEARCHER.md` §2d) to know what skills exist and when to use them. Individual `SKILL.md` files are **fetched on-demand** when their trigger conditions match — don't load all of them upfront.
 
-**Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle**, **Knowledge-management**, and **Task management** skills are Researcher-authored; surface detection and `{{skills_dir}}` resolution happen once in `RESEARCHER.md` §2.0a, and each skill keeps only a two-line surface note after its frontmatter. In claude.ai mode the runtime is clone-first per `RESEARCHER.md` §2.0b: the agent runs `git add` / `git commit` / `git push` directly against the project-repo clone at `/home/claude/<REPO>/`, reads skills from the local template clone, and translates only the `gh` issues/search/label/repo/api verbs the task-skills use into the GitHub Issues/Search REST endpoints from Project Instructions — Issues and Pulls remain REST surfaces. The REST Contents-API recipes (`write_update` / `write_new`) are the documented degraded fallback for when the §2.0b clone fails, surfaced to the user (one commit per file). The **Writing & document workflow** skills are AITaxBID-sourced (from Andrea Lopez-Luzuriaga's kit): `iterative-writing-workflow` is pure methodology with no git/CLI operations, and `branch-document-review` carries REST recipes (the GitHub refs/merges/compare endpoints) inline where they're needed — so neither needs surface handling beyond §2.0a. The **Task management** triplet (`task-create`, `task-remind`, `task-triage`) is the newest addition (Plan 09, 2026-06-04), pinned to dotfiles `8b619b5`.
+**Status:** all sections live. The **Working-style skills** are SWE carryovers from upstream Nori — they don't touch git or filesystem axes and work as-is. The **Session lifecycle**, **Knowledge-management**, and **Task management** skills are Researcher-authored; surface detection and `{{skills_dir}}` resolution happen once in `RESEARCHER.md` §2.0a, and each skill keeps only a two-line surface note after its frontmatter. In claude.ai mode the runtime is clone-first per `RESEARCHER.md` §2.0b: the agent runs `git add` / `git commit` / `git push` directly against the project-repo clone at `/home/claude/<REPO>/`, reads skills from the local template clone, and translates only the `gh` issues/search/label/repo/api verbs the task-skills use into the GitHub Issues/Search REST endpoints from Project Instructions — Issues and Pulls remain REST surfaces. The REST Contents-API recipes (`write_update` / `write_new`) are the documented degraded fallback for when the §2.0b clone fails, surfaced to the user (one commit per file). The **Task management** triplet (`task-create`, `task-remind`, `task-triage`) is the newest addition (Plan 09, 2026-06-04), pinned to dotfiles `8b619b5`.
 
 ---
 
@@ -61,18 +61,8 @@ Skills are grouped by lifecycle role.
 
 ### add-paper
 
-- **Trigger:** user asks to add a paper to the collection ("add this paper", "save this PDF", "ingest these papers from `papers/`"), or a blog post / thread worth keeping. One flow: obtain the source (filename per the user's `Paper naming format`, else the default), extract text, write the `PAPER_SUMMARIES.md` entry in the metadata contract (`### <slug>`, `**Title:**`, bold bullets incl. `Focus` / `One-liner` / `Related` / `Summarized`), then `paper-index` `index` + `check` — rows are generated, never hand-written. Non-PDF sources get a `Text extraction` bullet. Institutional reports may follow `paper-processing-institutional`'s fuller body. Bulk (4+): per-paper subagents write entry fragments; the orchestrator inserts them serially.
+- **Trigger:** user asks to add a paper to the collection ("add this paper", "save this PDF", "ingest these papers from `papers/`"), or a blog post / thread worth keeping. One flow: obtain the source (filename per the user's `Paper naming format`, else the default), extract text, write the `PAPER_SUMMARIES.md` entry in the metadata contract (`### <slug>`, `**Title:**`, bold bullets incl. `Focus` / `One-liner` / `Related` / `Summarized`), then `paper-index` `index` + `check` — rows are generated, never hand-written. Non-PDF sources get a `Text extraction` bullet. Bulk (4+): per-paper subagents write entry fragments; the orchestrator inserts them serially.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/add-paper/SKILL.md`
-
-### paper-processing-academic
-
-- **Trigger:** Protocol A workflow for academic-style papers (research with hypothesis + original data analysis): the (a)–(d) summary body plus BibTeX, under the same metadata-contract header `add-paper` writes. Invoke directly when a project uses Protocol A summaries. Andrea's fork, maintained here.
-- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-processing-academic/SKILL.md`
-
-### paper-processing-institutional
-
-- **Trigger:** Protocol B workflow for institutional-style reports (synthesis/policy documents from multilaterals, governments, working groups), under the same metadata-contract header `add-paper` writes. `add-paper` points institutional reports here. Andrea's fork, maintained here. Step 2 carries institutional-specific extraction rules (preserve acronyms, preserve boxes/figure captions, strip decorative front matter).
-- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/paper-processing-institutional/SKILL.md`
 
 ### audit-docs
 
@@ -139,20 +129,6 @@ These three skills share a single GitHub-Issues backend (issues with the `task` 
 
 - **Trigger:** user says "task-triage," "triage," "what should I work on," "/task-triage," or wants a cross-repo view of pending work. Cross-repo open-task inventory + conversational priority discussion. Read-only (does not modify issues). Renamed from `triage-tasks`.
 - **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/task-triage/SKILL.md`
-
----
-
-## Writing & document workflow skills
-
-### iterative-writing-workflow
-
-- **Trigger:** user is working on a writing project that involves both research/reading and producing written deliverables (white papers, policy notes, reports, academic papers, book chapters). Also use when user asks to set up a writing workflow, wants to organize how they collaborate on a document, or says things like "let's start writing," "how should we work on this," or "set up the project."
-- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/iterative-writing-workflow/SKILL.md`
-
-### branch-document-review
-
-- **Trigger:** Claude and the user are jointly producing a document and the user wants to read and comment on it before signoff — typically a long markdown deliverable with companion artifacts (`.docx`, `.pptx`) generated from it. Do **not** use for general-purpose branch work (experiments, code refactors, parallel versions) — those use plain git.
-- **URL:** `https://raw.githubusercontent.com/danparshall/claude_researcher/main/template/skills/branch-document-review/SKILL.md`
 
 ---
 
@@ -223,12 +199,14 @@ These three skills share a single GitHub-Issues backend (issues with the `task` 
 
 These skills exist in upstream Nori but don't apply to `claude_researcher`'s claude.ai runtime. Listed here so the agent doesn't search for them.
 
-- `use-worktree`, `clean-worktrees` — local-filesystem-only; no parallel to git worktrees in claude.ai sandbox.
+- `using-git-worktrees` — local-filesystem-only; no parallel to git worktrees in claude.ai sandbox.
 - `webapp-testing`, `building-ui-ux` — out of scope for v1 (no webapp frontend in research workflow).
 - `using-screenshots` — claude.ai handles images natively in chat.
 - `finishing-a-development-branch` — the research-line analogue is `finishing-a-research-branch`; there's no separate development-branch flow in this template.
 - `updating-noridocs` — Nori-specific; no Nori on the web side.
-- `maintaining-decision-docs` — out of scope for v1 research repos.
+- `creating-skills` — Nori skill-authoring tooling (`npx nori-lint`, profile directories); not something a research session does.
+- `creating-slides` — needs subagents, a screen recorder and a browser, none of which the sandbox has.
+- `using-skills` — its content is inlined in `RESEARCHER.md` §2.0a.
 
 ---
 
@@ -236,4 +214,4 @@ These skills exist in upstream Nori but don't apply to `claude_researcher`'s cla
 
 When a new skill is ported (Phase 6 work), add an entry above with the same three fields. Keep the lifecycle grouping. Skills can be removed by moving them to "Skills intentionally not ported" with a rationale.
 
-**Exported skills are build artifacts.** The skills listed in `template/skills/.export_manifest.json` are copied here automatically from the dotfiles `researcher` skillset (`export_profile_skills.py` in that repo) and overwritten on every export — never edit those `SKILL.md` files in this repo; edit the source in dotfiles `nori-researcher/skills/<name>/` and let the export land. To bring another skill under the export: add its `### <name>` entry here **first** (the exporter refuses a skill with no entry), then add the name to the exporter's whitelist. `pytest tools/` is the pre-PR check for this repo — `tools/test_skill_manifest.py` fails on a hand-edited export or a skill dir with no entry here.
+**Exported skills are build artifacts.** The skills listed in `template/skills/.export_manifest.json` are copied here automatically from the dotfiles `researcher` skillset (`export_profile_skills.py` in that repo) and overwritten on every export — never edit those `SKILL.md` files in this repo; edit the source in dotfiles `nori-researcher/skills/<name>/` and let the export land. There is no whitelist: every dotfiles `nori-researcher/skills/` dir exports, plus the upstream skills on the exporter's `UPSTREAM_EXPORT` list. A new skill needs its `### <name>` entry here **first** (the exporter refuses a skill with no entry). Every upstream Nori skill the dotfiles skillset depends on must be either on `UPSTREAM_EXPORT` or a bullet in "Skills intentionally not ported" (names in backticks before the em dash); the exporter also refuses while one is neither. `pytest tools/` is the pre-PR check for this repo — `tools/test_skill_manifest.py` fails on a hand-edited export or a skill dir with no entry here.
