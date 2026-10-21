@@ -2,7 +2,7 @@
   "nori_version": "1.0.30",
   "skills": {
     "add-paper": {
-      "SKILL.md": "5a98dd2996dac71720f5a7263bdd889a77c9643457fba33ce445f917d37358f3"
+      "SKILL.md": "d91b4ba076f2eed68ab9950c509f9f3470d1d1f72cd15aa1346f918b790e8118"
     },
     "add-to-reading-list": {
       "SKILL.md": "63e52c9a5f116c85eae8bd3d3dab2fa1ce071b30838fcf6fe98151884afb9cde"
@@ -53,7 +53,7 @@
       "fanout_apply.py": "cb6a7cb1f9959335eaa639e3e6037caac75fe5241cf74024de3724dbc84c95b5",
       "fanout_make_prompts.py": "0bda4433a834e6d1b56b6549daf5c1e4c5e9a192521fb9f366fbc95bd1ce9796",
       "fanout_verify.py": "5ef98d2ef67867cf93ecd16b0adf85af1c16e8802b349047dbb8fb130d345a8c",
-      "gen_index.py": "0c70d396ae18080a622aef459f30a4f0074fecf1c3c99a3465674e25a471ab79",
+      "gen_index.py": "299c0ea59513a5ef8a5630e4d51277a44c18607e3768d7f0582a3f0ad58b5da2",
       "paper_index.py": "6e52f4d625902ee2b9d4663722a52c2a4f640cbcfe7063325cc5d3ec47086ee5"
     },
     "receiving-code-review": {
@@ -90,5 +90,5 @@
       "SKILL.md": "6287e7acee9d184f466b40232829b98d2abdde75e79b42e83e2f8d4d111034c5"
     }
   },
-  "source_sha": "6b991012cfd195d3efa1c0b28085e0659f15b640"
+  "source_sha": "d6af0f90eb881689ef9116abb024980466d8ccc5"
 }

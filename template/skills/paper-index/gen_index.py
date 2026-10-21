@@ -4,7 +4,7 @@ PAPER_SUMMARIES.md is the source of truth. Each ``###`` entry carries the
 condense fields written by the ``condense-summary`` skill::
 
     - **Focus:** Compute governance, verification
-    - **One-liner:** <=50-word thesis
+    - **One-liner:** thesis, target <=50 words, hard limit 60
     - **Related:** `slug-a`, `slug-b`
     - **Index label:** Shavit (OpenAI) (2023)   # only when the Title's
                                                 # trailing parenthetical

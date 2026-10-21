@@ -72,7 +72,7 @@ Copy this template — not a neighbouring entry. Neighbours may predate the cont
 - **File:** `<filename>.pdf`
 - **Source:** <URL or DOI>
 - **Focus:** <2–5 words, in the vocabulary the repo's Focus column already uses>
-- **One-liner:** <≤50-word thesis with the number that carries it, if the paper has one>
+- **One-liner:** <thesis, target ≤50 words (hard limit 60), with the number that carries it, if the paper has one>
 - **Related:** `slug-a`, `slug-b`
 - **Summarized:** <model name>, YYYY-MM-DD
 
