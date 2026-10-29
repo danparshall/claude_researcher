@@ -170,7 +170,7 @@ Branch on result:
 
 Run the interview in **three thematic batches** rather than ten sequential questions. After each batch, briefly summarize back what you heard before moving on.
 
-This interview captures persistent **user-level** prefs that get written to `<USERNAME>/claude_research_config/personal_info.md` and read by every future research session. It's about the user, not any specific project — the project comes next, in Step 5.
+This interview captures persistent **user-level** prefs that get written to `<USERNAME>/claude_research_config/researcher_config.md` and read by every future research session. It's about the user, not any specific project — the project comes next, in Step 5.
 
 **Pre-fill from claude.ai memory if available.** If the user has filled out claude.ai's user-level memory ("Things to know about you" / customizations / similar), those are already loaded into your context at chat start — no separate fetch needed. If you can see things like name, role, or research domain there, frame the relevant interview questions as *"From your claude.ai profile I see X — want to use that, or different?"* rather than asking from scratch. If no memory is visible (incognito chats and fresh accounts won't have any), the interview is fully fresh.
 
@@ -330,7 +330,7 @@ If the file already exists (e.g., the user ticked **Add a README** in Step 6a), 
 
 ### Files to seed in `claude_research_config` (skip if it already existed)
 
-#### `personal_info.md`
+#### `researcher_config.md`
 
 Build from interview answers. Use the template at `https://raw.githubusercontent.com/danparshall/claude_researcher/a230b4558a514bd54e64bafb5a73c5d9b67b9766/template/templates/personal_info.md.template` as the structure; substitute each `<FIELD>` placeholder with the corresponding interview answer. The `<YYYY-MM-DD>` last-updated value is today's date.
 
@@ -345,7 +345,7 @@ Fetch the content from `https://raw.githubusercontent.com/danparshall/claude_res
 
 Lifetime config for the claude_researcher workflow. Holds files that every research project of mine reads at session start.
 
-- `personal_info.md` — who I am, how I work, my preferences. Read by every session.
+- `researcher_config.md` — who I am, how I work, my preferences. Read by every session.
 - `domain_allowlist.txt` — record of the network allow-list configured in my claude.ai Settings. Useful for re-creating the same setup on a different machine.
 
 This repo is private. No secrets or research artifacts here — those go in the per-project research repos.
@@ -440,7 +440,7 @@ curl -s -H "Accept: application/vnd.github+json" \
   | python3 -c "import sys,json; print('\n'.join(e['path'] for e in json.load(sys.stdin)))"
 ```
 
-For `claude_research_config` you should see exactly: `.gitignore`, `README.md`, `domain_allowlist.txt`, `personal_info.md`. For the research repo: `.gitignore`, `README.md`, `RESEARCH_LOG.md`, `STATUS.md`, plus the four `.gitkeep`-bearing directories. If anything's missing or extra, surface to the user.
+For `claude_research_config` you should see exactly: `.gitignore`, `README.md`, `domain_allowlist.txt`, `researcher_config.md`. For the research repo: `.gitignore`, `README.md`, `RESEARCH_LOG.md`, `STATUS.md`, plus the four `.gitkeep`-bearing directories. If anything's missing or extra, surface to the user.
 
 ---
 
@@ -466,7 +466,7 @@ The canonical Project Instructions text lives at:
 
 - `<USERNAME>` → the GitHub username from Step 2a
 - `<REPO>` → the research repo name from Step 5
-- `<USER_DISPLAY_NAME>`, `<COMMIT_EMAIL>`, `<GIT_FLUENCY>`, `<HOME_REPO>` → the same values you wrote into `personal_info.md` in Step 7 (`User display name`, `Git commit email`, `Git fluency`, `Home repo`)
+- `<USER_DISPLAY_NAME>`, `<COMMIT_EMAIL>`, `<GIT_FLUENCY>`, `<HOME_REPO>` → the same values you wrote into `researcher_config.md` in Step 7 (`User display name`, `Git commit email`, `Git fluency`, `Home repo`)
 
 Present the rendered text to the user as a single code block. Tell them:
 
@@ -482,7 +482,7 @@ Tell the user:
 
 > "Open a new chat in your `<RESEARCH_REPO>` Project. Just say 'hi' or 'let's begin' — see what happens."
 
-Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Project Instructions, reads `RESEARCHER.md` from the local clone, attaches the research repo and `claude_research_config` read-only (the user may see an approval box for each, depending on their permission mode), clones the research repo, fetches `personal_info.md` via the Contents API, and greets the user by name with a reference to their topic.
+Wait for them to do this and report back. **Expected:** the agent in the new chat clones the upstream template per its Project Instructions, reads `RESEARCHER.md` from the local clone, attaches the research repo and `claude_research_config` read-only (the user may see an approval box for each, depending on their permission mode), clones the research repo, fetches `researcher_config.md` via the Contents API, and greets the user by name with a reference to their topic.
 
 If validation fails, the most common causes (in rough order of likelihood):
 

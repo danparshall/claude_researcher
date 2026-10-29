@@ -373,6 +373,8 @@ This works once `claude_research_config` is attached to the session read-only (�
 
 If the pipeline dies with a `KeyError`, GitHub or the proxy returned an error instead of the file. Re-run the `curl` on its own to read the message.
 
+**Older setups name this file `personal_info.md`.** If the read returns 404 (`Not Found`), run the same command with `personal_info.md` in place of `researcher_config.md`, and suggest once that the user rename the file in `claude_research_config` to `researcher_config.md`.
+
 Where a field here and its copy in Project Instructions differ, use this file's value (it's the one the user edits) and mention the difference once.
 
 Read: `Name`, `Current role`, history, `Tools and languages`, `Research interests`, `Interaction style`, `Git fluency`, `Mode` (`claude.ai-only` or `also-local`), `Home repo`, `User display name`, `Git commit email`, `Paper naming format`. Set your calibration dial per §1 from `Git fluency`. Apply `Interaction style` overrides on top. Use `Mode` to calibrate verbosity about claude.ai-specific quirks. `User display name` and `Git commit email` feed the git-identity construction in §2.0b — export them as `USER_DISPLAY_NAME` and `COMMIT_EMAIL` now if you haven't already run §2.0b's `git config` step.
