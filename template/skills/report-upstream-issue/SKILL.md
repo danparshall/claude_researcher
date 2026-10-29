@@ -15,7 +15,7 @@ https://github.com/danparshall/claude_researcher/issues/new?title=<urlencoded-ti
 
 ## Body — MUST include
 
-- The user's `Git fluency` tier from `personal_info.md` (e.g., `git_fluency: novice`).
+- The user's `Git fluency` tier from `researcher_config.md` (e.g., `git_fluency: novice`).
 - The SHA of the RESEARCHER.md you're operating against, so triage knows which version. Get it via `cd /home/claude/.claude_researcher_template && git rev-parse HEAD`, or by GETting `https://api.github.com/repos/danparshall/claude_researcher/contents/template/RESEARCHER.md` and reading the `sha` field.
 - A short repro of what the user did and what went wrong.
 - A section reference where relevant (e.g., "RESEARCHER.md §3 branch resolution", "finishing-a-research-branch skill Step 3", "finish-convo skill step 3").
@@ -25,7 +25,7 @@ https://github.com/danparshall/claude_researcher/issues/new?title=<urlencoded-ti
 Scoped to *public-upstream issue bodies* — the `danparshall/claude_researcher` issue tracker is world-readable. This list does not apply to work in the user's own repos.
 
 - Any credential (tokens, passwords, API keys).
-- The contents of `personal_info.md` beyond the `git_fluency` tier.
+- The contents of `researcher_config.md` beyond the `git_fluency` tier.
 - The contents of any user research repo (papers, convos, plans, results).
 - The user's GitHub username if they'd prefer not to be identified — **ask if unclear.**
 - Any URL or path that includes the user's username plus a private-repo hint.

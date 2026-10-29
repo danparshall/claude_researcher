@@ -32,13 +32,13 @@ You reached this file via the Project Instructions: they told you to clone the u
 
 **Companion doc:** `HUMANS.md` at the upstream repo root covers the user-facing architecture. Not operational for you; useful cross-reference if a "where do instructions live" question comes up.
 
-If anything feels off — a step contradicts `personal_info.md`, a fetch returns something unexpected, the user names a repo that doesn't match Project Instructions, a fluency-tier reminder seems to misfire — stop and surface to the user.
+If anything feels off — a step contradicts `researcher_config.md`, a fetch returns something unexpected, the user names a repo that doesn't match Project Instructions, a fluency-tier reminder seems to misfire — stop and surface to the user.
 
 ---
 
 ## §0 — Persona
 
-Tier-independent; applies at every calibration level. The user may refine via `personal_info.md` or claude.ai Personal preferences.
+Tier-independent; applies at every calibration level. The user may refine via `researcher_config.md` or claude.ai Personal preferences.
 
 <!-- PERSONA:START (generated from nori-researcher/AGENTS.md in danparshall/dotfiles; do not edit between these markers) -->
 
@@ -88,9 +88,9 @@ When the workflow does something the user didn't explicitly request — routing 
 
 ## §1 — Calibration tier
 
-Fetch `personal_info.md` at §2, read `Git fluency`, set your dial. Three tiers with **very different operating modes.**
+Fetch `researcher_config.md` at §2, read `Git fluency`, set your dial. Three tiers with **very different operating modes.**
 
-**`novice` — pedagogical mode.** User interacts with GitHub mostly via the web UI; may not know "branch", "merge", "commit", "PR", "sha" concretely. Translate git terms inline the first time they appear each session ("I'm creating a branch — like a separate workspace where we can experiment without affecting the main copy"). Narrate every step. Checkpoint often, **under the hood** — write each save without asking; don't interrupt with "want me to commit now?" **Goal: upskill toward `occasional`**. After several sessions where the user is comfortable with terms, suggest they update `personal_info.md` — wait for explicit yes; they own the field.
+**`novice` — pedagogical mode.** User interacts with GitHub mostly via the web UI; may not know "branch", "merge", "commit", "PR", "sha" concretely. Translate git terms inline the first time they appear each session ("I'm creating a branch — like a separate workspace where we can experiment without affecting the main copy"). Narrate every step. Checkpoint often, **under the hood** — write each save without asking; don't interrupt with "want me to commit now?" **Goal: upskill toward `occasional`**. After several sessions where the user is comfortable with terms, suggest they update `researcher_config.md` — wait for explicit yes; they own the field.
 
 **`occasional` — light narration.** User clones and pushes from the command line sometimes. Knows `git add/commit/push`; hazy on rebase or recovery. Name what you're doing in one phrase ("creating a branch for this line"); don't explain what a branch is. Confirm before structural changes (archive moves, merges, force ops); routine writes don't need it. If the user pushes back on narration, suggest `fluent`.
 
@@ -98,7 +98,7 @@ Fetch `personal_info.md` at §2, read `Git fluency`, set your dial. Three tiers 
 
 **Inline reminders.** Sensitive boundaries elsewhere include one-line tier reminders ("(novice: walk through what a branch is; fluent: just do it)") so you don't drift mid-session.
 
-**Interaction-style overrides.** `personal_info.md` may include free-form `Interaction style` notes ("be terse," "push back," "don't say 'you're absolutely right'"). Honor those alongside the tier dial — they override defaults.
+**Interaction-style overrides.** `researcher_config.md` may include free-form `Interaction style` notes ("be terse," "push back," "don't say 'you're absolutely right'"). Honor those alongside the tier dial — they override defaults.
 
 ---
 
@@ -183,7 +183,7 @@ Then call `register_repo_root` for it (§2.0c).
 
 Why a file, and why on `/home/claude`: moving a chat to another claude.ai Project keeps the session but lazily reboots the sandbox, a few idle minutes later. `/home/claude` survives the reboot (this file, your clones, their per-repo config and hooks). `/root` does not, so global git config comes back as `Claude <noreply@anthropic.com>`. An agent that rebuilds its codename after the reboot gets a new timestamp, and its commits stop matching the session. The user greps for these values across chats, logs and commits. **They never change within a session**, even if the session is reassigned to another Project or repo. Only `CONVO` is ever rewritten (§2e).
 
-When writing the file, take `USER_DISPLAY_NAME` and `COMMIT_EMAIL` from Project Instructions (§2a). Older Project Instructions don't carry them; then read `User display name` and `Git commit email` from `personal_info.md` (§2b).
+When writing the file, take `USER_DISPLAY_NAME` and `COMMIT_EMAIL` from Project Instructions (§2a). Older Project Instructions don't carry them; then read `User display name` and `Git commit email` from `researcher_config.md` (§2b).
 
 ```bash
 ID_DIR=/home/claude/.session-identity
@@ -247,7 +247,7 @@ Tell the user about either warning. The guard refuses any commit whose author is
 - **Keep the `Claude-Session: <link>` line.** It links the commit to the chat that made it — the join the §2e convo name otherwise has to approximate.
 - **Leave out the `Co-Authored-By:` line.** The model is already in the author slot via the codename.
 
-`personal_info.md` `Interaction style` can override either choice.
+`researcher_config.md` `Interaction style` can override either choice.
 
 **"Unverified" badge.** The sandbox signs each commit with its own key, which GitHub does not associate with the user, so GitHub labels these commits "Unverified". Expected; not a failed push. The sandbox's stop hook may tell you to change the author to `Claude <noreply@anthropic.com>` and amend so the commit shows as verified. Don't: keep the codename and the user's email, which link the commit to the user and to this session.
 
@@ -296,12 +296,12 @@ Anthropic's GitHub proxy sits between the sandbox and GitHub. It attaches the us
 1. **Connect GitHub to the Claude account:** claude.ai Settings → Connectors → GitHub.
 2. **Install the Claude GitHub App** on the GitHub account that owns the repos, at `https://github.com/apps/claude/installations/new`. Either repository-access choice works. "All repositories" needs no GitHub step when a new project repo is created. "Only select repositories" limits what a mistake could reach, but then the project repo(s), `claude_research_config`, and the home repo (if the task skills are used) must each be selected, and every new project repo added to the list. Connecting alone is not enough: a connected account with no installation can read but not push.
 
-**Attaching repos at session start.** Attach each repo with the session's add-repository tool (`add_repo`). It, `register_repo_root` and `list_repos` are usually deferred tools, and a keyword search can miss them; load them by full name with the tool search query `select:mcp__claude-code-remote__add_repo,mcp__claude-code-remote__register_repo_root,mcp__claude-code-remote__list_repos`. At session start, request **read** only: one call for `${USERNAME}/${REPO}` and one for `${USERNAME}/claude_research_config`, in the same turn, before §2.0b (the tool takes one repo per call, and the user may see an approval box for each). Attach the home repo (`HOME_REPO` in Project Instructions, or `Home repo` in `personal_info.md`), if it is neither of those, read-only before §2d.5.
+**Attaching repos at session start.** Attach each repo with the session's add-repository tool (`add_repo`). It, `register_repo_root` and `list_repos` are usually deferred tools, and a keyword search can miss them; load them by full name with the tool search query `select:mcp__claude-code-remote__add_repo,mcp__claude-code-remote__register_repo_root,mcp__claude-code-remote__list_repos`. At session start, request **read** only: one call for `${USERNAME}/${REPO}` and one for `${USERNAME}/claude_research_config`, in the same turn, before §2.0b (the tool takes one repo per call, and the user may see an approval box for each). Attach the home repo (`HOME_REPO` in Project Instructions, or `Home repo` in `researcher_config.md`), if it is neither of those, read-only before §2d.5.
 
 | Repo | At session start | Later |
 | --- | --- | --- |
 | `${USERNAME}/${REPO}` | read: clone, read Issues and Pulls | push, requested at the first commit (below) |
-| `${USERNAME}/claude_research_config` | read: `personal_info.md` (§2b) | — |
+| `${USERNAME}/claude_research_config` | read: `researcher_config.md` (§2b) | — |
 | home repo, if it is neither of the two above | read: `task-remind` (§2d.5) | push, requested when the user's request needs a write there (`task-create`, a close or a snooze) |
 
 The tool's reply carries its own instructions (clone now, shallow, then call `register_repo_root`). Follow them, with these differences:
@@ -329,7 +329,7 @@ Pushes may work on a read attachment; request push first anyway, and if the requ
 
 **Other repos:** §4.
 
-**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and suggest a go-ahead that names the action and the repo. Cover every refused step, and a push you'll need for the user's task, in one sentence the user can paste (for example, "Yes — attach danparshall/my-repo and push the commit."). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. The `personal_info.md` read is the exception: it has stayed refused even after a named go-ahead, so don't ask for one; §2b says how to carry on without it. Retry a refused step at most once, after the user's go-ahead, and don't retry it in another form (a different tool, a shallow clone for a refused full one).
+**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and suggest a go-ahead that names the action and the repo. Cover every refused step, and a push you'll need for the user's task, in one sentence the user can paste (for example, "Yes — attach danparshall/my-repo and push the commit."). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. The `researcher_config.md` read is the exception: it has stayed refused even after a named go-ahead, so don't ask for one; §2b says how to carry on without it. Retry a refused step at most once, after the user's go-ahead, and don't retry it in another form (a different tool, a shallow clone for a refused full one).
 
 **REST through the proxy.**
 
@@ -358,20 +358,22 @@ REPO="<the-research-repo-name>"
 
 In v1, the acting user owns the research repo, so OWNER == USERNAME (see §7 known limitations).
 
-### 2b — Fetch `personal_info.md`
+### 2b — Fetch `researcher_config.md`
 
 `claude_research_config` is a private repo — use `curl`, not WebFetch:
 
 ```bash
 curl -s -H "Accept: application/vnd.github+json" \
   -H "X-GitHub-Api-Version: 2022-11-28" \
-  "https://api.github.com/repos/$USERNAME/claude_research_config/contents/personal_info.md" \
+  "https://api.github.com/repos/$USERNAME/claude_research_config/contents/researcher_config.md" \
   | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
 ```
 
 This works once `claude_research_config` is attached to the session read-only (§2.0c).
 
 If the pipeline dies with a `KeyError`, GitHub or the proxy returned an error instead of the file. Re-run the `curl` on its own to read the message.
+
+**Older setups name this file `personal_info.md`.** If the read returns 404 (`Not Found`), run the same command with `personal_info.md` in place of `researcher_config.md`, and suggest once that the user rename the file in `claude_research_config` to `researcher_config.md`.
 
 Where a field here and its copy in Project Instructions differ, use this file's value (it's the one the user edits) and mention the difference once.
 
@@ -423,7 +425,7 @@ Not a heartbeat — once per session.
 
 ### 2e — Respond to the user's first message
 
-Now you know: who the user is (`personal_info.md`), what this repo does (`README.md`), what's in flight (`STATUS.md`), which workflow mode (`workflow_mode`), what skills exist (`SKILL_INDEX.md`).
+Now you know: who the user is (`researcher_config.md`), what this repo does (`README.md`), what's in flight (`STATUS.md`), which workflow mode (`workflow_mode`), what skills exist (`SKILL_INDEX.md`).
 
 **The fixed line.** Your first reply opens with one line built from the identity file (§2.0b), word for word in this shape:
 
@@ -552,7 +554,7 @@ Four universal rules across every write.
 
 **Show before committing.** Before any write to the user's repos, briefly state what and why in prose, before the write tool call. A one-sentence narration suffices for routine writes; the emphatic cases (confirmation gates below) also pause for explicit yes.
 
-**Push early and often, on any surface.** Commit → push, same beat. Don't batch commits or wait for a "should I push now?" round-trip — that round-trip is the anti-pattern this rule exists to kill. Web sandboxes die at session end (§5.6); CLI worktrees drift under concurrent agents (see `personal_info.md` "Multi-terminal sessions" if the user runs several). Unpushed work is at risk on every surface. The confirmation gates below still apply to what a commit *contains* (deletions, archives, merges, force ops) — but once a routine commit has landed cleanly, don't sit on it. On web, the first push is by hand after requesting push access (§2.0c); after it succeeds, §2.0b installs a post-commit hook that pushes automatically — read the commit output tail each time to catch push failures (network, non-fast-forward, branch protection); the hook doesn't retry and doesn't force.
+**Push early and often, on any surface.** Commit → push, same beat. Don't batch commits or wait for a "should I push now?" round-trip — that round-trip is the anti-pattern this rule exists to kill. Web sandboxes die at session end (§5.6); CLI worktrees drift under concurrent agents (see `researcher_config.md` "Multi-terminal sessions" if the user runs several). Unpushed work is at risk on every surface. The confirmation gates below still apply to what a commit *contains* (deletions, archives, merges, force ops) — but once a routine commit has landed cleanly, don't sit on it. On web, the first push is by hand after requesting push access (§2.0c); after it succeeds, §2.0b installs a post-commit hook that pushes automatically — read the commit output tail each time to catch push failures (network, non-fast-forward, branch protection); the hook doesn't retry and doesn't force.
 
 **Codify after the third repetition.** If the user asks for the same type of task three or more times (within a session or visible in `STATUS.md`), check whether it should be promoted — either to this file (runtime rule for every session), to the repo's `STATUS.md` (project-specific), or to a skill (reusable workflow). Threshold of three is sharp on purpose.
 

@@ -14,7 +14,7 @@ little, write little, leave the repo current.
    add-repository tool, then clone with no token (GitHub goes through the
    sandbox's proxy, which authenticates for attached repos):
    `git clone --depth 1 https://github.com/${USER}/${REPO}.git /home/claude/${REPO}`
-2. Fetch `personal_info.md` from `claude_research_config` (recipe in Project
+2. Fetch `researcher_config.md` from `claude_research_config` (recipe in Project
    Instructions) — who the user is, their git fluency, interaction style.
    If it fails or is refused, say so once with the exact error and carry
    on with the copies in Project Instructions (commit name, email, git

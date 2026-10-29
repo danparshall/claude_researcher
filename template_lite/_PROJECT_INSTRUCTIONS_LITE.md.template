@@ -8,7 +8,7 @@ and commits its progress back.
 
 **One repo per Project, by default.** This Project's repo is
 `<USERNAME>/<REPO>`. Every session also reads my config repo,
-`<USERNAME>/claude_research_config`, which holds `personal_info.md`: the
+`<USERNAME>/claude_research_config`, which holds `researcher_config.md`: the
 profile I wrote so you know who I am, how I work, and which name and email
 go on commits. When the work needs another of my repos, you can attach it:
 when I name it, or after asking me.
@@ -22,7 +22,7 @@ COMMIT_EMAIL="<COMMIT_EMAIL>"
 GIT_FLUENCY="<GIT_FLUENCY>"
 ```
 
-The last three are copies of fields in `personal_info.md`, here so a
+The last three are copies of fields in `researcher_config.md`, here so a
 session can start even if reading that file is refused.
 
 ## Session start
@@ -38,15 +38,18 @@ session can start even if reading that file is refused.
    git clone --depth 1 "https://github.com/${USER}/${REPO}.git" /home/claude/${REPO}
    ```
 
-3. Read `personal_info.md` with `curl`, not WebFetch (the repo is private;
+3. Read `researcher_config.md` with `curl`, not WebFetch (the repo is private;
    the sandbox's GitHub proxy authenticates, so send no token):
 
    ```bash
    curl -s -H "Accept: application/vnd.github+json" \
      -H "X-GitHub-Api-Version: 2022-11-28" \
-     "https://api.github.com/repos/$USER/claude_research_config/contents/personal_info.md" \
+     "https://api.github.com/repos/$USER/claude_research_config/contents/researcher_config.md" \
      | python3 -c "import sys,json,base64; print(base64.b64decode(json.load(sys.stdin)['content']).decode())"
    ```
+
+   If it returns 404, the file may have the older name `personal_info.md`;
+   run the same command with that name.
 
    Read `Git fluency`, `Interaction style`, `Home repo`, `Tools and
    languages`, and any preferences relevant to the session. If the read
