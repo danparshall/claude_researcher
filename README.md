@@ -54,7 +54,7 @@ Sensitive operations (file writes to the user's repos, claude.ai settings change
 
 Now fetch and follow:
 
-  https://raw.githubusercontent.com/danparshall/claude_researcher/df9b02c76eabe6c310d3ec74f709b50b401ba4b8/template/BOOTSTRAP.md
+  https://raw.githubusercontent.com/danparshall/claude_researcher/02bfb55094fcf90ee52ac3bb65685a6f5e79bfdd/template/BOOTSTRAP.md
 ```
 
 ## About
