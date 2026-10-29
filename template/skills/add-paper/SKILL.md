@@ -35,7 +35,7 @@ Check for `<!-- BEGIN GENERATED:` markers in PAPER_INDEX.md (`grep -c`), for `gi
 
 URL: `curl -L -o papers/<filename>.pdf <url>`. Local path: copy to `papers/`. Named only: search, and confirm the URL before downloading.
 
-**Filename.** If the user's personal info (`personal_info.md`, or the user section of CLAUDE.md on Claude Code) sets **`Paper naming format`** under Operating preferences, use it. Otherwise the default: `AuthorLast_Year__short_description.pdf` — double underscore, snake_case description (`Acemoglu_2024__simple_macroeconomics_AI.pdf`). If the user has no format set, ask once and offer to save their answer there.
+**Filename.** If the user's personal info (`researcher_config.md`, or the user section of CLAUDE.md on Claude Code) sets **`Paper naming format`** under Operating preferences, use it. Otherwise the default: `AuthorLast_Year__short_description.pdf` — double underscore, snake_case description (`Acemoglu_2024__simple_macroeconomics_AI.pdf`). If the user has no format set, ask once and offer to save their answer there.
 
 **Not a PDF** (blog post, X thread): print it to PDF where you can and treat it as a paper. Otherwise save the text as `papers/text/<filename>.md` and use a `- **Text extraction:**` bullet in place of `File:` in Step 4; the tool classifies the entry as text-only.
 

@@ -113,7 +113,7 @@ Skills are grouped by lifecycle role.
 
 ## Task management skills
 
-These three skills share a single GitHub-Issues backend (issues with the `task` label, `[YYYY-MM-DD]` date prefix in the title encoding fire-date for reminder-style items). `home_repo` from `personal_info.md` routes "personal" tasks away from the current research repo; default is `<gh-user>/claude_research_config`.
+These three skills share a single GitHub-Issues backend (issues with the `task` label, `[YYYY-MM-DD]` date prefix in the title encoding fire-date for reminder-style items). `home_repo` from `researcher_config.md` routes "personal" tasks away from the current research repo; default is `<gh-user>/claude_research_config`.
 
 ### task-create
 
