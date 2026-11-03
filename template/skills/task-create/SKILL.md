@@ -48,7 +48,7 @@ Determine the target repo:
 | User says "my personal list" / "personal task" / "real-world task" | Same: `home_repo` or fallback |
 | User overrides with a specific repo | What they said |
 
-Read `home_repo` from the `- **Home repo:** <owner>/<repo>` field under `## Operating preferences` in `researcher_config.md` (usually `~/code/claude_research_config/researcher_config.md`); if the file or field is missing, default to `<gh-user>/claude_research_config`. When you fall through to the default, tell the user in one clause where it landed. If the user names a repo that doesn't exist or that they can't access, surface the error from `gh issue create` and offer to retry with a different target.
+Read `home_repo` from the `- **Home repo:** <owner>/<repo>` field under `## Operating preferences` in `personal_info.md` (usually `~/code/claude_research_config/personal_info.md`); if the file or field is missing, default to `<gh-user>/claude_research_config`. When you fall through to the default, tell the user in one clause where it landed. If the user names a repo that doesn't exist or that they can't access, surface the error from `gh issue create` and offer to retry with a different target.
 
 ## Step 2: Draft title and summary
 
@@ -127,13 +127,10 @@ Commit the convo doc:
 
 ```bash
 git add docs/active/<branch>/convos/<file>.md
-git commit -m "$(cat <<'EOF'
-convo: link captured issue #<N>
-EOF
-)"
+git commit -m "convo: link captured issue #<N>"
 ```
 
-<system-reminder>Use the heredoc form — a single-line `git commit -m "..."` trips a bug in the Nori commit-author hook that writes literal `\n` into the body. `git add <file>` will also stage any other uncommitted edits in that file; commit those separately first if they shouldn't ride along. Do not push — that's the user's call (covered by `finish-convo` at session end).</system-reminder>
+<system-reminder>`git add <file>` will also stage any other uncommitted edits in that file; commit those separately first if they shouldn't ride along. Do not push — that's the user's call (covered by `finish-convo` at session end).</system-reminder>
 
 ## Report
 
