@@ -3,6 +3,7 @@
 Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`.
 
 - 2026-11-04: [Dan (air, dotfiles, 20261104T1022, opus-5.5)] Project Instructions v2.1 (full + LITE): prose points at the block's `REPO` so a copy for another Project changes one line, home repo named, chat tools allowed when asked, new title; merged locally while GitHub was down. — docs/convos/20261104_pi_v2.1_repo_in_block.md
+- 2026-10-19: [Dan (air, claude_researcher, 20261019T1127, opus-5.5)] Confirmed the Oct 13 proxy-only site changes were live, then turned #36 into a clauderesearch.ai privacy update: a You / AI provider / GitHub data-flow diagram plus training and encryption-at-rest Q&As (site `c449119`, live). A legal check kept Anthropic marks off the page. Filed #101 (AGENTS.md), #102 (other providers), #103 (synth-data); closed #36. — docs/convos/20261019_site_data_flow_diagram.md
 
 - 2026-10-14: [Dan (air, claude_researcher, 20261014T1942, opus-5.5)] Reviewed Andrea's PR #76 (her v2.5 kit as `incoming/`) by a per-skill comparison against our template; most of her new behavior hangs off her FOLDER_MAP/typed-index structure, so the plan is to not merge the folder and to split the useful material into claude_researcher ports, a new claude_writing repo, and a new claim-check repo distilled from pat-helper, verification's power-side claim check and her two verification skills; design tickets with outlines filed as #98 (writing) and #99 (claim-check). — docs/convos/20261014_andrea_incoming_pr_review.md
 
