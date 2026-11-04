@@ -13,7 +13,7 @@ The rules in RESEARCHER.md §2.0c ("REST through the proxy") apply to every row:
 | `gh issue create` | `POST /repos/{owner}/{repo}/issues` with `{"title", "body", "labels"}` |
 | `gh issue edit <N> --title …` | `PATCH /repos/{owner}/{repo}/issues/<N>` with `{"title"}` |
 | `gh issue close <N> --comment …` | `POST …/issues/<N>/comments` with `{"body"}`, then `PATCH …/issues/<N>` with `{"state": "closed"}` |
-| `gh label list … \| grep -qx task` / `gh label create` | `GET /repos/{owner}/{repo}/labels/task` (200 = exists, 404 = missing) / `POST /repos/{owner}/{repo}/labels` with `{"name", "description"}` |
+| `gh label list … \| grep -qx task` / `gh label create` | `GET /repos/{owner}/{repo}/labels/task` (200 = exists, 404 = missing) / `POST /repos/{owner}/{repo}/labels` with `{"name", "color": "0052CC", "description"}` |
 | `gh pr create` | `POST /repos/{owner}/{repo}/pulls` with `{"title", "head", "base", "body"}` |
 | `gh pr view <N>` | `GET /repos/{owner}/{repo}/pulls/<N>` |
 | `gh pr checks` | `GET /repos/{owner}/{repo}/commits/<sha>/check-runs` |
