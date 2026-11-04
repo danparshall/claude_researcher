@@ -31,6 +31,8 @@ The python form is the only form — there is no Makefile (dropped 2026-09-17; `
 
 `check` runs two checks and exits with the first non-zero: the generated files must equal a fresh render (strict: every entry has Focus + One-liner and a derivable Paper label, no `Related` slug dangles, no One-liner over 60 words), then the counts must reconcile (every File/Text ref resolves, no unreferenced PDF under `papers/`, every top-level `papers/*.pdf` has a `papers/text/` extraction, the header claims match).
 
+A file counts as present if it is on disk or a sparse checkout left it out (git's skip-worktree bit), so a worktree made with `git sparse-checkout set --no-cone '/*' '!*.pdf'` gives the same counts as a full checkout. A tracked file deleted by hand is still missing. In such a worktree a new PDF needs `git add --sparse`.
+
 ## Tool locator
 
 The hook finds the tool in this order: `$PAPER_INDEX_DIR`, then `/home/claude/.claude_researcher_template/template/skills/paper-index` (web clone), then `$HOME/.claude/skills/paper-index` (Claude Code). The hook skips with a message when none exists — a collaborator without the skill can still commit.
@@ -71,7 +73,7 @@ pending_index = "papers/pending_index.txt"  # PDFs awaiting summaries; stale lin
 ## Setting up a repo
 
 1. Markers. PAPER_INDEX.md needs three pairs, PAPER_SUMMARIES.md one; each `<!-- BEGIN GENERATED: <name> -->` … `<!-- END GENERATED: <name> -->` on its own lines, exactly once. Names: `counts`, `quick-reference`, `section-list` (INDEX); `summaries-header` (SUMMARIES). The tool never invents markers — a file without them is left alone.
-2. Hook: `mkdir -p .githooks && python3 {{skills_dir}}/paper-index/paper_index.py --print-hook > .githooks/pre-commit && chmod +x .githooks/pre-commit && git config core.hooksPath .githooks`. The hook is tracked; `core.hooksPath` is per-clone, so every fresh clone (web sessions included) runs the `git config` line once. It is check-only: it refuses a commit whose staged PAPER_SUMMARIES.md disagrees with the generated files, and a commit whose regenerated files are fresh on disk but unstaged.
+2. Hook: `mkdir -p .githooks && python3 {{skills_dir}}/paper-index/paper_index.py --print-hook > .githooks/pre-commit && chmod +x .githooks/pre-commit && git config core.hooksPath .githooks`. The hook is tracked; `core.hooksPath` is per-clone, so every fresh clone (web sessions included) runs the `git config` line once. It is check-only: it refuses a commit whose staged PAPER_SUMMARIES.md disagrees with the generated files, and a commit whose regenerated files are fresh on disk but unstaged. It runs the check only when the commit stages PAPER_SUMMARIES/INDEX/RELATED, `paper_index.toml`, or a PDF under `papers/` or an `extra_pdf_dirs` root (read at commit time), so a report PDF elsewhere doesn't trigger it. A hook installed before 2026-11-04 fires on any PDF; re-run this step to update it.
 3. `index`, then `check`; commit the three files together.
 
 `init-paper-collection` does 1–3 for a new repo.

@@ -48,13 +48,13 @@
       "templates/status_seed.md.tmpl": "0cd5e73f09f55b605aaba77a81faca19713b343d449b143f43f9c04647ad9df1"
     },
     "paper-index": {
-      "SKILL.md": "f856c299afa8a8789ae9afd131781ff052622969cb5f29d55cd5f01963e36bbe",
-      "count_papers.py": "05d5339883c92bc38e8515e8234e4917fe0b7b372e18ca7e65c8b67a51a33c63",
+      "SKILL.md": "1d7082d6cd42cc9dca53c41085f9e1909fcffb0ac3574f0bdbd45ea196bc436a",
+      "count_papers.py": "1e6325228481d8c955eb7f93cbd3341d73a7754d24858c2fc63d4123842d2a99",
       "fanout_apply.py": "cb6a7cb1f9959335eaa639e3e6037caac75fe5241cf74024de3724dbc84c95b5",
       "fanout_make_prompts.py": "0bda4433a834e6d1b56b6549daf5c1e4c5e9a192521fb9f366fbc95bd1ce9796",
       "fanout_verify.py": "5ef98d2ef67867cf93ecd16b0adf85af1c16e8802b349047dbb8fb130d345a8c",
       "gen_index.py": "299c0ea59513a5ef8a5630e4d51277a44c18607e3768d7f0582a3f0ad58b5da2",
-      "paper_index.py": "6e52f4d625902ee2b9d4663722a52c2a4f640cbcfe7063325cc5d3ec47086ee5"
+      "paper_index.py": "07956abe307dc7e393ed05bbe691e08608e6dcc92fb53e7567d0cda5eb1c1716"
     },
     "receiving-code-review": {
       "SKILL.md": "dacf1cdde565614c16681a673a99bef3365625e2cd0efa5e82819bdef6ca85db"
@@ -69,7 +69,7 @@
       "SKILL.md": "4a480f9604d14be2a3dc3ce36ef9bbf8628a6b72a82721f6344bb368a776a860"
     },
     "task-create": {
-      "SKILL.md": "63f7a0f5559a2ec572530c4e26a5d7c54afb2ec2ee56bb5af19d321b09530bd1"
+      "SKILL.md": "80036d93f70c90da432e8aae90878454d6eb5cdfd54a9e31faae02f39db8a8f9"
     },
     "task-remind": {
       "SKILL.md": "9b9f0a5d73e9599c5f03d647aea9fe121cd5a01c95e8803f613b4c1e3c4f5d13"
@@ -90,5 +90,5 @@
       "SKILL.md": "6287e7acee9d184f466b40232829b98d2abdde75e79b42e83e2f8d4d111034c5"
     }
   },
-  "source_sha": "2440e2e404595f33142678475a180cb785d1691a"
+  "source_sha": "79f84acf9b65728a3a32351897180aab3b1f62ce"
 }

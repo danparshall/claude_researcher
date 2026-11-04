@@ -93,8 +93,10 @@ Idempotent — run every time; the grep guard makes create a no-op when the labe
 
 ```bash
 gh label list --repo <owner/repo> --json name -q '.[].name' | grep -qx task || \
-  gh label create task --repo <owner/repo> --description "Tracked todo (task-create skill)"
+  gh label create task --repo <owner/repo> --color 0052CC --description "Tracked todo (task-create skill)"
 ```
+
+`0052CC` matches the label BOOTSTRAP creates, so the label looks the same whichever creates it first.
 
 ## Step 5: Create the issue
 

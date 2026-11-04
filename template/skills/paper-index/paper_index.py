@@ -48,6 +48,9 @@ DIR="${PAPER_INDEX_DIR:-}"
 [ -z "$DIR" ] && [ -d /home/claude/.claude_researcher_template/template/skills/paper-index ] && DIR=/home/claude/.claude_researcher_template/template/skills/paper-index
 [ -z "$DIR" ] && [ -d "$HOME/.claude/skills/paper-index" ] && DIR="$HOME/.claude/skills/paper-index"
 if [ -z "$DIR" ]; then echo "pre-commit: paper-index tool not found; skipping check" >&2; exit 0; fi
+# The case above is a cheap prefilter. The tool narrows it with the current
+# paper_index.toml: a PDF counts only under papers/ or an extra_pdf_dirs root.
+[ "$(git diff --cached --name-only -z | python3 "$DIR/paper_index.py" hook-filter .)" = skip ] && exit 0
 python3 "$DIR/paper_index.py" check . || { echo "pre-commit: generated index is stale — run 'python3 $DIR/paper_index.py index .' and re-stage" >&2; exit 1; }
 # The check above reads the working tree. Refuse if the generated files are
 # fresh on disk but not in the index — the commit would still carry the stale copy.
@@ -69,6 +72,27 @@ def cmd_counts(root: str) -> int:
     return count_papers.main([root])
 
 
+TRIGGER_FILES = {"PAPER_SUMMARIES.md", "PAPER_INDEX.md", "PAPER_RELATED.md", count_papers.CONFIG_FILE}
+
+
+def cmd_hook_filter(root: str) -> int:
+    """Read NUL-separated staged paths on stdin; print ``skip`` when none of
+    them can change what ``check`` reports, else ``check``. Any doubt (an
+    unreadable config) prints ``check`` so the check itself reports it."""
+    try:
+        cfg = count_papers.load_config(Path(root))
+    except count_papers.ConfigError:
+        print("check")
+        return 0
+    pdf_roots = tuple(d.rstrip("/") + "/" for d in ["papers", *cfg.extra_pdf_dirs])
+    for path in filter(None, sys.stdin.read().split("\0")):
+        if path in TRIGGER_FILES or (path.endswith(".pdf") and path.startswith(pdf_roots)):
+            print("check")
+            return 0
+    print("skip")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="paper_index.py", description=__doc__.splitlines()[0]
@@ -83,6 +107,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("root", nargs="?", default=".")
     p = sub.add_parser("counts", help="print counts and problems")
     p.add_argument("root", nargs="?", default=".")
+    p = sub.add_parser(
+        "hook-filter", help="pre-commit: read staged paths (NUL-separated) on stdin, print check or skip"
+    )
+    p.add_argument("root", nargs="?", default=".")
 
     args = ap.parse_args(argv)
     if args.print_hook:
@@ -94,6 +122,8 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_check(args.root, strict=not args.no_strict)
     if args.command == "counts":
         return cmd_counts(args.root)
+    if args.command == "hook-filter":
+        return cmd_hook_filter(args.root)
     ap.print_help()
     return 2
 

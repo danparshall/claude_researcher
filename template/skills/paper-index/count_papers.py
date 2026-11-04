@@ -40,6 +40,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import subprocess
 import sys
 from collections import Counter
 from dataclasses import dataclass, field
@@ -351,13 +352,39 @@ def section_counts(entries: list[Entry], sections: list[str]) -> dict[str, int]:
     return actual
 
 
-def _resolve(root: Path, ref: str, extra_dirs: list[str] = ()) -> Path | None:
+def sparse_absent_files(root: Path) -> set[str]:
+    """Root-relative paths git tracks but a sparse checkout leaves off disk.
+
+    These carry the skip-worktree bit (``S`` in ``git ls-files -t``). A tracked
+    file deleted by hand has no such bit, so it stays missing. Empty when the
+    root is not in a git repo or git is not installed.
+    """
+    try:
+        proc = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-t", "-z"],
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        return set()
+    if proc.returncode != 0:
+        return set()
+    return {rec[2:] for rec in proc.stdout.split("\0") if rec.startswith("S ")}
+
+
+def _present(root: Path, path: Path, sparse: set[str]) -> bool:
+    return path.is_file() or path.relative_to(root).as_posix() in sparse
+
+
+def _resolve(
+    root: Path, ref: str, extra_dirs: list[str] = (), sparse: set[str] = frozenset()
+) -> Path | None:
     """Resolve a File/Text bullet value: papers/, each extra dir, the root."""
     candidates = [root / "papers" / ref]
     candidates += [root / d / ref for d in extra_dirs]
     candidates.append(root / ref)
     for candidate in candidates:
-        if candidate.is_file():
+        if _present(root, candidate, sparse):
             return candidate
     return None
 
@@ -367,9 +394,15 @@ def audit_repo(root: Path | str) -> Report:
     cfg = load_config(root)
     md_text = (root / "PAPER_SUMMARIES.md").read_text(encoding="utf-8")
     entries, sections = parse_entries(md_text)
+    sparse = sparse_absent_files(root)
 
     papers_dir = root / "papers"
     all_pdfs = {p.relative_to(root).as_posix(): p for p in papers_dir.rglob("*.pdf")}
+    all_pdfs.update(
+        (rel, root / rel)
+        for rel in sparse
+        if rel.startswith("papers/") and rel.endswith(".pdf")
+    )
 
     broken_file_refs: list[str] = []
     broken_text_refs: list[str] = []
@@ -379,7 +412,7 @@ def audit_repo(root: Path | str) -> Report:
     for e in entries:
         has_pdf = False
         for ref in e.pdf_refs:
-            p = _resolve(root, ref, cfg.extra_pdf_dirs)
+            p = _resolve(root, ref, cfg.extra_pdf_dirs, sparse)
             if p is None:
                 broken_file_refs.append(f"{e.slug}: {ref}")
             else:
@@ -389,7 +422,7 @@ def audit_repo(root: Path | str) -> Report:
                 has_pdf = True
         has_text = False
         for ref in e.text_refs:
-            if _resolve(root, ref, cfg.extra_pdf_dirs) is None:
+            if _resolve(root, ref, cfg.extra_pdf_dirs, sparse) is None:
                 broken_text_refs.append(f"{e.slug}: {ref}")
             else:
                 has_text = True
@@ -447,9 +480,10 @@ def audit_repo(root: Path | str) -> Report:
     text_dir = papers_dir / "text"
     pdfs_missing_text = sorted(
         p.name
-        for p in papers_dir.glob("*.pdf")
-        if not (text_dir / f"{p.stem}.txt").is_file()
-        and not (text_dir / f"{p.stem}.md").is_file()
+        for rel, p in all_pdfs.items()
+        if rel.count("/") == 1
+        and not _present(root, text_dir / f"{p.stem}.txt", sparse)
+        and not _present(root, text_dir / f"{p.stem}.md", sparse)
     )
 
     problems = {
