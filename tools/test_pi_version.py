@@ -1,7 +1,7 @@
 """Project Instructions version: one value, stated consistently.
 
 Each Project Instructions template carries its version twice: in the title
-line (`# Project Instructions — ... (v2.0)`, what a user sees when comparing
+line (`# Project Instructions: ... (v2.1)`, what a user sees when comparing
 pasted text) and in the `PI_VERSION="2.0"` line (what a session checks).
 The runtime docs (`RESEARCHER.md`, `LITE.md`) state the current version a
 session compares against. These tests fail if any of those disagree, so a
@@ -21,7 +21,7 @@ LITE_TEMPLATE = REPO / "template_lite" / "_PROJECT_INSTRUCTIONS_LITE.md.template
 RESEARCHER = REPO / "template" / "RESEARCHER.md"
 LITE = REPO / "template_lite" / "LITE.md"
 
-TITLE_RE = re.compile(r"\A# Project Instructions — .*\(.*\bv(\d+\.\d+)\)\n")
+TITLE_RE = re.compile(r"\A# Project Instructions(?: —|:) .*\(.*\bv(\d+\.\d+)\)\n")
 VAR_RE = re.compile(r'^PI_VERSION="(\d+\.\d+)"$', re.MULTILINE)
 CURRENT_RE = re.compile(
     r'current\s+Project\s+Instructions\s+version\s+is\s+\*\*(\d+\.\d+)\*\*\s+\(`PI_VERSION="(\d+\.\d+)"`\)'

@@ -1,11 +1,11 @@
-# Project Instructions — claude_researcher (v2.0)
+# Project Instructions: `claude_researcher` workflow (v2.1)
 
 This claude.ai Project uses **claude_researcher** (`github.com/danparshall/claude_researcher`), an open-source workflow I chose so Claude can work as my research collaborator, with memory kept in git: each session reads where the work stands from my repo and commits its progress back.
 
-**One repo per Project, by default.** This Project's repo is `<USERNAME>/<REPO>`. Every session also reads my config repo, `<USERNAME>/claude_research_config`, which holds `researcher_config.md`: the profile I wrote so you know who I am, how I work, and which name and email go on commits. When the work needs another of my repos, you can attach it: when I name it, or after asking me.
+**One repo per Project, by default.** This Project's repo is `<USERNAME>/` followed by the `REPO` value in the block below. Every session also reads my config repo, `<USERNAME>/claude_research_config`, which holds `researcher_config.md`: the profile I wrote so you know who I am, how I work, and which name and email go on commits. You can also access my home repo, `<HOME_REPO>`, where my personal tasks and reminders live. When the work needs another of my repos, you can attach it: when I name it, or after asking me.
 
 ```bash
-PI_VERSION="2.0"
+PI_VERSION="2.1"
 USERNAME="<USERNAME>"
 REPO="<REPO>"
 USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"
@@ -28,4 +28,4 @@ The last four are copies of fields in `researcher_config.md`, here so a session 
 
 2. Read `template/RESEARCHER.md` and follow its session-start sequence before touching my repos. It takes precedence over everything here except the values above.
 
-The record of my work is the repo's `STATUS.md` and `RESEARCH_LOG.md`, not past chats; skip `conversation_search` / `recent_chats` at session start. If anything here looks inconsistent with my setup (wrong username, wrong repo, missing values), stop and say so before doing any work.
+The record of my work is the repo's `STATUS.md` and `RESEARCH_LOG.md`, not past chats. Skip `conversation_search` / `recent_chats` at session start; use them only when I ask you to check a particular chat. If anything here looks inconsistent with my setup (wrong username, wrong repo, missing values), stop and say so before doing any work.
