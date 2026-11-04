@@ -1,4 +1,4 @@
-# Project Instructions — claude_researcher (v2.1)
+# Project Instructions: `claude_researcher` workflow (v2.1)
 
 This claude.ai Project uses **claude_researcher** (`github.com/danparshall/claude_researcher`), an open-source workflow I chose so Claude can work as my research collaborator, with memory kept in git: each session reads where the work stands from my repo and commits its progress back.
 
