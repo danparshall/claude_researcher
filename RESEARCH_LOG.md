@@ -2,6 +2,7 @@
 
 Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`.
 
+- 2026-11-04: [Dan (air, claude_researcher, 20261104T1443, opus-5.5)] Fixed paper-index for sparse worktrees (#108: skip-worktree files count as present) and narrowed its hook to paper PDFs, read from the config at commit time (#109); task label color 0052CC (#21). Code in dotfiles `546ae8e`, exported `1c76e32`; all three closed. Merged the stranded Oct 19 convo, surveyed worktrees, and handed off stale-branch cleanup. — docs/convos/20261104_paper_index_sparse_and_cleanup.md
 - 2026-11-04: [Dan (air, dotfiles, 20261104T1022, opus-5.5)] Project Instructions v2.1 (full + LITE): prose points at the block's `REPO` so a copy for another Project changes one line, home repo named, chat tools allowed when asked, new title; merged locally while GitHub was down. — docs/convos/20261104_pi_v2.1_repo_in_block.md
 - 2026-10-19: [Dan (air, claude_researcher, 20261019T1127, opus-5.5)] Confirmed the Oct 13 proxy-only site changes were live, then turned #36 into a clauderesearch.ai privacy update: a You / AI provider / GitHub data-flow diagram plus training and encryption-at-rest Q&As (site `c449119`, live). A legal check kept Anthropic marks off the page. Filed #101 (AGENTS.md), #102 (other providers), #103 (synth-data); closed #36. — docs/convos/20261019_site_data_flow_diagram.md
 
