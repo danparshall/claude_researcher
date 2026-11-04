@@ -1,4 +1,4 @@
-# Project Instructions — <REPO> (lite mode, v2.0)
+# Project Instructions — claude_researcher (lite mode, v2.1)
 
 This claude.ai Project uses **lite mode** of claude_researcher
 (`github.com/danparshall/claude_researcher`, `template_lite/`), an
@@ -7,14 +7,15 @@ full research machinery: each session reads where things stand from my repo
 and commits its progress back.
 
 **One repo per Project, by default.** This Project's repo is
-`<USERNAME>/<REPO>`. Every session also reads my config repo,
+`<USERNAME>/` followed by the `REPO` value in the block below. Every
+session also reads my config repo,
 `<USERNAME>/claude_research_config`, which holds `researcher_config.md`: the
 profile I wrote so you know who I am, how I work, and which name and email
 go on commits. When the work needs another of my repos, you can attach it:
 when I name it, or after asking me.
 
 ```bash
-PI_VERSION="2.0"
+PI_VERSION="2.1"
 USER=<USERNAME>
 REPO=<REPO>
 USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"
@@ -59,7 +60,8 @@ session can start even if reading that file is refused.
 At the first commit, request push for `${USER}/${REPO}` with the
 add-repository tool, then push (`LITE.md` has the details).
 
-The record is `STATUS.md`, `DECISIONS.md` and `git log`, not past chats;
-skip `conversation_search` / `recent_chats` at session start. If anything
+The record is `STATUS.md`, `DECISIONS.md` and `git log`, not past chats.
+Skip `conversation_search` / `recent_chats` at session start; use them only
+when I ask you to check a particular chat. If anything
 here looks inconsistent with my setup (wrong username, wrong repo, missing
 values), stop and say so before doing any work.
