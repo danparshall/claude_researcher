@@ -1,4 +1,4 @@
-# Project Instructions: `claude_researcher` workflow (lite mode, v2.1)
+# Project Instructions: `claude_researcher` workflow (lite mode, v2.2)
 
 This claude.ai Project uses **lite mode** of claude_researcher
 (`github.com/danparshall/claude_researcher`, `template_lite/`), an
@@ -15,7 +15,7 @@ go on commits. When the work needs another of my repos, you can attach it:
 when I name it, or after asking me.
 
 ```bash
-PI_VERSION="2.1"
+PI_VERSION="2.2"
 USER=<USERNAME>
 REPO=<REPO>
 USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"
@@ -26,11 +26,26 @@ GIT_FLUENCY="<GIT_FLUENCY>"
 The last three are copies of fields in `researcher_config.md`, here so a
 session can start even if reading that file is refused.
 
+## If anything is blocked at startup
+
+If the permission check refuses any repo you're instructed to access, or the
+`researcher_config.md` read, don't let it pass quietly. Stop, don't answer my
+message yet, and make your whole reply this heading in capitals:
+
+⚠️ SESSION START BLOCKED: THE PERMISSION CHECK REFUSED ACCESS I NEED. COPY THE BOX BELOW AND SEND IT TO ALLOW IT.
+
+Under it, one line per blocked step with the exact denial text. Then one
+sentence naming every blocked action and repo, alone in its own code block
+(no label or quotation marks inside) so I can copy it in one click. After I
+send it, retry each blocked step once, in the same form, report the result in
+one line per step, then answer my message.
+
 ## Session start
 
-1. Attach `${USER}/${REPO}` and `${USER}/claude_research_config` read-only
-   with the add-repository tool (`add_repo`; if it isn't listed, load it with the
-   tool search query `select:mcp__claude-code-remote__add_repo`), one call each, same turn.
+1. Attach `${USER}/claude_research_config` read-only with the add-repository
+   tool (`add_repo`; if it isn't listed, load it with the tool search query
+   `select:mcp__claude-code-remote__add_repo`), then, once it has replied,
+   `${USER}/${REPO}`: one call each, not in parallel.
 2. Clone the repo, then read `LITE.md` at its root. That file is the runtime
    spec (memory model, disposition, session-end rules) and takes precedence
    over anything here except the values above:
@@ -54,8 +69,8 @@ session can start even if reading that file is refused.
 
    Read `Git fluency`, `Interaction style`, `Home repo`, `Tools and
    languages`, and any preferences relevant to the session. If the read
-   fails or is refused, tell me once with the exact error and carry on with
-   the copies above; don't retry it.
+   fails, carry on with the copies above. If it's refused, handle it as
+   under "If anything is blocked at startup".
 
 At the first commit, request push for `${USER}/${REPO}` with the
 add-repository tool, then push (`LITE.md` has the details).

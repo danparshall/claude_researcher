@@ -2,6 +2,8 @@
 
 Sessions with no research line, newest first. Line sessions log in `docs/active/<line>/RESEARCH_LOG.md`.
 
+- 2026-11-06: [Dan (air, dotfiles, 20261106T1002, opus-5.5)] Project Instructions v2.2 (full + LITE): a "blocked at startup" section in the pasted text itself, so the stop-and-announce rule (Plan 18) fires even when the template clone or an attach is refused before RESEARCHER.md/LITE.md is read; LITE PI drops "don't retry" on the config read and attaches config first; a third version number (2.2.1) now means the user's own variant. Branch `pi-v2.2`. — docs/plans/18_session_start_refusals.md
+
 - 2026-11-06: [Dan (air, dotfiles, 20261106T1002, opus-5.5)] Built Plan 18 (#107) on branch `session-start-refusals`: the first reply must carry "Blocked at start" lines with the denial text and one paste-able go-ahead; the config read is no longer exempt from asking; retry once and confirm in one line; config attach goes first, on its own (experiment); LITE.md, HUMANS.md and resolve-runtime-issue match. Not yet web-tested; the watch log for 5 sessions is in the plan. — docs/plans/18_session_start_refusals.md
 
 - 2026-11-04: [Dan (air, claude_researcher, 20261104T1443, opus-5.5)] Fixed paper-index for sparse worktrees (#108: skip-worktree files count as present) and narrowed its hook to paper PDFs, read from the config at commit time (#109); task label color 0052CC (#21). Code in dotfiles `546ae8e`, exported `1c76e32`; all three closed. Merged the stranded Oct 19 convo, surveyed worktrees, and handed off stale-branch cleanup. — docs/convos/20261104_paper_index_sparse_and_cleanup.md
