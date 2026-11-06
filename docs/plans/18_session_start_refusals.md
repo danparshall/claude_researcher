@@ -57,9 +57,11 @@ Over the next 5 web sessions: every session-start refusal shows up in the first 
 
 Built 2026-11-06 on branch `session-start-refusals` (changes 1-5; change 6 is this section). Change 5's question, whether claude.ai sessions offer a permission setting other than auto, is **not checked**: it needs a web session. HUMANS.md says nothing about it.
 
+**Amended 2026-11-06 (Dan):** a session-start refusal now **stops** the first reply instead of being answered alongside it. The reply is the fixed line plus a capitalized "⚠️ SESSION START BLOCKED" announcement and the paste line, nothing else; the agent answers the first message after the retry. Reason: agents write long first replies, and a refusal mentioned partway through is easy to miss. This replaces change 1's "don't block on the paste".
+
 ## Watch log (5 web sessions)
 
 The evidence table above is the baseline. One row per web session after the build:
 
-| Date | Codename | Attach outcomes | Config read | Blocked-at-start lines in first reply? | Retry after paste cleared it? | Notes |
+| Date | Codename | Attach outcomes | Config read | First reply stopped with the SESSION START BLOCKED announcement? | Retry after paste cleared it? | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
