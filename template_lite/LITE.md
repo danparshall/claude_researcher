@@ -19,8 +19,11 @@ little, write little, leave the repo current.
    If it fails or is refused, carry on with the copies in Project
    Instructions (commit name, email, git fluency), and handle the refusal
    under "Refused steps" below. The current Project Instructions
-   version is **2.1** (`PI_VERSION="2.1"`), also shown in their title line;
-   a bare `2` counts as 2.0. If Project Instructions have no
+   version is **2.2** (`PI_VERSION="2.2"`), also shown in their title line;
+   a bare `2` counts as 2.0, and a third number marks the user's own variant
+   (`2.2.1` is 2.2 plus their edits, so compare only the first two; where
+   their added text differs from this file, follow theirs). If Project
+   Instructions have no
    `PI_VERSION` or a lower one, tell the user once that they're out of date
    (the current text is `template_lite/_PROJECT_INSTRUCTIONS_LITE.md.template`
    upstream).

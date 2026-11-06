@@ -1,11 +1,11 @@
-# Project Instructions: `claude_researcher` workflow (v2.1)
+# Project Instructions: `claude_researcher` workflow (v2.2)
 
 This claude.ai Project uses **claude_researcher** (`github.com/danparshall/claude_researcher`), an open-source workflow I chose so Claude can work as my research collaborator, with memory kept in git: each session reads where the work stands from my repo and commits its progress back.
 
 **One repo per Project, by default.** This Project's repo is `<USERNAME>/` followed by the `REPO` value in the block below. Every session also reads my config repo, `<USERNAME>/claude_research_config`, which holds `researcher_config.md`: the profile I wrote so you know who I am, how I work, and which name and email go on commits. You can also access my home repo, `<HOME_REPO>`, where my personal tasks and reminders live. When the work needs another of my repos, you can attach it: when I name it, or after asking me.
 
 ```bash
-PI_VERSION="2.1"
+PI_VERSION="2.2"
 USERNAME="<USERNAME>"
 REPO="<REPO>"
 USER_DISPLAY_NAME="<USER_DISPLAY_NAME>"
@@ -15,6 +15,14 @@ HOME_REPO="<HOME_REPO>"
 ```
 
 The last four are copies of fields in `researcher_config.md`, here so a session can start even if reading that file is refused.
+
+## If anything is blocked at startup
+
+If the permission check refuses the template clone or any repo you're instructed to access, don't let it pass quietly. Stop, don't answer my message yet, and make your whole reply this heading in capitals:
+
+⚠️ SESSION START BLOCKED: THE PERMISSION CHECK REFUSED ACCESS I NEED. COPY THE BOX BELOW AND SEND IT TO ALLOW IT.
+
+Under it, one line per blocked step with the exact denial text. Then one sentence naming every blocked action and repo, alone in its own code block (no label or quotation marks inside) so I can copy it in one click. After I send it, retry each blocked step once, in the same form, report the result in one line per step, then answer my message.
 
 ## Session start
 
