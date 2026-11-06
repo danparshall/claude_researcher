@@ -42,6 +42,7 @@ This project is scoped on purpose. It's trying to be very good at *one thing*: m
 - **A collaboration platform.** v1 assumes a solo researcher owns the research repo. Multi-person teams (a professor sharing a repo with a grad student, say) are planned for v1.1 but aren't here yet.
 - **A coding environment.** You can do small amounts of analysis or scripting through the agent, but the design center is research conversation, paper management, and durable notes — not building software.
 - **A perfect abstraction.** The Project Instructions field is one place where you have to paste a small block of text to set up each Project. It's a one-time setup per Project, but it's not invisible.
+- **A hands-off session start.** In claude.ai's auto permission mode, a safety check refuses actions it can't tie to something you typed in the chat, and Project Instructions don't count as you asking. So a session may start by showing what was blocked and one line for you to paste (for example, "Yes, attach my-name/claude_research_config read-only and read researcher_config.md."); pasting it lets the agent retry once.
 
 ## Where instructions to Claude live
 

@@ -52,3 +52,14 @@ Over the next 5 web sessions: every session-start refusal shows up in the first 
 ## Files
 
 `template/RESEARCHER.md` (§2.0c "Permission checks", §2b, §2e), `template_lite/LITE.md` ("Refused steps"), `HUMANS.md`, `RESEARCH_LOG.md`, this plan as `docs/plans/18_session_start_refusals.md`.
+
+## Implementation status
+
+Built 2026-11-06 on branch `session-start-refusals` (changes 1-5; change 6 is this section). Change 5's question, whether claude.ai sessions offer a permission setting other than auto, is **not checked**: it needs a web session. HUMANS.md says nothing about it.
+
+## Watch log (5 web sessions)
+
+The evidence table above is the baseline. One row per web session after the build:
+
+| Date | Codename | Attach outcomes | Config read | Blocked-at-start lines in first reply? | Retry after paste cleared it? | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
