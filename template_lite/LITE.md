@@ -16,9 +16,9 @@ little, write little, leave the repo current.
    `git clone --depth 1 https://github.com/${USER}/${REPO}.git /home/claude/${REPO}`
 2. Fetch `researcher_config.md` from `claude_research_config` (recipe in Project
    Instructions) — who the user is, their git fluency, interaction style.
-   If it fails or is refused, say so once with the exact error and carry
-   on with the copies in Project Instructions (commit name, email, git
-   fluency). Don't retry a refused read. The current Project Instructions
+   If it fails or is refused, carry on with the copies in Project
+   Instructions (commit name, email, git fluency), and handle the refusal
+   under "Refused steps" below. The current Project Instructions
    version is **2.1** (`PI_VERSION="2.1"`), also shown in their title line;
    a bare `2` counts as 2.0. If Project Instructions have no
    `PI_VERSION` or a lower one, tell the user once that they're out of date
@@ -34,9 +34,20 @@ add-repository tool, then push. A reply of `already_present` means proceed.
 Request push even if pushes seem to work without it. Issue and PR writes only
 when the user asked for that write.
 
-**Refused steps.** If the sandbox's permission check refuses a step, show the
-user the exact denial text and the step it blocked, and ask. Don't retry it
-in another form, and don't keep committing work that can't be pushed.
+**Refused steps.** The sandbox's permission check refuses actions it can't
+tie to something the user typed in this chat; Project Instructions don't
+count. If it refuses a step, show the user the step and the exact denial
+text, plus one sentence they can paste that names every refused action and
+repo (e.g. "Yes, attach danparshall/my-repo read-only and read
+researcher_config.md."). Put the sentence alone in its own fenced code block,
+so the chat shows a copy button: no label or quotation marks inside, nothing
+after it. For refusals at session start, **stop**: the first reply is only
+this, under the capitalized heading "⚠️ SESSION START BLOCKED: THE
+PERMISSION CHECK REFUSED ACCESS I NEED. COPY THE BOX BELOW AND SEND IT TO
+ALLOW IT." Don't answer the user's message yet. After the paste, retry each step
+once in the same form, report the result in one line, then answer. If it's
+still refused, carry on without it and don't ask again. Never retry in another form, and don't keep committing work
+that can't be pushed.
 
 ## Disposition (condensed from RESEARCHER.md §0)
 

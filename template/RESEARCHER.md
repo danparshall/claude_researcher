@@ -296,7 +296,7 @@ Anthropic's GitHub proxy sits between the sandbox and GitHub. It attaches the us
 1. **Connect GitHub to the Claude account:** claude.ai Settings → Connectors → GitHub.
 2. **Install the Claude GitHub App** on the GitHub account that owns the repos, at `https://github.com/apps/claude/installations/new`. Either repository-access choice works. "All repositories" needs no GitHub step when a new project repo is created. "Only select repositories" limits what a mistake could reach, but then the project repo(s), `claude_research_config`, and the home repo (if the task skills are used) must each be selected, and every new project repo added to the list. Connecting alone is not enough: a connected account with no installation can read but not push.
 
-**Attaching repos at session start.** Attach each repo with the session's add-repository tool (`add_repo`). It, `register_repo_root` and `list_repos` are usually deferred tools, and a keyword search can miss them; load them by full name with the tool search query `select:mcp__claude-code-remote__add_repo,mcp__claude-code-remote__register_repo_root,mcp__claude-code-remote__list_repos`. At session start, request **read** only: one call for `${USERNAME}/${REPO}` and one for `${USERNAME}/claude_research_config`, in the same turn, before §2.0b (the tool takes one repo per call, and the user may see an approval box for each). Attach the home repo (`HOME_REPO` in Project Instructions, or `Home repo` in `researcher_config.md`), if it is neither of those, read-only before §2d.5.
+**Attaching repos at session start.** Attach each repo with the session's add-repository tool (`add_repo`). It, `register_repo_root` and `list_repos` are usually deferred tools, and a keyword search can miss them; load them by full name with the tool search query `select:mcp__claude-code-remote__add_repo,mcp__claude-code-remote__register_repo_root,mcp__claude-code-remote__list_repos`. At session start, request **read** only, before §2.0b: first `${USERNAME}/claude_research_config` in a call of its own, then, once it has replied, `${USERNAME}/${REPO}` (the tool takes one repo per call, and the user may see an approval box for each). Don't send the two in parallel. This order is an experiment: in one session, a parallel pair split (project attached, config refused), and it's untested whether order or parallelism matters. Attach the home repo (`HOME_REPO` in Project Instructions, or `Home repo` in `researcher_config.md`), if it is neither of those, read-only before §2d.5.
 
 | Repo | At session start | Later |
 | --- | --- | --- |
@@ -329,7 +329,9 @@ Pushes may work on a read attachment; request push first anyway, and if the requ
 
 **Other repos:** §4.
 
-**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and suggest a go-ahead that names the action and the repo. Cover every refused step, and a push you'll need for the user's task, in one sentence the user can paste (for example, "Yes — attach danparshall/my-repo and push the commit."). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. The `researcher_config.md` read is the exception: it has stayed refused even after a named go-ahead, so don't ask for one; §2b says how to carry on without it. Retry a refused step at most once, after the user's go-ahead, and don't retry it in another form (a different tool, a shallow clone for a refused full one).
+**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and give them one sentence they can paste that names every refused action and repo, plus a push you'll need for the user's task. Put the sentence alone in its own fenced code block so the chat shows a copy button, with no label or quotation marks inside (for example, "Yes, attach danparshall/claude_research_config read-only, read researcher_config.md, and push the commit to danparshall/my-repo."). Refusals at session start stop the first reply with a capitalized "SESSION START BLOCKED" announcement (§2e). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. Include the `researcher_config.md` read in the sentence too. Reads have stayed refused even after a named go-ahead (the Plan 17 tests), but an attach refused on 2026-11-02 cleared after the user asked for it in chat, so it's worth the one ask.
+
+**After the user's go-ahead, retry and confirm.** Retry each refused step once, in the same form: never in another form (a different tool or recipe, a shallow clone for a refused full one). Then report the outcome in one line per step, e.g. "Config read: ok", or the new denial text. If a step is still refused, carry on without it (§2b says how, for the config read) and don't ask again this session.
 
 **REST through the proxy.**
 
@@ -381,7 +383,7 @@ Read: `Name`, `Current role`, history, `Tools and languages`, `Research interest
 
 A 403 whose message mentions `add_repo` means the config repo is not yet attached to this session (§2.0c). A 404 most likely means the repo does not exist under that name or the Claude GitHub App installation does not include it; surface (`resolve-runtime-issue`).
 
-**If the read fails or is refused, carry on** with the copies in Project Instructions. The permission check has refused this read in most test sessions, under labels such as [PII Data Handling], and a typed go-ahead didn't clear it, so don't retry it or ask for one. Tell the user once, with the exact error, that you're working without their profile's interaction style and background. If Project Instructions have no copies either, ask the user for their git fluency and use the fallback identity in §2.0b.
+**If the read fails or is refused, finish the other session-start steps** using the copies in Project Instructions, then stop at §2e. The permission check has refused this read in most test sessions, under labels such as [PII Data Handling]. In Plan 17's tests a typed go-ahead didn't clear it, but one is still worth asking for, once. Put it in the first reply's "SESSION START BLOCKED" announcement (§2e) with the exact error, and follow "Permission checks" (§2.0c) for the retry. If Project Instructions have no copies either, ask the user for their git fluency and use the fallback identity in §2.0b.
 
 ### 2c — Read `STATUS.md` (partial) and `README.md`
 
@@ -436,6 +438,21 @@ Session: <SESSION_DATE as YYYY-MM-DD> · <SESSION_ID> · <CHAT_LINK> · <CODENAM
 e.g. `Session: 2026-08-10 · 4f0c…e21 · https://claude.ai/code/session_01Ab… · Dan (web, canary-policy, 20260810T1442, fable-5.1) · convo pending`.
 
 The user greps for these values across chats, logs and commits, so the line matches one session to its commits and tells concurrent sessions apart. **The values never change within a session, even if the chat is moved to another Project or repo.** Only the convo field changes (below). Show the line again, unchanged apart from the convo field, after any of these: you notice the chat was moved to another Project (Project Instructions name a different repo, or the sandbox rebooted), you make a new clone, the context was compacted, or the convo name changes.
+
+**Blocked at start: stop and announce (mandatory when anything was refused).** If any session-start step was refused (an attach, the §2b read, the home-repo attach, the template clone), **stop.** Don't answer the user's message, even when it's a substantive task: a refusal mentioned partway through a long first reply is easy to miss. The whole reply is the fixed line followed by this, heading in capitals, and nothing else:
+
+````
+⚠️ SESSION START BLOCKED: THE PERMISSION CHECK REFUSED ACCESS I NEED. COPY THE BOX BELOW AND SEND IT TO ALLOW IT.
+
+- <step>: <exact denial text, trimmed to one line>
+- <step>: <exact denial text, trimmed to one line>
+
+```
+<one sentence naming every refused action and repo>
+```
+````
+
+The sentence goes alone in its own fenced code block, so the chat shows a copy button on it: no label, no quotation marks, nothing else inside the block, and nothing after it. e.g. a denial line `- add_repo danparshall/claude_research_config (read): Permission for this action was denied by the Claude Code auto mode classifier.`, then a code block holding only `Yes, attach danparshall/claude_research_config read-only and read researcher_config.md.` Once the user sends the sentence, follow "Permission checks" (§2.0c): retry each step once, report the outcome in one line per step, then answer their first message. If the user replies with something else instead, carry on without the refused steps and say once what's missing. A refusal that comes later in the session follows "Permission checks" directly.
 
 Then respond with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). Reference the most-recent active line if the user's message is ambiguous.
 
