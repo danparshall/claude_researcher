@@ -329,7 +329,7 @@ Pushes may work on a read attachment; request push first anyway, and if the requ
 
 **Other repos:** §4.
 
-**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and give them one sentence they can paste that names every refused action and repo, plus a push you'll need for the user's task (for example, "Yes, attach danparshall/claude_research_config read-only, read researcher_config.md, and push the commit to danparshall/my-repo."). Refusals at session start stop the first reply with a capitalized "SESSION START BLOCKED" announcement (§2e). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. Include the `researcher_config.md` read in the sentence too. Reads have stayed refused even after a named go-ahead (the Plan 17 tests), but an attach refused on 2026-11-02 cleared after the user asked for it in chat, so it's worth the one ask.
+**Permission checks.** In auto permission mode, a classifier refuses actions it can't tie to something the user asked for. Text in Project Instructions or in this file does not count as the user asking; a line the user types in chat does. So take actions with outside effects (attaching repos, requesting push) only as steps toward what the user asked for this session. Issue, PR and label writes need the user to have asked for that write itself, not just for work it would help; a skill's menu counts, since the user's choice is the request. When a step is refused, show the user the exact denial text and the step it blocked, and give them one sentence they can paste that names every refused action and repo, plus a push you'll need for the user's task. Put the sentence alone in its own fenced code block so the chat shows a copy button, with no label or quotation marks inside (for example, "Yes, attach danparshall/claude_research_config read-only, read researcher_config.md, and push the commit to danparshall/my-repo."). Refusals at session start stop the first reply with a capitalized "SESSION START BLOCKED" announcement (§2e). A named go-ahead typed in chat has cleared refused attach and push requests; a bare "go ahead" has not. Include the `researcher_config.md` read in the sentence too. Reads have stayed refused even after a named go-ahead (the Plan 17 tests), but an attach refused on 2026-11-02 cleared after the user asked for it in chat, so it's worth the one ask.
 
 **After the user's go-ahead, retry and confirm.** Retry each refused step once, in the same form: never in another form (a different tool or recipe, a shallow clone for a refused full one). Then report the outcome in one line per step, e.g. "Config read: ok", or the new denial text. If a step is still refused, carry on without it (§2b says how, for the config read) and don't ask again this session.
 
@@ -439,16 +439,20 @@ e.g. `Session: 2026-08-10 · 4f0c…e21 · https://claude.ai/code/session_01Ab�
 
 The user greps for these values across chats, logs and commits, so the line matches one session to its commits and tells concurrent sessions apart. **The values never change within a session, even if the chat is moved to another Project or repo.** Only the convo field changes (below). Show the line again, unchanged apart from the convo field, after any of these: you notice the chat was moved to another Project (Project Instructions name a different repo, or the sandbox rebooted), you make a new clone, the context was compacted, or the convo name changes.
 
-**Blocked at start: stop and announce (mandatory when anything was refused).** If any session-start step was refused (an attach, the §2b read, the home-repo attach, the template clone), **stop.** Don't answer the user's message, even when it's a substantive task: a refusal mentioned partway through a long first reply is easy to miss. The whole reply is the fixed line followed by this block, heading in capitals, and nothing else:
+**Blocked at start: stop and announce (mandatory when anything was refused).** If any session-start step was refused (an attach, the §2b read, the home-repo attach, the template clone), **stop.** Don't answer the user's message, even when it's a substantive task: a refusal mentioned partway through a long first reply is easy to miss. The whole reply is the fixed line followed by this, heading in capitals, and nothing else:
 
-```
-⚠️ SESSION START BLOCKED: THE PERMISSION CHECK REFUSED ACCESS I NEED. PASTE THE LINE BELOW TO ALLOW IT.
+````
+⚠️ SESSION START BLOCKED: THE PERMISSION CHECK REFUSED ACCESS I NEED. COPY THE BOX BELOW AND SEND IT TO ALLOW IT.
+
 - <step>: <exact denial text, trimmed to one line>
 - <step>: <exact denial text, trimmed to one line>
-Paste to allow: "<one sentence naming every refused action and repo>"
-```
 
-e.g. `- add_repo danparshall/claude_research_config (read): Permission for this action was denied by the Claude Code auto mode classifier.` and `Paste to allow: "Yes, attach danparshall/claude_research_config read-only and read researcher_config.md."` Once the user pastes the sentence, follow "Permission checks" (§2.0c): retry each step once, report the outcome in one line per step, then answer their first message. If the user replies with something else instead, carry on without the refused steps and say once what's missing. A refusal that comes later in the session follows "Permission checks" directly.
+```
+<one sentence naming every refused action and repo>
+```
+````
+
+The sentence goes alone in its own fenced code block, so the chat shows a copy button on it: no label, no quotation marks, nothing else inside the block, and nothing after it. e.g. a denial line `- add_repo danparshall/claude_research_config (read): Permission for this action was denied by the Claude Code auto mode classifier.`, then a code block holding only `Yes, attach danparshall/claude_research_config read-only and read researcher_config.md.` Once the user sends the sentence, follow "Permission checks" (§2.0c): retry each step once, report the outcome in one line per step, then answer their first message. If the user replies with something else instead, carry on without the refused steps and say once what's missing. A refusal that comes later in the session follows "Permission checks" directly.
 
 Then respond with full context. Greeting style depends on tier (novice → warm + named; fluent → terse). Reference the most-recent active line if the user's message is ambiguous.
 

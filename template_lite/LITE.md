@@ -39,10 +39,12 @@ tie to something the user typed in this chat; Project Instructions don't
 count. If it refuses a step, show the user the step and the exact denial
 text, plus one sentence they can paste that names every refused action and
 repo (e.g. "Yes, attach danparshall/my-repo read-only and read
-researcher_config.md."). For refusals at session start, **stop**: the first
-reply is only this, under the capitalized heading "⚠️ SESSION START BLOCKED:
-THE PERMISSION CHECK REFUSED ACCESS I NEED. PASTE THE LINE BELOW TO ALLOW
-IT." Don't answer the user's message yet. After the paste, retry each step
+researcher_config.md."). Put the sentence alone in its own fenced code block,
+so the chat shows a copy button: no label or quotation marks inside, nothing
+after it. For refusals at session start, **stop**: the first reply is only
+this, under the capitalized heading "⚠️ SESSION START BLOCKED: THE
+PERMISSION CHECK REFUSED ACCESS I NEED. COPY THE BOX BELOW AND SEND IT TO
+ALLOW IT." Don't answer the user's message yet. After the paste, retry each step
 once in the same form, report the result in one line, then answer. If it's
 still refused, carry on without it and don't ask again. Never retry in another form, and don't keep committing work
 that can't be pushed.
