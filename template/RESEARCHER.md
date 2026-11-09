@@ -491,6 +491,8 @@ The research repo has a specific documentation structure. Each file has a define
 | **PAPER_INDEX.md** | One-sentence summary of each paper in `papers/`. Entry point for literature lookup. Its generated blocks come from `paper_index.py index`; edit entries in PAPER_SUMMARIES.md, not rows. | When you need to find a paper on a topic (repos with `papers/`) |
 | **PAPER_SUMMARIES.md** | Key conclusions per paper, with numerical findings. Too long for every session — reach for it after the index points you somewhere. | On demand, after PAPER_INDEX identifies a paper |
 | **papers/** | Raw PDFs of source literature. | On demand |
+| **RESEARCH_LOG.md** (repo root) | One line per session that had no research line, newest first, each linking its convo in `docs/convos/`. Committed on `main` (§3d). | On demand, when resuming one-off work |
+| **docs/convos/**, **docs/results/** | Convo summaries and result notes of sessions with no line. Committed on `main` (§3d). | On demand |
 
 `RESEARCHER.md` (this file) and skills live in the upstream template clone at `/home/claude/.claude_researcher_template/template/`, not in the user's repo — see §2.0a.
 
@@ -515,7 +517,7 @@ Historical docs are **never deleted** — always recoverable when you need to re
 
 ## §3 — Branch resolution
 
-The user's first message usually falls into one of three patterns.
+The user's first message usually falls into one of four patterns.
 
 **a) Direct match.** User says "continue stress-sleep" and STATUS shows `stress-sleep` as active. Check out and catch up:
 
@@ -533,6 +535,8 @@ Fallback if the §2.0b clone failed: Contents API GET with `?ref=stress-sleep` (
 **b) Indirect match via path.** User says "revisit `docs/active/d-axis-stability`" — path names the line. Same as (a).
 
 **c) No match — list and ask.** No line named + multiple active lines → list with one-liners and ask which. Include "start a new line" as an option. If the user just says "hi", offer the list as a starting point.
+
+**d) One-off session, no line.** A quick fix, a question or maintenance: nothing that needs a research line. The session's record goes on `main`: its convo file in `docs/convos/`, its line at the top of the repo-root `RESEARCH_LOG.md`, and any results it saved in `docs/results/` (notes and tables, not data or code). Don't cut a branch just to hold the record; nobody merges a branch like that, so later sessions never see it. Other changes the session makes still follow the repo's mode. If the session is already on a branch (the harness assigned one, or the work needed one), finish-convo's stranding check offers to copy the record to `main`.
 
 **Starting a new line.** Invoke `start-research-line`. It bundles the four artifacts (STATUS row on `main`, branch cut, `docs/active/<branch>/{convos,plans,results}` scaffold, seeded `RESEARCH_LOG.md`) into one atomic ceremony. Why a skill instead of scripted here: the STATUS row is load-bearing — every future session-start read needs to see the line at a glance, and the session-start sequence doesn't `ls docs/active/`. Bundling guarantees the row lands *with* the rest.
 
