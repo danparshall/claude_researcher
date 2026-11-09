@@ -22,6 +22,13 @@ Read and follow `{{skills_dir}}/update-docs/SKILL.md`. It writes the convo summa
 
 2.5. If `paper_index.toml` exists at the repo root, run `python3 {{skills_dir}}/paper-index/paper_index.py check .` before committing. Do not commit a red check.
 
+2.75. Check the record won't be stranded (read-only). Skip this on `main`. On a branch, run `gh pr list --head <branch> --state all --json number,state` (sandbox: the REST equivalent, see RESEARCHER.md). The record is stranded if either is true:
+
+- the branch's PR has already merged, so commits after the merge never reach main;
+- the branch has no open PR and no research line of its own (no `docs/active/<branch>/`). A line branch without a PR is normal; leave it alone.
+
+If so, tell the user: "This branch [has no line and no PR / had PR #N merged already], so this convo record would be stranded here. After pushing, copy the record to main?" Don't touch main unless they say yes.
+
 3. Stage and commit all session artefacts:
 
 Run `git status` and account for everything the session produced or touched. At minimum:
@@ -50,9 +57,16 @@ Research branches can live for weeks — don't let unpushed work accumulate.
 
 If the push is rejected (non-fast-forward — another session pushed this branch first): `git pull --rebase`. If the only conflicts are append-on-top regions (RESEARCH_LOG.md's newest-first lines), resolve with `python3 {{skills_dir}}/finish-convo/resolve_append_conflict.py <file>` (keeps both sides), `git add <file>`, `git rebase --continue`, and push again. Any other conflict shape: surface it to the user.
 
+4.5. If the user said yes at step 2.75, copy the record onto main. Copy, don't merge: it needs no shared history, so it works in a shallow clone, and it can't carry the branch's other work into main.
+
+- The record is this session's convo file, any result notes it saved, and its RESEARCH_LOG line. No line: `docs/convos/`, `docs/results/`, root `RESEARCH_LOG.md`. A line whose PR merged: under `docs/active/<line>/`, or `docs/historical/<line>/` if main has archived it.
+- On Claude Code, work in the main worktree (`git -C <main-worktree>`, the first entry of `git worktree list`), never by checking out main in a linked worktree. In the sandbox's single clone, check out main, then return to the branch afterwards.
+- Confirm main has no modified tracked files (`git status --short`) and `git pull --ff-only origin main`. Bring the files over with `git checkout <branch> -- <file>…`. Carry the log change over by hand, never the branch's whole log file (main's log has usually moved on). Usually that's one new line at the top; if this session's earlier lines were updated in place, replace those lines on main instead of adding another.
+- Commit as `convo: <convo-name> — record copied from <branch>` and push main. Tell the user the branch still holds the same commits, so it will look unmerged; when it merges later, the files match, and a log-line conflict resolves with `resolve_append_conflict.py` as in step 4.
+
 5. Do NOT:
 - Create a PR (research branches stay open until user explicitly asks to merge)
-- Merge into main (NEVER without explicit request)
+- Merge into main (NEVER without explicit request; step 4.5 copies files, it doesn't merge)
 - Run the finish-branch pipeline
 - Write STATUS.md (only opening and closing a line write it; LITE's `## Sessions` entry is the exception)
 
