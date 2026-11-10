@@ -25,7 +25,7 @@ Sets up the directory structure and documentation scaffolding for the research-f
 
 The workflow's epistemic norms and doc-structure conventions are **persona-level** — they live in `RESEARCHER.md` (web) or `AGENTS.md` (Claude Code), read every session, not duplicated into each repo's `CLAUDE.md`. A per-repo `CLAUDE.md` is for project-specific standing notes; this skill doesn't create or modify it.
 
-Seed templates live in `{{skills_dir}}/init-research-repo/templates/` (`T` below).
+Seed templates live in `{{skills_dir}}/init-research-repo/templates/`. To seed a file, Read the template with the Read tool and Write its contents to the target with the Write tool. Don't use `cp` or any other shell command on a template: on Claude Code, `{{skills_dir}}` is under `~/.claude/`, and a Bash command naming a `~/.claude/` path prompts for permission even when allow rules cover it.
 
 ## Step 1: Check What Exists
 
@@ -60,28 +60,28 @@ The four subdirs match the Cookiecutter Data Science convention (https://cookiec
 
 ## Step 3: Seed data/README.md
 
-If `data/README.md` doesn't exist, copy `$T/data_readme.md.tmpl` to it (layout, provenance stub, optional external-sync note).
+If `data/README.md` doesn't exist, seed it from `templates/data_readme.md.tmpl` (layout, provenance stub, optional external-sync note).
 
 ## Step 4: Seed .gitignore
 
-If `.gitignore` doesn't exist, copy `$T/gitignore.tmpl` to it (Python, Jupyter, OS, secrets, and the `data/raw/**` block aligned with Step 2).
+If `.gitignore` doesn't exist, seed it from `templates/gitignore.tmpl` (Python, Jupyter, OS, secrets, and the `data/raw/**` block aligned with Step 2).
 
 If `.gitignore` already exists, do **not** overwrite. Check whether the `data/raw/**` block is present; if missing, offer to append it (don't silently modify a hand-maintained file). If the user declines, note it in the report.
 
 ## Step 5: Seed STATUS.md and HISTORY.md
 
-Seed: `$T/status_seed.md.tmpl` — header, Current Focus, `## Project parameters` (optional keys read only by web-profile skills), `## Active Research Lines`, `## Archived Research Lines`.
+Seed: `templates/status_seed.md.tmpl` — header, Current Focus, `## Project parameters` (optional keys read only by web-profile skills), `## Active Research Lines`, `## Archived Research Lines`.
 
-- If STATUS.md exists, append each of those three `##` sections it lacks, copied from the seed. Don't add `## Recent Sessions` — sessions log in RESEARCH_LOG.md, and STATUS.md changes only when a line opens or closes.
-- If STATUS.md doesn't exist, ask the user whether to create one; if yes, copy the full seed.
+- If STATUS.md exists, append each of those three `##` sections it lacks, taken from the seed. Don't add `## Recent Sessions` — sessions log in RESEARCH_LOG.md, and STATUS.md changes only when a line opens or closes.
+- If STATUS.md doesn't exist, ask the user whether to create one; if yes, write the full seed.
 
 If `README.md` doesn't exist, ask the user for a one-paragraph description of the repo and write `# <repo name>` followed by that paragraph.
 
-If `HISTORY.md` doesn't exist, copy `$T/history_seed.md.tmpl` to it. `finishing-a-research-branch` rolls Archived rows beyond the newest 10 into it.
+If `HISTORY.md` doesn't exist, seed it from `templates/history_seed.md.tmpl`. `finishing-a-research-branch` rolls Archived rows beyond the newest 10 into it.
 
 ## Step 6: Create Initial RESEARCH_LOG.md (if on a branch)
 
-If on a named branch (not main/master), create `docs/active/<branch>/RESEARCH_LOG.md` from `$T/research_log_seed.md.tmpl`, filling in the branch name and asking the user for the one-sentence Purpose.
+If on a named branch (not main/master), create `docs/active/<branch>/RESEARCH_LOG.md` from `templates/research_log_seed.md.tmpl`, filling in the branch name and asking the user for the one-sentence Purpose.
 
 ## Step 7: Paper collection (optional)
 

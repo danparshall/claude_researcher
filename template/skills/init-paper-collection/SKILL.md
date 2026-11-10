@@ -38,13 +38,13 @@ touch papers/.gitkeep papers/text/.gitkeep
 
 ## Step 3: Seed files
 
-Copy each template only where the target is absent (`T={{skills_dir}}/init-paper-collection/templates`):
+Seed each file only where the target is absent. Templates live in `{{skills_dir}}/init-paper-collection/templates/`; Read each one with the Read tool and Write its contents to the target with the Write tool. Don't use `cp` or any other shell command on a template: on Claude Code, `{{skills_dir}}` is under `~/.claude/`, and a Bash command naming a `~/.claude/` path prompts for permission even when allow rules cover it.
 
 | Template | Target |
 |---|---|
-| `$T/PAPER_INDEX.md.tmpl` | `PAPER_INDEX.md` — the three generated-block marker pairs and the Quick Reference preamble |
-| `$T/PAPER_SUMMARIES.md.tmpl` | `PAPER_SUMMARIES.md` — the `summaries-header` marker pair |
-| `$T/paper_index.toml.tmpl` | `paper_index.toml` — every key commented out |
+| `templates/PAPER_INDEX.md.tmpl` | `PAPER_INDEX.md` — the three generated-block marker pairs and the Quick Reference preamble |
+| `templates/PAPER_SUMMARIES.md.tmpl` | `PAPER_SUMMARIES.md` — the `summaries-header` marker pair |
+| `templates/paper_index.toml.tmpl` | `paper_index.toml` — every key commented out |
 
 If PAPER_INDEX.md exists without markers, add the three pairs (`counts`, `quick-reference`, `section-list`) by hand; the tool never invents them.
 
